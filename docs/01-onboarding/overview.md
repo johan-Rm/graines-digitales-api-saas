@@ -16,7 +16,7 @@ docker compose exec api php bin/console doctrine:migrations:migrate --no-interac
 API locale par defaut :
 
 ```txt
-http://localhost:8080
+http://localhost:18080
 ```
 
 Si `API_HTTP_PORT` est defini localement, utiliser ce port.
@@ -96,7 +96,7 @@ SELECT id, name, slug FROM project WHERE slug = 'demo-project';
 ## Obtenir un token JWT
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:18080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@example.test","password":"admin123"}'
 ```
@@ -108,7 +108,7 @@ La reponse contient `token` et `refresh_token`.
 Remplacer `PROJECT_ID` et `TOKEN`.
 
 ```bash
-curl http://localhost:8080/api/projects/PROJECT_ID/category-codes \
+curl http://localhost:18080/api/projects/PROJECT_ID/category-codes \
   -H "Authorization: Bearer TOKEN" \
   -H "Accept: application/ld+json"
 ```
@@ -116,7 +116,7 @@ curl http://localhost:8080/api/projects/PROJECT_ID/category-codes \
 ## Creer une ressource de test
 
 ```bash
-curl -X POST http://localhost:8080/api/projects/PROJECT_ID/category-codes \
+curl -X POST http://localhost:18080/api/projects/PROJECT_ID/category-codes \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/ld+json" \
   -d '{

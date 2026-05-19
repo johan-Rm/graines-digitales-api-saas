@@ -29,7 +29,7 @@ docker compose exec api php bin/console lexik:jwt:generate-keypair --skip-if-exi
 docker compose exec api php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-API locale : `http://localhost:8080`
+API locale : `http://localhost:18080`
 
 ## Auth
 

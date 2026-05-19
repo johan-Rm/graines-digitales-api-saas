@@ -25,7 +25,7 @@ services:
   nginx:
     image: nginx:1.27-alpine
     ports:
-      - "${API_HTTP_PORT:-8080}:80"
+      - "${API_HTTP_PORT:-18080}:80"
     volumes:
       - .:/srv/api:ro
       - media_uploads:/srv/api/public/media:ro
