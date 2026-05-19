@@ -12,4 +12,16 @@ final class AuthenticationTest extends ApiTestCase
 
         self::assertResponseStatusCodeSame(401);
     }
+
+    public function testLocalUserCreationRejectsInvalidPayload(): void
+    {
+        static::createClient()->request('POST', '/api/auth/local-users', [
+            'json' => [
+                'email' => 'not-an-email',
+                'password' => 'short',
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
 }

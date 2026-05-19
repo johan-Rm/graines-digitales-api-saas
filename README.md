@@ -30,6 +30,7 @@ API locale : `http://localhost:8080`
 
 - `POST /api/auth/login`
 - `POST /api/auth/refresh`
+- `POST /api/auth/local-users` en local/test uniquement
 
 Les routes `/api/projects/{projectId}/...` exigent un JWT valide et un membership projet.
 
