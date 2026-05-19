@@ -10,12 +10,15 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
+use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\ContentStatus;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
 use App\State\ProjectScopedRemoveProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -32,46 +35,57 @@ use Symfony\Component\Serializer\Attribute\Groups;
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
-class CreativeWork implements ProjectScopedResource
+class CreativeWork implements ProjectScopedResource, TranslatableResource
 {
     use AuditTrail;
     use ProjectOwned;
+    use TranslatableResourceBehavior;
     use UuidIdentity;
 
     #[ORM\Column(length: 180)]
     #[Groups(['read', 'write'])]
     private string $identifier = '';
 
-    #[ORM\Column(length: 220, nullable: true)]
+    /**
+     * @var Collection<int, CreativeWorkTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: CreativeWorkTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['read', 'write'])]
-    private ?string $name = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $text = null;
+    private Collection $translations;
 
     #[ORM\Column(enumType: ContentStatus::class)]
     #[Groups(['read', 'write'])]
     private ContentStatus $status = ContentStatus::Draft;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?array $schemaData = null;
-
     public function __construct()
     {
         $this->initializeUuid();
         $this->initializeAuditTrail();
+        $this->translations = new ArrayCollection();
     }
 
     public function getIdentifier(): string { return $this->identifier; }
     public function setIdentifier(string $identifier): self { $this->identifier = $identifier; return $this; }
-    public function getName(): ?string { return $this->name; }
-    public function setName(?string $name): self { $this->name = $name; return $this; }
-    public function getText(): ?string { return $this->text; }
-    public function setText(?string $text): self { $this->text = $text; return $this; }
+    protected function createTranslation(): ResourceTranslation { return new CreativeWorkTranslation(); }
+    protected function addTranslation(ResourceTranslation $translation): self { if (!$this->translations->contains($translation)) { $this->translations->add($translation); } return $this; }
+    public function getTranslations(): Collection { return $this->translations; }
+    #[Groups(['read'])]
+    public function getRequestedLocale(): string { return $this->requestedLocale; }
+    #[Groups(['read'])]
+    public function getLocale(): string { return $this->currentLocale; }
+    #[Groups(['read'])]
+    public function getFallbackLocale(): ?string { return $this->fallbackLocale; }
+    #[Groups(['read'])]
+    public function isFallback(): bool { return $this->fallback; }
+    #[Groups(['read', 'write'])]
+    public function getName(): ?string { $translation = $this->getTranslation(); return $translation instanceof CreativeWorkTranslation ? $translation->getName() : null; }
+    public function setName(?string $name): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setName($name); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getText(): ?string { $translation = $this->getTranslation(); return $translation instanceof CreativeWorkTranslation ? $translation->getText() : null; }
+    public function setText(?string $text): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setText($text); return $this; }
     public function getStatus(): ContentStatus { return $this->status; }
     public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
-    public function getSchemaData(): ?array { return $this->schemaData; }
-    public function setSchemaData(?array $schemaData): self { $this->schemaData = $schemaData; return $this; }
+    #[Groups(['read', 'write'])]
+    public function getSchemaData(): ?array { $translation = $this->getTranslation(); return $translation instanceof CreativeWorkTranslation ? $translation->getSchemaData() : null; }
+    public function setSchemaData(?array $schemaData): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSchemaData($schemaData); return $this; }
 }

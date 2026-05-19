@@ -10,19 +10,20 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
+use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\ContentStatus;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
 use App\State\ProjectScopedRemoveProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Index(columns: ['project_id'], name: 'idx_article_project')]
-#[ORM\Index(columns: ['slug'], name: 'idx_article_slug')]
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/articles', provider: ProjectScopedCollectionProvider::class),
@@ -34,48 +35,54 @@ use Symfony\Component\Validator\Constraints as Assert;
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
-class Article implements ProjectScopedResource
+class Article implements ProjectScopedResource, TranslatableResource
 {
     use AuditTrail;
     use ProjectOwned;
+    use TranslatableResourceBehavior;
     use UuidIdentity;
 
-    #[ORM\Column(length: 180)]
-    #[Assert\NotBlank]
+    /**
+     * @var Collection<int, ArticleTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: ArticleTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['read', 'write'])]
-    private string $slug = '';
-
-    #[ORM\Column(length: 220)]
-    #[Assert\NotBlank]
-    #[Groups(['read', 'write'])]
-    private string $headline = '';
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $body = null;
+    private Collection $translations;
 
     #[ORM\Column(enumType: ContentStatus::class)]
     #[Groups(['read', 'write'])]
     private ContentStatus $status = ContentStatus::Draft;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?array $schemaData = null;
-
     public function __construct()
     {
         $this->initializeUuid();
         $this->initializeAuditTrail();
+        $this->translations = new ArrayCollection();
     }
 
-    public function getSlug(): string { return $this->slug; }
-    public function setSlug(string $slug): self { $this->slug = $slug; return $this; }
-    public function getHeadline(): string { return $this->headline; }
-    public function setHeadline(string $headline): self { $this->headline = $headline; return $this; }
-    public function getBody(): ?string { return $this->body; }
-    public function setBody(?string $body): self { $this->body = $body; return $this; }
+    protected function createTranslation(): ResourceTranslation { return new ArticleTranslation(); }
+    protected function addTranslation(ResourceTranslation $translation): self { if (!$this->translations->contains($translation)) { $this->translations->add($translation); } return $this; }
+    public function getTranslations(): Collection { return $this->translations; }
+    #[Groups(['read'])]
+    public function getRequestedLocale(): string { return $this->requestedLocale; }
+    #[Groups(['read'])]
+    public function getLocale(): string { return $this->currentLocale; }
+    #[Groups(['read'])]
+    public function getFallbackLocale(): ?string { return $this->fallbackLocale; }
+    #[Groups(['read'])]
+    public function isFallback(): bool { return $this->fallback; }
+    #[Groups(['read', 'write'])]
+    public function getSlug(): string { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getSlug() : ''; }
+    public function setSlug(string $slug): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSlug($slug); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getHeadline(): string { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getHeadline() : ''; }
+    public function setHeadline(string $headline): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setHeadline($headline); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getBody(): ?string { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getBody() : null; }
+    public function setBody(?string $body): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setBody($body); return $this; }
     public function getStatus(): ContentStatus { return $this->status; }
     public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
-    public function getSchemaData(): ?array { return $this->schemaData; }
-    public function setSchemaData(?array $schemaData): self { $this->schemaData = $schemaData; return $this; }
+    #[Groups(['read', 'write'])]
+    public function getSchemaData(): ?array { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getSchemaData() : null; }
+    public function setSchemaData(?array $schemaData): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSchemaData($schemaData); return $this; }
 }

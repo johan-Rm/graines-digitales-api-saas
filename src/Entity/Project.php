@@ -37,6 +37,18 @@ class Project
     #[Groups(['read', 'write'])]
     private string $slug = '';
 
+    #[ORM\Column(length: 8)]
+    #[Assert\Choice(choices: ['fr', 'en', 'es', 'ar'])]
+    #[Groups(['read', 'write'])]
+    private string $sourceLocale = 'fr';
+
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json')]
+    #[Groups(['read', 'write'])]
+    private array $enabledLocales = ['fr'];
+
     public function __construct()
     {
         $this->initializeUuid();
@@ -75,6 +87,45 @@ class Project
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getSourceLocale(): string
+    {
+        return $this->sourceLocale;
+    }
+
+    public function setSourceLocale(string $sourceLocale): self
+    {
+        $this->sourceLocale = $sourceLocale;
+
+        if (!in_array($sourceLocale, $this->enabledLocales, true)) {
+            $this->enabledLocales[] = $sourceLocale;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getEnabledLocales(): array
+    {
+        return $this->enabledLocales;
+    }
+
+    /**
+     * @param list<string> $enabledLocales
+     */
+    public function setEnabledLocales(array $enabledLocales): self
+    {
+        $locales = array_values(array_unique($enabledLocales));
+        $this->enabledLocales = [] === $locales ? [$this->sourceLocale] : $locales;
+
+        if (!in_array($this->sourceLocale, $this->enabledLocales, true)) {
+            $this->enabledLocales[] = $this->sourceLocale;
+        }
 
         return $this;
     }

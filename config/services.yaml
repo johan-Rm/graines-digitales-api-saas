@@ -21,6 +21,10 @@ services:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'
 
+    App\State\ProjectScopedTranslationPersistProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.persist_processor'
+
     App\State\ProjectScopedRemoveProcessor:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.remove_processor'

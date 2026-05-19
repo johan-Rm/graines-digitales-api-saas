@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\MediaObject;
 use App\Entity\ProjectScopedResource;
+use App\Entity\ResourceTranslation;
+use App\Entity\TranslatableResource;
 use App\Message\AnalyzeMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
@@ -34,6 +36,15 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             }
 
             $data->touch($actor);
+
+            if ($data instanceof TranslatableResource) {
+                foreach ($data->getTranslations() as $translation) {
+                    if ($translation instanceof ResourceTranslation) {
+                        $translation->setTranslatable($data);
+                        $translation->touch($actor);
+                    }
+                }
+            }
 
             if ($data instanceof MediaObject && null !== $data->getFile()) {
                 $data->setChecksumSha256(hash_file('sha256', $data->getFile()->getPathname()) ?: null);

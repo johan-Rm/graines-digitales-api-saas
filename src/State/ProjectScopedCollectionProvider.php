@@ -5,7 +5,9 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\ProjectScopedResource;
+use App\Entity\TranslatableResource;
 use App\Security\ProjectAccessGuard;
+use App\Translation\LocaleResolver;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class ProjectScopedCollectionProvider implements ProviderInterface
@@ -14,6 +16,7 @@ final readonly class ProjectScopedCollectionProvider implements ProviderInterfac
         private ProviderInterface $decorated,
         private EntityManagerInterface $entityManager,
         private ProjectAccessGuard $projectAccessGuard,
+        private LocaleResolver $localeResolver,
     ) {
     }
 
@@ -24,12 +27,36 @@ final readonly class ProjectScopedCollectionProvider implements ProviderInterfac
         $class = $operation->getClass();
 
         if (is_a($class, ProjectScopedResource::class, true)) {
-            return $this->entityManager->getRepository($class)->findBy([
+            $resources = $this->entityManager->getRepository($class)->findBy([
                 'project' => $project,
                 'deletedAt' => null,
             ]);
+
+            foreach ($resources as $resource) {
+                if ($resource instanceof TranslatableResource) {
+                    $this->resolveTranslationLocale($resource);
+                }
+            }
+
+            return $resources;
         }
 
         return $this->decorated->provide($operation, $uriVariables, $context);
+    }
+
+    private function resolveTranslationLocale(TranslatableResource $resource): void
+    {
+        $project = $resource->getProject();
+        if (null === $project) {
+            return;
+        }
+
+        $requestedLocale = $this->localeResolver->resolve($project);
+        $currentLocale = null !== $resource->getTranslation($requestedLocale)
+            ? $requestedLocale
+            : $project->getSourceLocale();
+        $fallbackLocale = $currentLocale !== $requestedLocale ? $currentLocale : null;
+
+        $resource->setResolvedLocale($requestedLocale, $currentLocale, $fallbackLocale);
     }
 }

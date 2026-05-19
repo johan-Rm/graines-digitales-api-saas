@@ -50,6 +50,14 @@ Content-Type: multipart/form-data
 
 Le backend calcule `checksumSha256` cote serveur.
 
+## Traductions
+
+Les contenus editoriaux utilisent un modele local inspire de Sylius :
+une ressource racine porte le projet, l'audit et les statuts, et une table
+`*Translation` porte les champs localises par `locale`.
+
+Voir `docs/TRANSLATIONS.md` pour le contrat des routes et les invariants.
+
 ## Tests
 
 ```bash

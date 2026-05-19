@@ -4,7 +4,7 @@
 
 - ID : TASK-002
 - Source : ajustement utilisateur du 2026-05-19
-- Statut : A faire
+- Statut : En cours
 - Perimetre : API Symfony 8 / API Platform pour contenus multilingues
 - Dossier cible : `api/symfony-8-api-platform/`
 - Inspiration : `/home/johan/www/kazen-garden/digital-management-system`
@@ -179,33 +179,33 @@ Prioriser les tests suivants :
 
 ## Plan d'execution
 
-- [ ] Auditer le pattern Kazen `Translatable` / `Translation` et en extraire les invariants utiles.
-- [ ] Verifier si une dependance Sylius compatible Symfony 8 est pertinente ou si une implementation locale est preferable.
-- [ ] Definir une interface ou un trait local `TranslatableResource` si utile.
-- [ ] Definir une interface ou un trait local `ResourceTranslation` si utile.
-- [ ] Ajouter la configuration de locales par projet.
-- [ ] Ajouter la locale source par projet.
-- [ ] Creer les entites de traduction MVP : `WebPageTranslation`, `ArticleTranslation`, `CreativeWorkTranslation`, `MenuItemTranslation`, `CategoryCodeTranslation`.
-- [ ] Deplacer les champs localises prioritaires vers les entites de traduction.
-- [ ] Ajouter les contraintes SQL et index de locale/slug.
-- [ ] Adapter les providers/processors API Platform pour resoudre la traduction courante.
-- [ ] Ajouter un resolver de locale SSR/API-safe base sur query param, header ou defaut projet.
-- [ ] Ajouter une strategie de fallback explicite.
+- [x] Auditer le pattern Kazen `Translatable` / `Translation` et en extraire les invariants utiles.
+- [x] Verifier si une dependance Sylius compatible Symfony 8 est pertinente ou si une implementation locale est preferable.
+- [x] Definir une interface ou un trait local `TranslatableResource` si utile.
+- [x] Definir une interface ou un trait local `ResourceTranslation` si utile.
+- [x] Ajouter la configuration de locales par projet.
+- [x] Ajouter la locale source par projet.
+- [x] Creer les entites de traduction MVP : `WebPageTranslation`, `ArticleTranslation`, `CreativeWorkTranslation`, `MenuItemTranslation`, `CategoryCodeTranslation`.
+- [x] Deplacer les champs localises prioritaires vers les entites de traduction.
+- [x] Ajouter les contraintes SQL et index de locale/slug.
+- [x] Adapter les providers/processors API Platform pour resoudre la traduction courante.
+- [x] Ajouter un resolver de locale SSR/API-safe base sur query param, header ou defaut projet.
+- [x] Ajouter une strategie de fallback explicite.
 - [ ] Definir les DTOs de lecture localisee.
 - [ ] Definir les DTOs de gestion des traductions.
 - [ ] Mettre a jour les schemas DTO Symfony API.
-- [ ] Ajouter les migrations Doctrine.
+- [x] Ajouter les migrations Doctrine.
 - [ ] Ajouter les tests fonctionnels de lecture localisee.
 - [ ] Ajouter les tests de securite multi-projet sur les traductions.
-- [ ] Documenter le modele de traduction dans le README ou une note technique.
+- [x] Documenter le modele de traduction dans le README ou une note technique.
 
 ## Validations attendues
 
-- [ ] Les migrations s'executent sur PostgreSQL depuis un environnement propre.
-- [ ] Une ressource peut avoir plusieurs traductions.
-- [ ] Une ressource ne peut pas avoir deux traductions pour la meme locale.
-- [ ] La lecture localisee retourne la bonne traduction.
-- [ ] Le fallback est explicite et testable.
+- [x] Les migrations s'executent sur PostgreSQL depuis un environnement propre.
+- [x] Une ressource peut avoir plusieurs traductions.
+- [x] Une ressource ne peut pas avoir deux traductions pour la meme locale.
+- [x] La lecture localisee retourne la bonne traduction.
+- [x] Le fallback est explicite et testable.
 - [ ] Les routes backoffice ne masquent pas les traductions manquantes.
 - [ ] Les traductions respectent strictement l'isolation projet.
 - [ ] Les DTOs exposent clairement la locale demandee et la locale effectivement servie.

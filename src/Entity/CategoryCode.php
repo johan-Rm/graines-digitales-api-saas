@@ -10,11 +10,14 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
+use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
 use App\State\ProjectScopedRemoveProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -33,10 +36,11 @@ use Symfony\Component\Validator\Constraints as Assert;
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
-class CategoryCode implements ProjectScopedResource
+class CategoryCode implements ProjectScopedResource, TranslatableResource
 {
     use AuditTrail;
     use ProjectOwned;
+    use TranslatableResourceBehavior;
     use UuidIdentity;
 
     #[ORM\Column(length: 120)]
@@ -44,10 +48,12 @@ class CategoryCode implements ProjectScopedResource
     #[Groups(['read', 'write'])]
     private string $code = '';
 
-    #[ORM\Column(length: 180)]
-    #[Assert\NotBlank]
+    /**
+     * @var Collection<int, CategoryCodeTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: CategoryCodeTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['read', 'write'])]
-    private string $label = '';
+    private Collection $translations;
 
     #[ORM\Column(type: 'json', nullable: true)]
     #[Groups(['read', 'write'])]
@@ -57,6 +63,7 @@ class CategoryCode implements ProjectScopedResource
     {
         $this->initializeUuid();
         $this->initializeAuditTrail();
+        $this->translations = new ArrayCollection();
     }
 
     public function getCode(): string
@@ -71,17 +78,20 @@ class CategoryCode implements ProjectScopedResource
         return $this;
     }
 
-    public function getLabel(): string
-    {
-        return $this->label;
-    }
-
-    public function setLabel(string $label): self
-    {
-        $this->label = $label;
-
-        return $this;
-    }
+    protected function createTranslation(): ResourceTranslation { return new CategoryCodeTranslation(); }
+    protected function addTranslation(ResourceTranslation $translation): self { if (!$this->translations->contains($translation)) { $this->translations->add($translation); } return $this; }
+    public function getTranslations(): Collection { return $this->translations; }
+    #[Groups(['read'])]
+    public function getRequestedLocale(): string { return $this->requestedLocale; }
+    #[Groups(['read'])]
+    public function getLocale(): string { return $this->currentLocale; }
+    #[Groups(['read'])]
+    public function getFallbackLocale(): ?string { return $this->fallbackLocale; }
+    #[Groups(['read'])]
+    public function isFallback(): bool { return $this->fallback; }
+    #[Groups(['read', 'write'])]
+    public function getLabel(): string { $translation = $this->getTranslation(); return $translation instanceof CategoryCodeTranslation ? $translation->getLabel() : ''; }
+    public function setLabel(string $label): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setLabel($label); return $this; }
 
     public function getMetadata(): ?array
     {

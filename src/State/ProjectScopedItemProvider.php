@@ -5,7 +5,9 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\ProjectScopedResource;
+use App\Entity\TranslatableResource;
 use App\Security\ProjectAccessGuard;
+use App\Translation\LocaleResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Uid\Uuid;
@@ -16,6 +18,7 @@ final readonly class ProjectScopedItemProvider implements ProviderInterface
         private ProviderInterface $decorated,
         private EntityManagerInterface $entityManager,
         private ProjectAccessGuard $projectAccessGuard,
+        private LocaleResolver $localeResolver,
     ) {
     }
 
@@ -41,9 +44,29 @@ final readonly class ProjectScopedItemProvider implements ProviderInterface
                 throw new NotFoundHttpException('Resource not found.');
             }
 
+            if ($resource instanceof TranslatableResource) {
+                $this->resolveTranslationLocale($resource);
+            }
+
             return $resource;
         }
 
         return $this->decorated->provide($operation, $uriVariables, $context);
+    }
+
+    private function resolveTranslationLocale(TranslatableResource $resource): void
+    {
+        $project = $resource->getProject();
+        if (null === $project) {
+            return;
+        }
+
+        $requestedLocale = $this->localeResolver->resolve($project);
+        $currentLocale = null !== $resource->getTranslation($requestedLocale)
+            ? $requestedLocale
+            : $project->getSourceLocale();
+        $fallbackLocale = $currentLocale !== $requestedLocale ? $currentLocale : null;
+
+        $resource->setResolvedLocale($requestedLocale, $currentLocale, $fallbackLocale);
     }
 }
