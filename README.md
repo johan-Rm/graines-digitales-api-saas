@@ -14,6 +14,11 @@ Backend SaaS multi-clients et multi-projets pour centraliser les contenus des we
 - VichUploaderBundle
 - Docker Compose
 
+## Documentation
+
+Le point d'entree de la documentation API est `docs/index.md`.
+Il definit l'ordre de lecture et le proprietaire documentaire de chaque regle.
+
 ## Demarrage local
 
 ```bash
