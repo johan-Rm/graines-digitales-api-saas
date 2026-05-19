@@ -1,0 +1,59 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /srv/api
+    volumes:
+      - .:/srv/api
+      - media_uploads:/srv/api/public/media
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DATABASE_URL: postgresql://cms:cms@postgres:5432/cms?serverVersion=17&charset=utf8
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-%kernel.project_dir%/config/jwt/private.pem}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-%kernel.project_dir%/config/jwt/public.pem}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:-change-me}
+      JWT_TOKEN_TTL: ${JWT_TOKEN_TTL:-900}
+      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-2592000}
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cms_api
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${API_HTTP_PORT:-8080}:80"
+    volumes:
+      - .:/srv/api:ro
+      - media_uploads:/srv/api/public/media:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+    networks:
+      - cms_api
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cms}
+      POSTGRES_USER: ${POSTGRES_USER:-cms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-cms} -d $${POSTGRES_DB:-cms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cms_api
+volumes:
+  postgres_data:
+  media_uploads:
+
+networks:
+  cms_api:
+    driver: bridge

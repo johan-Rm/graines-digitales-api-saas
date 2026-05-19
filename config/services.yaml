@@ -1,0 +1,26 @@
+parameters:
+    upload_public_base_url: '%env(resolve:UPLOAD_PUBLIC_BASE_URL)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+
+    App\State\ProjectScopedCollectionProvider:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.collection_provider'
+
+    App\State\ProjectScopedItemProvider:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.item_provider'
+
+    App\State\ProjectScopedPersistProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.persist_processor'
+
+    App\State\ProjectScopedRemoveProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.remove_processor'
