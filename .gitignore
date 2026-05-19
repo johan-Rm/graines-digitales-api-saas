@@ -4,6 +4,7 @@
 /.env.local
 /.env.*.local
 /config/jwt/*.pem
+/config/reference.php
 /public/media/
 /var/
 /vendor/
