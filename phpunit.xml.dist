@@ -27,7 +27,7 @@
         <!-- DATABASE_URL="sqlite:///%kernel.project_dir%/var/data_%kernel.environment%.db" -->
         <!-- DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=8.0.32&charset=utf8mb4" -->
         <!-- DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=10.11.2-MariaDB&charset=utf8mb4" -->
-        <env name="DATABASE_URL" value="postgresql://cms:cms@postgres:5432/cms_test?serverVersion=17&amp;charset=utf8"/>
+        <env name="DATABASE_URL" value="postgresql://graines_digitales_api:graines_digitales_api@postgres:5432/graines_digitales_api_test?serverVersion=17&amp;charset=utf8"/>
         <!-- ###- doctrine/doctrine-bundle ### -->
 
         <!-- ###+ lexik/jwt-authentication-bundle ### -->

@@ -9,7 +9,7 @@ services:
       - media_uploads:/srv/api/public/media
     environment:
       APP_ENV: ${APP_ENV:-dev}
-      DATABASE_URL: postgresql://cms:cms@postgres:5432/cms?serverVersion=17&charset=utf8
+      DATABASE_URL: postgresql://graines_digitales_api:graines_digitales_api@postgres:5432/graines_digitales_api?serverVersion=17&charset=utf8
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-%kernel.project_dir%/config/jwt/private.pem}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-%kernel.project_dir%/config/jwt/public.pem}
       JWT_PASSPHRASE: ${JWT_PASSPHRASE:-change-me}
@@ -37,14 +37,16 @@ services:
 
   postgres:
     image: postgres:17-alpine
+    ports:
+      - "${POSTGRES_PORT:-15432}:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-cms}
-      POSTGRES_USER: ${POSTGRES_USER:-cms}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+      POSTGRES_DB: ${POSTGRES_DB:-graines_digitales_api}
+      POSTGRES_USER: ${POSTGRES_USER:-graines_digitales_api}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-graines_digitales_api}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-cms} -d $${POSTGRES_DB:-cms}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-graines_digitales_api} -d $${POSTGRES_DB:-graines_digitales_api}"]
       interval: 5s
       timeout: 5s
       retries: 10

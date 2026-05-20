@@ -4,7 +4,7 @@
 
 - ID : TASK-004
 - Source : ajustement utilisateur du 2026-05-19
-- Statut : A faire
+- Statut : MVP implemente
 - Perimetre : donnees de demonstration et tests pour tenancy SaaS
 - Dependance fonctionnelle : TASK-001
 
@@ -32,19 +32,19 @@ isoles par projet.
 
 ## Plan d'execution
 
-- [ ] Choisir l'outil de fixtures compatible Symfony 8.
-- [ ] Definir les organisations de demonstration.
-- [ ] Definir les projets par organisation.
-- [ ] Definir les utilisateurs et roles projet.
-- [ ] Ajouter les contenus minimaux par projet.
+- [x] Choisir l'outil de fixtures compatible Symfony 8.
+- [x] Definir les organisations de demonstration.
+- [x] Definir les projets par organisation.
+- [x] Definir les utilisateurs et roles projet.
+- [x] Ajouter les contenus minimaux par projet.
 - [ ] Ajouter des UUIDs stables pour les scenarios critiques.
-- [ ] Documenter comment charger les fixtures.
+- [x] Documenter comment charger les fixtures.
 - [ ] Brancher les fixtures utiles aux tests fonctionnels.
 
 ## Validations attendues
 
-- [ ] Les fixtures se chargent depuis un environnement propre.
-- [ ] Les projets sont correctement rattaches a leur organisation.
-- [ ] Les memberships permettent de tester les refus inter-projets.
-- [ ] Les contenus de deux projets restent distincts.
+- [x] Les fixtures se chargent depuis un environnement propre.
+- [x] Les projets sont correctement rattaches a leur organisation.
+- [x] Les memberships permettent de tester les refus inter-projets.
+- [x] Les contenus de deux projets restent distincts.
 - [ ] Les tests peuvent s'appuyer sur des donnees stables.
