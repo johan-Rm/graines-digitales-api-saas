@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model;
 use App\Entity\Traits\AuditTrail;
@@ -30,9 +31,10 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
 #[ORM\Index(columns: ['checksum_sha256'], name: 'idx_media_object_checksum')]
 #[ApiResource(
     operations: [
-        new GetCollection(uriTemplate: '/projects/{projectId}/media-objects', provider: ProjectScopedCollectionProvider::class),
+        new GetCollection(uriTemplate: '/projects/{projectId}/media-objects', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
         new Post(
             uriTemplate: '/projects/{projectId}/media-objects',
+            uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])],
             inputFormats: ['multipart' => ['multipart/form-data']],
             processor: ProjectScopedPersistProcessor::class,
             openapi: new Model\Operation(

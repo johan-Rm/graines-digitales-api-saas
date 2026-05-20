@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
@@ -27,8 +28,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'uniq_category_code_project_code', columns: ['project_id', 'code'])]
 #[ApiResource(
     operations: [
-        new GetCollection(uriTemplate: '/projects/{projectId}/category-codes', provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/category-codes', processor: ProjectScopedPersistProcessor::class),
+        new GetCollection(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
+        new Post(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class),
         new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
         new Delete(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),

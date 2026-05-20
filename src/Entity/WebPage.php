@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
@@ -26,8 +27,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(columns: ['project_id'], name: 'idx_web_page_project')]
 #[ApiResource(
     operations: [
-        new GetCollection(uriTemplate: '/projects/{projectId}/web-pages', provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/web-pages', processor: ProjectScopedPersistProcessor::class),
+        new GetCollection(uriTemplate: '/projects/{projectId}/web-pages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
+        new Post(uriTemplate: '/projects/{projectId}/web-pages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/web-pages/{id}', provider: ProjectScopedItemProvider::class),
         new Put(uriTemplate: '/projects/{projectId}/web-pages/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
         new Delete(uriTemplate: '/projects/{projectId}/web-pages/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),

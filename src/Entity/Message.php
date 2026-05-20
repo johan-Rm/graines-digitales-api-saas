@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
@@ -22,8 +23,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['project_id'], name: 'idx_message_project')]
 #[ApiResource(
     operations: [
-        new GetCollection(uriTemplate: '/projects/{projectId}/messages', provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/messages', processor: ProjectScopedPersistProcessor::class),
+        new GetCollection(uriTemplate: '/projects/{projectId}/messages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
+        new Post(uriTemplate: '/projects/{projectId}/messages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/messages/{id}', provider: ProjectScopedItemProvider::class),
         new Delete(uriTemplate: '/projects/{projectId}/messages/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
