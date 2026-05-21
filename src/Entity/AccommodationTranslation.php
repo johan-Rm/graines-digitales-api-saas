@@ -78,6 +78,10 @@ class AccommodationTranslation implements ResourceTranslation
     #[Groups(['read', 'write'])]
     private ?string $metaDescription = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $locationDescription = null;
+
     public function __construct()
     {
         $this->initializeUuid();
@@ -103,4 +107,6 @@ class AccommodationTranslation implements ResourceTranslation
     public function setMetaTitle(?string $metaTitle): self { $this->metaTitle = $metaTitle; return $this; }
     public function getMetaDescription(): ?string { return $this->metaDescription; }
     public function setMetaDescription(?string $metaDescription): self { $this->metaDescription = $metaDescription; return $this; }
+    public function getLocationDescription(): ?string { return $this->locationDescription; }
+    public function setLocationDescription(?string $locationDescription): self { $this->locationDescription = $locationDescription; return $this; }
 }
