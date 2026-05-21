@@ -27,7 +27,8 @@ security:
         refresh:
             pattern: ^/api/auth/refresh
             stateless: true
-            refresh_jwt: ~
+            refresh_jwt:
+                check_path: /api/auth/refresh
 
         api:
             pattern: ^/api/

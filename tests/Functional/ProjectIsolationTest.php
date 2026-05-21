@@ -2,28 +2,11 @@
 
 namespace App\Tests\Functional;
 
-use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use App\Entity\Accommodation;
 use App\Entity\CategoryCode;
-use App\Entity\Project;
 use App\Entity\User;
-use App\Entity\WebPage;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\NullOutput;
 
-final class ProjectIsolationTest extends ApiTestCase
+final class ProjectIsolationTest extends FunctionalTestCase
 {
-    protected function setUp(): void
-    {
-        self::bootKernel();
-        $this->recreateSchema();
-        $this->loadDemoFixtures();
-        self::ensureKernelShutdown();
-    }
-
     public function testProjectScopedResourceFromAnotherProjectIsHidden(): void
     {
         $client = static::createClient();
@@ -150,79 +133,5 @@ final class ProjectIsolationTest extends ApiTestCase
             static fn (array $item): ?string => $item['id'] ?? null,
             $items,
         ));
-    }
-
-    private function recreateSchema(): void
-    {
-        $entityManager = $this->entityManager();
-        $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
-        $schemaTool = new SchemaTool($entityManager);
-
-        $schemaTool->dropSchema($metadata);
-        $schemaTool->createSchema($metadata);
-    }
-
-    private function loadDemoFixtures(): void
-    {
-        $application = new Application(self::$kernel);
-        $application->setAutoExit(false);
-        $application->run(new ArrayInput([
-            'command' => 'app:fixtures:load-demo',
-        ]), new NullOutput());
-    }
-
-    private function login(object $client, string $email): string
-    {
-        $response = $client->request('POST', '/api/auth/login', [
-            'json' => [
-                'email' => $email,
-                'password' => 'password123',
-            ],
-        ]);
-
-        self::assertResponseIsSuccessful();
-        $payload = $response->toArray(false);
-
-        self::assertIsString($payload['token'] ?? null);
-
-        return $payload['token'];
-    }
-
-    private function findProjectBySlug(string $slug): Project
-    {
-        $project = $this->entityManager()->getRepository(Project::class)->findOneBy(['slug' => $slug]);
-
-        self::assertInstanceOf(Project::class, $project);
-
-        return $project;
-    }
-
-    private function findWebPageByProject(Project $project): WebPage
-    {
-        $page = $this->entityManager()->getRepository(WebPage::class)->findOneBy([
-            'project' => $project,
-            'deletedAt' => null,
-        ]);
-
-        self::assertInstanceOf(WebPage::class, $page);
-
-        return $page;
-    }
-
-    private function findAccommodationByIdentifier(string $identifier): Accommodation
-    {
-        $accommodation = $this->entityManager()->getRepository(Accommodation::class)->findOneBy([
-            'identifier' => $identifier,
-            'deletedAt' => null,
-        ]);
-
-        self::assertInstanceOf(Accommodation::class, $accommodation);
-
-        return $accommodation;
-    }
-
-    private function entityManager(): EntityManagerInterface
-    {
-        return self::getContainer()->get(EntityManagerInterface::class);
     }
 }

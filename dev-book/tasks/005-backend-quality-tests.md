@@ -4,7 +4,7 @@
 
 - ID : TASK-005
 - Source : ajustement utilisateur du 2026-05-19
-- Statut : A faire
+- Statut : Terminee
 - Perimetre : PHPUnit, tests fonctionnels API Platform, securite et regressions
 - Dependances fonctionnelles : TASK-001, TASK-002, TASK-003, TASK-004
 
@@ -45,20 +45,28 @@ contenus archives.
 
 ## Plan d'execution
 
-- [ ] Stabiliser la configuration PHPUnit.
-- [ ] Ajouter ou finaliser les fixtures de test.
-- [ ] Couvrir l'authentification JWT.
-- [ ] Couvrir les refresh tokens.
-- [ ] Couvrir l'isolation projet.
-- [ ] Couvrir les traductions.
-- [ ] Couvrir les uploads image.
-- [ ] Couvrir le soft delete.
-- [ ] Ajouter les commandes de validation dans le README.
-- [ ] Documenter les limites connues.
+- [x] Stabiliser la configuration PHPUnit.
+- [x] Ajouter ou finaliser les fixtures de test.
+- [x] Couvrir l'authentification JWT.
+- [x] Couvrir les refresh tokens.
+- [x] Couvrir l'isolation projet.
+- [x] Couvrir les traductions.
+- [x] Couvrir les uploads image.
+- [x] Couvrir le soft delete.
+- [x] Ajouter les commandes de validation dans le README.
+- [x] Documenter les limites connues.
 
 ## Validations attendues
 
-- [ ] `docker compose exec api php bin/phpunit` passe sans test incomplet.
-- [ ] `docker compose exec api php bin/console lint:container` passe.
-- [ ] `docker compose exec api php bin/console doctrine:schema:validate` passe.
-- [ ] Les tests couvrent les regressions critiques avant merge.
+- [x] `docker compose exec api php bin/phpunit` passe sans test incomplet.
+- [x] `docker compose exec api php bin/console lint:container` passe.
+- [x] `docker compose exec api php bin/console doctrine:schema:validate` passe.
+- [x] Les tests couvrent les regressions critiques avant merge.
+
+## Limites connues
+
+- La suite fonctionnelle recree le schema et recharge les fixtures de demo avant chaque
+  test. C'est volontaire pour garantir la reproductibilite MVP, mais ce sera a optimiser
+  si le temps d'execution devient bloquant.
+- La creation d'une traduction manquante via `PUT` reste hors perimetre de cette tache ;
+  les tests TASK-005 valident la lecture localisee, le fallback et l'isolation projet.
