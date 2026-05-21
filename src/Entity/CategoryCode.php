@@ -25,7 +25,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Index(columns: ['project_id'], name: 'idx_category_code_project')]
-#[ORM\UniqueConstraint(name: 'uniq_category_code_project_code', columns: ['project_id', 'code'])]
+#[ORM\UniqueConstraint(name: 'uniq_category_code_project_set_code', columns: ['project_id', 'in_code_set', 'code'])]
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
@@ -48,6 +48,11 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
     #[Assert\NotBlank]
     #[Groups(['read', 'write'])]
     private string $code = '';
+
+    #[ORM\Column(length: 120)]
+    #[Assert\NotBlank]
+    #[Groups(['read', 'write'])]
+    private string $inCodeSet = 'content';
 
     /**
      * @var Collection<int, CategoryCodeTranslation>
@@ -75,6 +80,18 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
     public function setCode(string $code): self
     {
         $this->code = $code;
+
+        return $this;
+    }
+
+    public function getInCodeSet(): string
+    {
+        return $this->inCodeSet;
+    }
+
+    public function setInCodeSet(string $inCodeSet): self
+    {
+        $this->inCodeSet = $inCodeSet;
 
         return $this;
     }

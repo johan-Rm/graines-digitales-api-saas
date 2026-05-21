@@ -2,6 +2,8 @@
 
 namespace App\Translation;
 
+use App\Entity\Accommodation;
+use App\Entity\AccommodationTranslation;
 use App\Entity\Article;
 use App\Entity\ArticleTranslation;
 use App\Entity\CategoryCode;
@@ -25,6 +27,7 @@ final readonly class TranslatableResourceResolver
      * @var array<class-string<ResourceTranslation>, class-string<TranslatableResource>>
      */
     private const ROOT_BY_TRANSLATION = [
+        AccommodationTranslation::class => Accommodation::class,
         WebPageTranslation::class => WebPage::class,
         ArticleTranslation::class => Article::class,
         CreativeWorkTranslation::class => CreativeWork::class,

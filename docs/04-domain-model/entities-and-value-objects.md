@@ -7,6 +7,8 @@ Entites principales actuelles :
 - `ProjectMember`
 - `User`
 - `MediaObject`
+- `Accommodation`
+- `AccommodationMedia`
 - `WebPage`
 - `Article`
 - `CreativeWork`

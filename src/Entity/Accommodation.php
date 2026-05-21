@@ -1,0 +1,286 @@
+<?php
+
+namespace App\Entity;
+
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use App\Entity\Traits\AuditTrail;
+use App\Entity\Traits\ProjectOwned;
+use App\Entity\Traits\TranslatableResourceBehavior;
+use App\Entity\Traits\UuidIdentity;
+use App\Enum\ContentStatus;
+use App\State\ProjectScopedCollectionProvider;
+use App\State\ProjectScopedItemProvider;
+use App\State\ProjectScopedPersistProcessor;
+use App\State\ProjectScopedRemoveProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
+
+#[ORM\Entity]
+#[ORM\Index(columns: ['project_id'], name: 'idx_accommodation_project')]
+#[ORM\Index(columns: ['project_id', 'status', 'is_active', 'deleted_at'], name: 'idx_accommodation_project_publication')]
+#[ORM\UniqueConstraint(name: 'uniq_accommodation_project_identifier', columns: ['project_id', 'identifier'])]
+#[ApiResource(
+    operations: [
+        new GetCollection(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
+        new Post(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
+        new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class),
+        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Delete(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
+    ],
+    normalizationContext: ['groups' => ['read']],
+    denormalizationContext: ['groups' => ['write']]
+)]
+class Accommodation implements ProjectScopedResource, TranslatableResource
+{
+    use AuditTrail;
+    use ProjectOwned;
+    use TranslatableResourceBehavior;
+    use UuidIdentity;
+
+    #[ORM\Column(length: 180)]
+    #[Groups(['read', 'write'])]
+    private string $identifier = '';
+
+    #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Groups(['read', 'write'])]
+    private ?CategoryCode $category = null;
+
+    #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Groups(['read', 'write'])]
+    private ?CategoryCode $realEstateListing = null;
+
+    #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Groups(['read', 'write'])]
+    private ?CategoryCode $place = null;
+
+    /**
+     * @var Collection<int, CategoryCode>
+     */
+    #[ORM\ManyToMany(targetEntity: CategoryCode::class)]
+    #[ORM\JoinTable(name: 'accommodation_amenity_feature')]
+    #[Groups(['read', 'write'])]
+    private Collection $amenityFeature;
+
+    /**
+     * @var Collection<int, CategoryCode>
+     */
+    #[ORM\ManyToMany(targetEntity: CategoryCode::class)]
+    #[ORM\JoinTable(name: 'accommodation_tag')]
+    #[Groups(['read', 'write'])]
+    private Collection $tags;
+
+    /**
+     * @var Collection<int, AccommodationMedia>
+     */
+    #[ORM\OneToMany(mappedBy: 'accommodation', targetEntity: AccommodationMedia::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    #[Groups(['read', 'write'])]
+    private Collection $associatedMedia;
+
+    /**
+     * @var Collection<int, AccommodationTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: AccommodationTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['read', 'write'])]
+    private Collection $translations;
+
+    #[ORM\Column(enumType: ContentStatus::class)]
+    #[Groups(['read', 'write'])]
+    private ContentStatus $status = ContentStatus::Draft;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $yearBuilt = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $areaSize = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $areaTerrace = null;
+
+    #[ORM\Column(length: 80, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $floorSize = null;
+
+    #[ORM\Column(length: 80, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $landArea = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?bool $level = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $numberOfRooms = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $numberOfBedrooms = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $numberOfBathroomsTotal = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $numberOfGarages = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?int $occupancy = null;
+
+    #[ORM\Column]
+    #[Groups(['read', 'write'])]
+    private bool $isActive = true;
+
+    #[ORM\Column(length: 80, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $offerPrice = null;
+
+    #[ORM\Column(length: 8, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $offerPriceCurrency = null;
+
+    #[ORM\Column(length: 160, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $offerPriceSpecification = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $offerAvailability = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $realEstateAgentIdentifier = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $realEstateAgentName = null;
+
+    #[ORM\Column(length: 80, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $realEstateAgentPhone = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $realEstateAgentEmail = null;
+
+    public function __construct()
+    {
+        $this->initializeUuid();
+        $this->initializeAuditTrail();
+        $this->amenityFeature = new ArrayCollection();
+        $this->tags = new ArrayCollection();
+        $this->associatedMedia = new ArrayCollection();
+        $this->translations = new ArrayCollection();
+    }
+
+    public function getIdentifier(): string { return $this->identifier; }
+    public function setIdentifier(string $identifier): self { $this->identifier = $identifier; return $this; }
+    public function getCategory(): ?CategoryCode { return $this->category; }
+    public function setCategory(CategoryCode $category): self { $this->category = $category; return $this; }
+    public function getRealEstateListing(): ?CategoryCode { return $this->realEstateListing; }
+    public function setRealEstateListing(CategoryCode $realEstateListing): self { $this->realEstateListing = $realEstateListing; return $this; }
+    public function getPlace(): ?CategoryCode { return $this->place; }
+    public function setPlace(CategoryCode $place): self { $this->place = $place; return $this; }
+    public function getAmenityFeature(): Collection { return $this->amenityFeature; }
+    public function addAmenityFeature(CategoryCode $amenityFeature): self { if (!$this->amenityFeature->contains($amenityFeature)) { $this->amenityFeature->add($amenityFeature); } return $this; }
+    public function clearAmenityFeature(): self { $this->amenityFeature->clear(); return $this; }
+    public function getTags(): Collection { return $this->tags; }
+    public function addTag(CategoryCode $tag): self { if (!$this->tags->contains($tag)) { $this->tags->add($tag); } return $this; }
+    public function clearTags(): self { $this->tags->clear(); return $this; }
+    public function getAssociatedMedia(): Collection { return $this->associatedMedia; }
+    public function addAssociatedMedia(AccommodationMedia $media): self { if (!$this->associatedMedia->contains($media)) { $this->associatedMedia->add($media); $media->setAccommodation($this); } return $this; }
+    public function clearAssociatedMedia(): self { $this->associatedMedia->clear(); return $this; }
+    protected function createTranslation(): ResourceTranslation { return new AccommodationTranslation(); }
+    protected function addTranslation(ResourceTranslation $translation): self { if (!$this->translations->contains($translation)) { $this->translations->add($translation); } return $this; }
+    public function getTranslations(): Collection { return $this->translations; }
+    #[Groups(['read'])]
+    public function getRequestedLocale(): string { return $this->requestedLocale; }
+    #[Groups(['read'])]
+    public function getLocale(): string { return $this->currentLocale; }
+    #[Groups(['read'])]
+    public function getFallbackLocale(): ?string { return $this->fallbackLocale; }
+    #[Groups(['read'])]
+    public function isFallback(): bool { return $this->fallback; }
+    #[Groups(['read', 'write'])]
+    public function getSlug(): string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getSlug() : ''; }
+    public function setSlug(string $slug): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSlug($slug); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getName(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getName() : null; }
+    public function setName(?string $name): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setName($name); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getLabel(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getLabel() : null; }
+    public function setLabel(?string $label): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setLabel($label); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getHighlight(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getHighlight() : null; }
+    public function setHighlight(?string $highlight): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setHighlight($highlight); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getBody(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getBody() : null; }
+    public function setBody(?string $body): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setBody($body); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getReview(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getReview() : null; }
+    public function setReview(?string $review): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setReview($review); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getMetaTitle(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getMetaTitle() : null; }
+    public function setMetaTitle(?string $metaTitle): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setMetaTitle($metaTitle); return $this; }
+    #[Groups(['read', 'write'])]
+    public function getMetaDescription(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getMetaDescription() : null; }
+    public function setMetaDescription(?string $metaDescription): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setMetaDescription($metaDescription); return $this; }
+    public function getStatus(): ContentStatus { return $this->status; }
+    public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
+    public function getYearBuilt(): ?int { return $this->yearBuilt; }
+    public function setYearBuilt(?int $yearBuilt): self { $this->yearBuilt = $yearBuilt; return $this; }
+    public function getAreaSize(): ?int { return $this->areaSize; }
+    public function setAreaSize(?int $areaSize): self { $this->areaSize = $areaSize; return $this; }
+    public function getAreaTerrace(): ?int { return $this->areaTerrace; }
+    public function setAreaTerrace(?int $areaTerrace): self { $this->areaTerrace = $areaTerrace; return $this; }
+    public function getFloorSize(): ?string { return $this->floorSize; }
+    public function setFloorSize(?string $floorSize): self { $this->floorSize = $floorSize; return $this; }
+    public function getLandArea(): ?string { return $this->landArea; }
+    public function setLandArea(?string $landArea): self { $this->landArea = $landArea; return $this; }
+    public function getLevel(): ?bool { return $this->level; }
+    public function setLevel(?bool $level): self { $this->level = $level; return $this; }
+    public function getNumberOfRooms(): ?int { return $this->numberOfRooms; }
+    public function setNumberOfRooms(?int $numberOfRooms): self { $this->numberOfRooms = $numberOfRooms; return $this; }
+    public function getNumberOfBedrooms(): ?int { return $this->numberOfBedrooms; }
+    public function setNumberOfBedrooms(?int $numberOfBedrooms): self { $this->numberOfBedrooms = $numberOfBedrooms; return $this; }
+    public function getNumberOfBathroomsTotal(): ?int { return $this->numberOfBathroomsTotal; }
+    public function setNumberOfBathroomsTotal(?int $numberOfBathroomsTotal): self { $this->numberOfBathroomsTotal = $numberOfBathroomsTotal; return $this; }
+    public function getNumberOfGarages(): ?int { return $this->numberOfGarages; }
+    public function setNumberOfGarages(?int $numberOfGarages): self { $this->numberOfGarages = $numberOfGarages; return $this; }
+    public function getOccupancy(): ?int { return $this->occupancy; }
+    public function setOccupancy(?int $occupancy): self { $this->occupancy = $occupancy; return $this; }
+    public function isActive(): bool { return $this->isActive; }
+    public function setIsActive(bool $isActive): self { $this->isActive = $isActive; return $this; }
+    public function getOfferPrice(): ?string { return $this->offerPrice; }
+    public function setOfferPrice(?string $offerPrice): self { $this->offerPrice = $offerPrice; return $this; }
+    public function getOfferPriceCurrency(): ?string { return $this->offerPriceCurrency; }
+    public function setOfferPriceCurrency(?string $offerPriceCurrency): self { $this->offerPriceCurrency = $offerPriceCurrency; return $this; }
+    public function getOfferPriceSpecification(): ?string { return $this->offerPriceSpecification; }
+    public function setOfferPriceSpecification(?string $offerPriceSpecification): self { $this->offerPriceSpecification = $offerPriceSpecification; return $this; }
+    public function getOfferAvailability(): ?string { return $this->offerAvailability; }
+    public function setOfferAvailability(?string $offerAvailability): self { $this->offerAvailability = $offerAvailability; return $this; }
+    public function getRealEstateAgentIdentifier(): ?string { return $this->realEstateAgentIdentifier; }
+    public function setRealEstateAgentIdentifier(?string $realEstateAgentIdentifier): self { $this->realEstateAgentIdentifier = $realEstateAgentIdentifier; return $this; }
+    public function getRealEstateAgentName(): ?string { return $this->realEstateAgentName; }
+    public function setRealEstateAgentName(?string $realEstateAgentName): self { $this->realEstateAgentName = $realEstateAgentName; return $this; }
+    public function getRealEstateAgentPhone(): ?string { return $this->realEstateAgentPhone; }
+    public function setRealEstateAgentPhone(?string $realEstateAgentPhone): self { $this->realEstateAgentPhone = $realEstateAgentPhone; return $this; }
+    public function getRealEstateAgentEmail(): ?string { return $this->realEstateAgentEmail; }
+    public function setRealEstateAgentEmail(?string $realEstateAgentEmail): self { $this->realEstateAgentEmail = $realEstateAgentEmail; return $this; }
+}

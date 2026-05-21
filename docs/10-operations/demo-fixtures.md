@@ -19,6 +19,16 @@ projets, utilisateurs, memberships et contenus de demonstration.
 - 3 utilisateurs de demonstration.
 - Des memberships explicites par projet.
 - Un socle de contenus par projet : page, article, menu et categorie.
+- 5 biens immobiliers de demonstration charges comme `Accommodation`, avec
+  relations SQL vers `CategoryCode` et `MediaObject`.
+
+Les biens immobiliers utilisent les referentiels `CategoryCode` suivants :
+
+- `accommodation-type` pour le type de bien.
+- `real-estate-listing` pour le type d'annonce.
+- `accommodation-place` pour le lieu.
+- `amenity-feature` pour les equipements.
+- `tag` pour les tags editoriaux.
 
 ## Comptes de demonstration
 
@@ -33,4 +43,3 @@ Comptes :
 - `admin@grainesdigitales.local` : administrateur global et owner des projets.
 - `editor.essaouira@grainesdigitales.local` : editeur des projets Essaouira Patrimoine Immobilier.
 - `viewer.mogador@grainesdigitales.local` : lecteur du projet Blue Bay Mogador.
-
