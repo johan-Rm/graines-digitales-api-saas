@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Traits\AuditTrail;
+use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\UuidIdentity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -19,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Organization
 {
     use AuditTrail;
+    use AutoSlug;
     use UuidIdentity;
 
     #[ORM\Column(length: 160)]
@@ -45,6 +47,9 @@ class Organization
     public function setName(string $name): self
     {
         $this->name = $name;
+        if ('' === $this->slug) {
+            $this->slug = self::normalizeSlug($name);
+        }
 
         return $this;
     }
@@ -56,7 +61,7 @@ class Organization
 
     public function setSlug(string $slug): self
     {
-        $this->slug = $slug;
+        $this->slug = self::normalizeSlug($slug);
 
         return $this;
     }

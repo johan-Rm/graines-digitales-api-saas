@@ -4,7 +4,9 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Traits\AuditTrail;
+use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\UuidIdentity;
+use App\State\ProjectPersistProcessor;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -15,11 +17,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']],
-    security: "is_granted('ROLE_ADMIN')"
+    security: "is_granted('ROLE_ADMIN')",
+    processor: ProjectPersistProcessor::class
 )]
 class Project
 {
     use AuditTrail;
+    use AutoSlug;
     use UuidIdentity;
 
     #[ORM\ManyToOne(targetEntity: Organization::class)]
@@ -75,6 +79,9 @@ class Project
     public function setName(string $name): self
     {
         $this->name = $name;
+        if ('' === $this->slug) {
+            $this->slug = self::normalizeSlug($name);
+        }
 
         return $this;
     }
@@ -86,7 +93,7 @@ class Project
 
     public function setSlug(string $slug): self
     {
-        $this->slug = $slug;
+        $this->slug = self::normalizeSlug($slug);
 
         return $this;
     }
