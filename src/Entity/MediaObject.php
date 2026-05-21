@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model;
+use App\Controller\BulkMediaUploadController;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\UuidIdentity;
@@ -33,9 +34,40 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/media-objects', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
         new Post(
+            uriTemplate: '/projects/{projectId}/media-objects/bulk',
+            uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])],
+            controller: BulkMediaUploadController::class,
+            inputFormats: ['multipart' => ['multipart/form-data']],
+            read: false,
+            deserialize: false,
+            openapi: new Model\Operation(
+                summary: 'Upload multiple media objects for a project.',
+                requestBody: new Model\RequestBody(
+                    content: new \ArrayObject([
+                        'multipart/form-data' => [
+                            'schema' => [
+                                'type' => 'object',
+                                'required' => ['files'],
+                                'properties' => [
+                                    'files' => [
+                                        'type' => 'array',
+                                        'maxItems' => 20,
+                                        'items' => ['type' => 'string', 'format' => 'binary'],
+                                    ],
+                                    'finalAlt' => ['type' => 'string'],
+                                    'finalDescription' => ['type' => 'string'],
+                                ],
+                            ],
+                        ],
+                    ])
+                )
+            )
+        ),
+        new Post(
             uriTemplate: '/projects/{projectId}/media-objects',
             uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])],
             inputFormats: ['multipart' => ['multipart/form-data']],
+            read: false,
             processor: ProjectScopedPersistProcessor::class,
             openapi: new Model\Operation(
                 requestBody: new Model\RequestBody(

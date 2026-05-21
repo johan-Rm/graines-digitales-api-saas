@@ -2,12 +2,13 @@
 
 namespace App\Encoder;
 
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 final class UploadedFileDenormalizer implements DenormalizerInterface
 {
-    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): UploadedFile
+    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): File
     {
         return $data;
     }
@@ -19,6 +20,9 @@ final class UploadedFileDenormalizer implements DenormalizerInterface
 
     public function getSupportedTypes(?string $format): array
     {
-        return [UploadedFile::class => true];
+        return [
+            File::class => true,
+            UploadedFile::class => true,
+        ];
     }
 }
