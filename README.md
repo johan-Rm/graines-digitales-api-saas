@@ -40,6 +40,14 @@ API locale : `http://localhost:18080`
 
 Les routes `/api/projects/{projectId}/...` exigent un JWT valide et un membership projet.
 
+Le dashboard peut sauvegarder un bien existant par identifiant metier quand il ne connait
+pas encore l'UUID Doctrine :
+
+```txt
+PUT /api/dashboard/accommodations/{identifier}?locale=fr
+Content-Type: application/ld+json
+```
+
 Exemple de creation d'un user directement associe a un projet :
 
 ```json

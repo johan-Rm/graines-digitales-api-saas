@@ -11,6 +11,7 @@ use App\Entity\TranslatableResource;
 use App\Message\AnalyzeMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
@@ -19,6 +20,7 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         private ProcessorInterface $decorated,
         private ProjectAccessGuard $projectAccessGuard,
         private CurrentUserProvider $currentUserProvider,
+        private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
     ) {
     }
@@ -36,12 +38,14 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             }
 
             $data->touch($actor);
+            $this->entityManager->persist($data);
 
             if ($data instanceof TranslatableResource) {
                 foreach ($data->getTranslations() as $translation) {
                     if ($translation instanceof ResourceTranslation) {
                         $translation->setTranslatable($data);
                         $translation->touch($actor);
+                        $this->entityManager->persist($translation);
                     }
                 }
             }

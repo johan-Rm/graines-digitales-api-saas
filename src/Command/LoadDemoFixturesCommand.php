@@ -110,6 +110,7 @@ final class LoadDemoFixturesCommand extends Command
             $admin,
         );
         $this->upsertPropertyListings($riadProject, $villaProject, $coastalProject, $admin);
+        $this->upsertDashboardCategoryCodes($villaProject, $admin);
 
         $this->entityManager->flush();
 
@@ -408,6 +409,23 @@ final class LoadDemoFixturesCommand extends Command
 
         foreach ($listings as $listing) {
             $this->upsertAccommodation($listing, $actor);
+        }
+    }
+
+    private function upsertDashboardCategoryCodes(Project $project, User $actor): void
+    {
+        $codesBySet = [
+            'accommodation-type' => ['local-commercial', 'maison-de-campagne', 'riad', 'terrain'],
+            'real-estate-listing' => ['bien-a-vendre'],
+            'accommodation-place' => ['medina', 'nouvelle-ville', 'sidi-kaouki', 'campagne', 'campagne-d-essaouira', 'moulay-bouzerktoun'],
+            'amenity-feature' => ['vue-sur-mer', 'gardien', 'chateau-d-eau', 'acces-route', 'patio', 'terrasse', 'exploitation-commerciale', 'vue-degagee'],
+            'tag' => ['medina', 'commerce', 'piscine', 'investissement', 'bien-titre', 'hotel', 'terrain', 'campagne'],
+        ];
+
+        foreach ($codesBySet as $inCodeSet => $codes) {
+            foreach ($codes as $code) {
+                $this->upsertCategoryCode($project, $inCodeSet, $code, $this->labelFromCode($code), $actor);
+            }
         }
     }
 
