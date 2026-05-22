@@ -4,7 +4,8 @@
 
 - ID : TASK-013
 - Source : brief backend dashboard du 2026-05-22
-- Statut : A faire
+- Statut : Terminee
+- Cloture : 2026-05-22
 - Perimetre : API Symfony, API Platform, CategoryCode, Accommodation
 - Dependances fonctionnelles : TASK-008, TASK-012
 
@@ -43,24 +44,24 @@ refusee si le code est reference par au moins un bien du meme projet.
 
 ## Plan d'execution
 
-- [ ] Verifier le contrat actuel de `CategoryCode` dans API Platform, notamment la
+- [x] Verifier le contrat actuel de `CategoryCode` dans API Platform, notamment la
   presence de `Put` et le processor generique de suppression.
-- [ ] Retirer ou neutraliser les operations de modification `PUT` / `PATCH` pour
+- [x] Retirer ou neutraliser les operations de modification `PUT` / `PATCH` pour
   garantir l'immutabilite du couple `code` / `inCodeSet`.
-- [ ] Renforcer la validation de creation :
+- [x] Renforcer la validation de creation :
   - `code` obligatoire, kebab-case, longueur compatible avec la colonne existante.
   - `inCodeSet` obligatoire, valeur libre, longueur compatible avec la colonne existante.
-- [ ] Mapper proprement le doublon `(projectId, inCodeSet, code)` en reponse `409`, sans
+- [x] Mapper proprement le doublon `(projectId, inCodeSet, code)` en reponse `409`, sans
   masquer les autres erreurs Doctrine.
-- [ ] Implementer un guard de suppression dedie aux `CategoryCode`, sans modifier le
+- [x] Implementer un guard de suppression dedie aux `CategoryCode`, sans modifier le
   processor generique des autres ressources projet si ce n'est pas necessaire.
-- [ ] Compter les `Accommodation` du meme projet qui referencent le code via :
+- [x] Compter les `Accommodation` du meme projet qui referencent le code via :
   - `category`
   - `realEstateListing`
   - `place`
   - `amenityFeature`
   - `tags`
-- [ ] Retourner une erreur `409` explicite quand au moins un bien reference le code :
+- [x] Retourner une erreur `409` explicite quand au moins un bien reference le code :
 
 ```json
 {
@@ -71,7 +72,7 @@ refusee si le code est reference par au moins un bien du meme projet.
 }
 ```
 
-- [ ] Ajouter ou adapter les tests fonctionnels API pour couvrir :
+- [x] Ajouter ou adapter les tests fonctionnels API pour couvrir :
   - creation valide et presence de `@id`.
   - creation refusee si doublon dans le meme projet.
   - creation autorisee si meme couple dans un autre projet.
@@ -80,7 +81,7 @@ refusee si le code est reference par au moins un bien du meme projet.
   - suppression valide d'un code libre.
   - suppression refusee en `409` avec nombre de biens concernes.
   - suppression en `404` pour un UUID hors projet.
-- [ ] Mettre a jour la documentation API utile si le contrat public change par rapport a
+- [x] Mettre a jour la documentation API utile si le contrat public change par rapport a
   l'etat actuel.
 
 ## Validations

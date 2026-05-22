@@ -8,15 +8,14 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
+use App\State\CategoryCodePersistProcessor;
+use App\State\CategoryCodeRemoveProcessor;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
-use App\State\ProjectScopedPersistProcessor;
-use App\State\ProjectScopedRemoveProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -29,10 +28,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
+        new Post(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: CategoryCodePersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class),
-        new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
-        new Delete(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
+        new Delete(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: CategoryCodeRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
@@ -46,13 +44,16 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 120)]
+    #[Assert\Regex(pattern: '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', message: 'This value must be kebab-case.')]
     #[Groups(['read', 'write'])]
     private string $code = '';
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 120)]
     #[Groups(['read', 'write'])]
-    private string $inCodeSet = 'content';
+    private string $inCodeSet = '';
 
     /**
      * @var Collection<int, CategoryCodeTranslation>

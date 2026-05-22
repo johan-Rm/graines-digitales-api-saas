@@ -9,6 +9,12 @@
 - `PUT` remplace ou met a jour une ressource.
 - `DELETE` supprime ou archive selon le comportement de la ressource.
 
+Cas specifique :
+
+- `CategoryCode` est immutable apres creation : pas de `PUT` / `PATCH`.
+- `DELETE /api/projects/{projectId}/category-codes/{uuid}` archive un code libre et
+  retourne `409` si le code est reference par un bien du meme projet.
+
 Routes auth :
 
 - `POST /api/auth/login`

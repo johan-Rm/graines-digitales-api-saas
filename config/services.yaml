@@ -21,6 +21,14 @@ services:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'
 
+    App\State\CategoryCodePersistProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.persist_processor'
+
+    App\State\CategoryCodeRemoveProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.remove_processor'
+
     App\State\ProjectPersistProcessor:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'
