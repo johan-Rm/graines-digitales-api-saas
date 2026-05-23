@@ -54,7 +54,7 @@ final class ProjectMemberUserProvisioningTest extends FunctionalTestCase
         $organizationResponse = $client->request('POST', '/api/organizations', [
             'headers' => ['Authorization' => 'Bearer '.$token],
             'json' => [
-                'name' => 'MLK - My Little Kasbah',
+                'name' => 'Provisioning Test Organization',
             ],
         ]);
 
@@ -65,7 +65,7 @@ final class ProjectMemberUserProvisioningTest extends FunctionalTestCase
             'headers' => ['Authorization' => 'Bearer '.$token],
             'json' => [
                 'organization' => '/api/organizations/'.$organizationPayload['id'],
-                'name' => 'MLK - Modern Site Web',
+                'name' => 'Provisioning Test Project',
                 'sourceLocale' => 'fr',
                 'enabledLocales' => ['fr', 'en'],
             ],
@@ -73,7 +73,7 @@ final class ProjectMemberUserProvisioningTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(201);
         $projectPayload = $projectResponse->toArray(false);
-        self::assertSame('mlk-modern-site-web', $projectPayload['slug'] ?? null);
+        self::assertSame('provisioning-test-project', $projectPayload['slug'] ?? null);
 
         $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
             'email' => 'admin@grainesdigitales.local',
@@ -81,7 +81,7 @@ final class ProjectMemberUserProvisioningTest extends FunctionalTestCase
         self::assertInstanceOf(User::class, $admin);
 
         $creatorMembership = $this->entityManager()->getRepository(ProjectMember::class)->findOneBy([
-            'project' => $this->findProjectBySlug('mlk-modern-site-web'),
+            'project' => $this->findProjectBySlug('provisioning-test-project'),
             'user' => $admin,
         ]);
 

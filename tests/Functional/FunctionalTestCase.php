@@ -83,12 +83,18 @@ abstract class FunctionalTestCase extends ApiTestCase
         return $article;
     }
 
-    protected function findAccommodationByIdentifier(string $identifier): Accommodation
+    protected function findAccommodationByIdentifier(string $identifier, ?Project $project = null): Accommodation
     {
-        $accommodation = $this->entityManager()->getRepository(Accommodation::class)->findOneBy([
+        $criteria = [
             'identifier' => $identifier,
             'deletedAt' => null,
-        ]);
+        ];
+
+        if ($project instanceof Project) {
+            $criteria['project'] = $project;
+        }
+
+        $accommodation = $this->entityManager()->getRepository(Accommodation::class)->findOneBy($criteria);
 
         self::assertInstanceOf(Accommodation::class, $accommodation);
 
@@ -116,6 +122,7 @@ abstract class FunctionalTestCase extends ApiTestCase
         $application->setAutoExit(false);
         $application->run(new ArrayInput([
             'command' => 'app:fixtures:load-demo',
+            '--with-test-tenants' => true,
         ]), new NullOutput());
     }
 }

@@ -42,7 +42,17 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $client->request('POST', sprintf('/api/projects/%s/category-codes', $villaProject->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'local-commercial',
+                'code' => 'atelier-bois-test',
+                'inCodeSet' => 'accommodation-type',
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+
+        $client->request('POST', sprintf('/api/projects/%s/category-codes', $villaProject->getId()), [
+            'headers' => $this->jsonLdHeaders($token),
+            'json' => [
+                'code' => 'atelier-bois-test',
                 'inCodeSet' => 'accommodation-type',
             ],
         ]);
@@ -52,14 +62,14 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $response = $client->request('POST', sprintf('/api/projects/%s/category-codes', $riadProject->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'local-commercial',
+                'code' => 'atelier-bois-test',
                 'inCodeSet' => 'accommodation-type',
             ],
         ]);
 
         self::assertResponseStatusCodeSame(201);
         $payload = $response->toArray(false);
-        self::assertSame('local-commercial', $payload['code'] ?? null);
+        self::assertSame('atelier-bois-test', $payload['code'] ?? null);
     }
 
     public function testCategoryCodeCreationValidatesRequiredKebabCaseCode(): void

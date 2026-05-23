@@ -16,21 +16,21 @@ final class SlugGenerationTest extends FunctionalTestCase
         $organizationResponse = $client->request('POST', '/api/organizations', [
             'headers' => ['Authorization' => 'Bearer '.$token],
             'json' => [
-                'name' => 'MLK - My Little Kasbah',
+                'name' => 'Slug Test Organization',
             ],
         ]);
 
         self::assertResponseStatusCodeSame(201);
         $organizationPayload = $organizationResponse->toArray(false);
 
-        self::assertSame('mlk-my-little-kasbah', $organizationPayload['slug'] ?? null);
+        self::assertSame('slug-test-organization', $organizationPayload['slug'] ?? null);
         self::assertIsString($organizationPayload['id'] ?? null);
 
         $projectResponse = $client->request('POST', '/api/projects', [
             'headers' => ['Authorization' => 'Bearer '.$token],
             'json' => [
                 'organization' => '/api/organizations/'.$organizationPayload['id'],
-                'name' => 'MLK - Modern Site Web',
+                'name' => 'Slug Test Project',
                 'sourceLocale' => 'fr',
                 'enabledLocales' => ['fr', 'en'],
             ],
@@ -39,7 +39,7 @@ final class SlugGenerationTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(201);
         $projectPayload = $projectResponse->toArray(false);
 
-        self::assertSame('mlk-modern-site-web', $projectPayload['slug'] ?? null);
+        self::assertSame('slug-test-project', $projectPayload['slug'] ?? null);
     }
 
     public function testExplicitSlugsAreNormalized(): void

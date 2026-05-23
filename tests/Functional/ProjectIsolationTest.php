@@ -61,7 +61,7 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('riads-medina-essaouira');
-        $accommodation = $this->findAccommodationByIdentifier('BAVR001');
+        $accommodation = $this->findAccommodationByIdentifier('BAVR001', $project);
 
         $response = $client->request('GET', sprintf('/api/projects/%s/accommodations', $project->getId()), [
             'headers' => ['Authorization' => 'Bearer '.$token],
@@ -92,7 +92,8 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
         $riadProject = $this->findProjectBySlug('riads-medina-essaouira');
-        $coastalAccommodation = $this->findAccommodationByIdentifier('FBAVVG001');
+        $coastalProject = $this->findProjectBySlug('blue-bay-mogador');
+        $coastalAccommodation = $this->findAccommodationByIdentifier('FBAVVG001', $coastalProject);
 
         $client->request('GET', sprintf(
             '/api/projects/%s/accommodations/%s',
@@ -110,7 +111,7 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('riads-medina-essaouira');
-        $accommodation = $this->findAccommodationByIdentifier('BAVR001');
+        $accommodation = $this->findAccommodationByIdentifier('BAVR001', $project);
         $accommodationId = (string) $accommodation->getId();
         $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
             'email' => 'admin@grainesdigitales.local',
