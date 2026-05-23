@@ -24,13 +24,11 @@ l'`Accommodation`.
   - `GET /api/projects/{projectId}/accommodations`
   - `PUT /api/projects/{projectId}/accommodations/{uuid}?locale=fr`
   - `POST /api/projects/{projectId}/accommodations?locale=fr`
-- Ajouter une route de compatibilite dashboard :
-  - `PUT /api/dashboard/accommodations/{identifier}?locale=fr`
-- La route dashboard resout l'identifier sur les projets accessibles en ecriture pour
-  l'utilisateur connecte, puis persiste la mise a jour en conservant les memes invariants
+- Ajouter une route de sauvegarde par identifiant bornee par projet :
+  - `PUT /api/projects/{projectId}/accommodations/{identifier}?locale=fr`
+- La route resout l'identifier uniquement dans le projet demande, verifie
+  l'acces en ecriture, puis persiste la mise a jour en conservant les memes invariants
   metier que les routes projet.
-- Si l'identifier correspond a plusieurs projets accessibles en ecriture, retourner `409`
-  pour eviter une mise a jour ambigue.
 
 ## Plan d'execution
 

@@ -1,9 +1,9 @@
 # Conventions REST
 
 - Les routes projet utilisent `/api/projects/{projectId}/...`.
-- Les routes dashboard peuvent exposer un identifiant metier quand l'interface ne connait
-  pas encore l'UUID technique de la ressource. Exemple :
-  `PUT /api/dashboard/accommodations/{identifier}?locale=fr`.
+- Certaines routes projet peuvent exposer un identifiant metier quand l'interface ne
+  connait pas encore l'UUID technique de la ressource. Exemple :
+  `PUT /api/projects/{projectId}/accommodations/{identifier}?locale=fr`.
 - `GET` lit une collection ou un item.
 - `POST` cree une ressource.
 - `PUT` remplace ou met a jour une ressource.

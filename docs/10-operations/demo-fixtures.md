@@ -1,7 +1,7 @@
 # Fixtures de demonstration
 
-Les fixtures locales creent un jeu de donnees stable pour le developpement et les
-tests fonctionnels de l'API multi-clients.
+Les fixtures locales creent un jeu de donnees stable pour le developpement de
+l'API dashboard MLK.
 
 ## Chargement
 
@@ -9,16 +9,17 @@ tests fonctionnels de l'API multi-clients.
 docker compose exec api php bin/console app:fixtures:load-demo
 ```
 
-La commande est idempotente : elle peut etre relancee sans dupliquer les clients,
-projets, utilisateurs, memberships et contenus de demonstration.
+La commande est idempotente : elle peut etre relancee sans dupliquer
+l'organisation, le projet, les utilisateurs, les memberships et les contenus de
+demonstration.
 
 ## Donnees creees
 
-- 2 organisations clientes.
-- 3 projets immobiliers rattaches aux organisations.
-- 3 utilisateurs de demonstration.
-- Des memberships explicites par projet.
-- Un socle de contenus par projet : page, article, menu et categorie.
+- 1 organisation cliente : `MLK - My Little Kasbah`.
+- 1 projet immobilier : `MLK - Modern Site Web`, slug `mlk-modern-site-web`.
+- 2 utilisateurs de demonstration.
+- Des memberships explicites sur le projet MLK.
+- Un socle de contenus pour le projet : page, article, menu et categorie.
 - 5 biens immobiliers de demonstration charges comme `Accommodation`, avec
   relations SQL vers `CategoryCode` et `MediaObject`.
 
@@ -32,14 +33,5 @@ Les biens immobiliers utilisent les referentiels `CategoryCode` suivants :
 
 ## Comptes de demonstration
 
-Tous les comptes utilisent le mot de passe local suivant :
-
-```txt
-password123
-```
-
-Comptes :
-
-- `admin@grainesdigitales.local` : administrateur global et owner des projets.
-- `editor.essaouira@grainesdigitales.local` : editeur des projets Essaouira Patrimoine Immobilier.
-- `viewer.mogador@grainesdigitales.local` : lecteur du projet Blue Bay Mogador.
+- `johan.remy@graines-digitales.online` : administrateur global et owner du projet, mot de passe `password1234`.
+- `buzac@mlk-my-little-kasbah.immo` : administratrice du projet, mot de passe `password123`.
