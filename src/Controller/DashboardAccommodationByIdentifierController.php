@@ -7,17 +7,15 @@ namespace App\Controller;
 use App\Entity\Accommodation;
 use App\Entity\CategoryCode;
 use App\Entity\Project;
-use App\Entity\ProjectMember;
-use App\Entity\User;
 use App\Enum\ContentStatus;
+use Symfony\Component\Uid\Uuid;
 use App\Security\CurrentUserProvider;
+use App\Security\ProjectAccessGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -26,18 +24,21 @@ final readonly class DashboardAccommodationByIdentifierController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CurrentUserProvider $currentUserProvider,
+        private ProjectAccessGuard $projectAccessGuard,
     ) {
     }
 
-    #[Route('/api/dashboard/accommodations/{identifier}', name: 'api_dashboard_accommodation_put_by_identifier', methods: ['PUT'])]
-    public function __invoke(Request $request, string $identifier): Response
+    #[Route(
+        '/api/projects/{projectId}/accommodations/{identifier}',
+        name: 'api_project_accommodation_put_by_identifier',
+        requirements: ['identifier' => '(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)[A-Za-z0-9][A-Za-z0-9_-]*'],
+        methods: ['PUT'],
+        priority: 10
+    )]
+    public function __invoke(Request $request, string $projectId, string $identifier): Response
     {
-        $accommodation = $this->findWritableAccommodation($identifier);
-        $project = $accommodation->getProject();
-
-        if (null === $project) {
-            throw new NotFoundHttpException('Accommodation not found.');
-        }
+        $project = $this->projectAccessGuard->getWritableProject($projectId);
+        $accommodation = $this->findProjectAccommodation($project, $identifier);
 
         try {
             $payload = $request->toArray();
@@ -60,7 +61,7 @@ final readonly class DashboardAccommodationByIdentifierController
         $this->entityManager->flush();
 
         return new JsonResponse([
-            '@id' => sprintf('/api/accommodations/%s', $accommodation->getId()),
+            '@id' => sprintf('/api/projects/%s/accommodations/%s', $project->getId(), $accommodation->getId()),
             'id' => (string) $accommodation->getId(),
             'identifier' => $accommodation->getIdentifier(),
             'slug' => $accommodation->getSlug(),
@@ -167,11 +168,10 @@ final readonly class DashboardAccommodationByIdentifierController
     private function resolveCategoryCode(string $iri, Project $project, string $expectedCodeSet): CategoryCode
     {
         $id = basename($iri);
-        $categoryCode = $this->entityManager->getRepository(CategoryCode::class)->findOneBy([
-            'id' => $id,
-            'project' => $project,
-            'inCodeSet' => $expectedCodeSet,
-        ]);
+        $criteria = ['project' => $project, 'inCodeSet' => $expectedCodeSet];
+        $criteria[Uuid::isValid($id) ? 'id' : 'code'] = $id;
+
+        $categoryCode = $this->entityManager->getRepository(CategoryCode::class)->findOneBy($criteria);
 
         if (!$categoryCode instanceof CategoryCode) {
             throw new BadRequestHttpException(sprintf('Unknown %s category code IRI.', $expectedCodeSet));
@@ -207,42 +207,18 @@ final readonly class DashboardAccommodationByIdentifierController
         $accommodation->{$setter}(is_scalar($payload[$field]) ? (string) $payload[$field] : null);
     }
 
-    private function findWritableAccommodation(string $identifier): Accommodation
+    private function findProjectAccommodation(Project $project, string $identifier): Accommodation
     {
-        $user = $this->currentUserProvider->getUser();
-        if (!$user instanceof User) {
-            throw new AccessDeniedHttpException('Authentication is required.');
-        }
-
-        $accommodations = $this->entityManager->getRepository(Accommodation::class)->findBy([
+        $accommodation = $this->entityManager->getRepository(Accommodation::class)->findOneBy([
+            'project' => $project,
             'identifier' => $identifier,
             'deletedAt' => null,
         ]);
 
-        $writableAccommodations = [];
-        foreach ($accommodations as $accommodation) {
-            if (!$accommodation instanceof Accommodation || null === $accommodation->getProject()) {
-                continue;
-            }
-
-            $membership = $this->entityManager->getRepository(ProjectMember::class)->findOneBy([
-                'project' => $accommodation->getProject(),
-                'user' => $user,
-            ]);
-
-            if ($membership instanceof ProjectMember && $membership->getRole()->canWrite()) {
-                $writableAccommodations[] = $accommodation;
-            }
-        }
-
-        if ([] === $writableAccommodations) {
+        if (!$accommodation instanceof Accommodation) {
             throw new NotFoundHttpException('Accommodation not found.');
         }
 
-        if (count($writableAccommodations) > 1) {
-            throw new ConflictHttpException('Accommodation identifier matches multiple writable projects.');
-        }
-
-        return $writableAccommodations[0];
+        return $accommodation;
     }
 }

@@ -19,7 +19,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         $amenityFeature = $this->findCategoryCode($project, 'amenity-feature', 'vue-degagee');
         $amenity = $this->findCategoryCode($project, 'tag', 'commerce');
 
-        $response = $client->request('PUT', '/api/dashboard/accommodations/BAVLC001?locale=fr', [
+        $response = $client->request('PUT', sprintf('/api/projects/%s/accommodations/BAVLC001?locale=fr', $project->getId()), [
             'headers' => [
                 'Authorization' => 'Bearer '.$token,
                 'Accept' => 'application/ld+json',
@@ -56,19 +56,75 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         self::assertSame('superbe-local-commercial-erraounak', $payload['slug'] ?? null);
         self::assertSame('660000', $payload['offerPrice'] ?? null);
 
-        $accommodation = $this->findAccommodationByIdentifier('BAVLC001');
+        $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
         self::assertSame(27, $accommodation->getAreaSize());
         self::assertSame('660000', $accommodation->getOfferPrice());
         self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());
         self::assertCount(1, $accommodation->getAmenityFeature());
     }
 
-    public function testDashboardIdentifierRouteHidesInaccessibleAccommodation(): void
+    public function testDashboardCanUpdateAccommodationByIdentifierUsingCodeSlug(): void
     {
         $client = static::createClient();
-        $token = $this->login($client, 'viewer.mogador@grainesdigitales.local');
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
 
-        $client->request('PUT', '/api/dashboard/accommodations/BAVLC001?locale=fr', [
+        $response = $client->request('PUT', sprintf('/api/projects/%s/accommodations/BAVLC001?locale=fr', $project->getId()), [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/ld+json',
+                'Content-Type' => 'application/ld+json',
+            ],
+            'json' => [
+                'isActive' => true,
+                'category' => sprintf('/api/projects/%s/category-codes/local-commercial', $project->getId()),
+                'realEstateListing' => sprintf('/api/projects/%s/category-codes/bien-a-vendre', $project->getId()),
+                'place' => sprintf('/api/projects/%s/category-codes/nouvelle-ville', $project->getId()),
+                'amenityFeature' => [sprintf('/api/projects/%s/category-codes/vue-degagee', $project->getId())],
+                'tags' => [sprintf('/api/projects/%s/category-codes/commerce', $project->getId())],
+                'offerPrice' => '670000',
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+        self::assertSame('BAVLC001', $payload['identifier'] ?? null);
+        self::assertSame('670000', $payload['offerPrice'] ?? null);
+
+        $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
+        self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());
+        self::assertSame('bien-a-vendre', $accommodation->getRealEstateListing()?->getCode());
+        self::assertSame('nouvelle-ville', $accommodation->getPlace()?->getCode());
+        self::assertCount(1, $accommodation->getAmenityFeature());
+    }
+
+    public function testDashboardRejectsUnknownCategoryCode(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $client->request('PUT', sprintf('/api/projects/%s/accommodations/BAVLC001?locale=fr', $project->getId()), [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/ld+json',
+                'Content-Type' => 'application/ld+json',
+            ],
+            'json' => [
+                'category' => sprintf('/api/projects/%s/category-codes/does-not-exist', $project->getId()),
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testDashboardIdentifierRouteScopesAccommodationToProject(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+
+        $client->request('PUT', sprintf('/api/projects/%s/accommodations/BAVLC001?locale=fr', $project->getId()), [
             'headers' => [
                 'Authorization' => 'Bearer '.$token,
                 'Accept' => 'application/ld+json',

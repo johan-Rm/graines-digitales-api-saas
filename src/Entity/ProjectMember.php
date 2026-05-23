@@ -3,9 +3,12 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\ProjectRole;
+use App\State\ProjectScopedCollectionProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -14,11 +17,18 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(columns: ['project_id'], name: 'idx_project_member_project')]
 #[ORM\Index(columns: ['user_id'], name: 'idx_project_member_user')]
 #[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/projects/{projectId}/members',
+            uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])],
+            provider: ProjectScopedCollectionProvider::class,
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+    ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']],
-    security: "is_granted('ROLE_ADMIN')"
 )]
-class ProjectMember
+class ProjectMember implements ProjectScopedResource
 {
     use AuditTrail;
     use UuidIdentity;
