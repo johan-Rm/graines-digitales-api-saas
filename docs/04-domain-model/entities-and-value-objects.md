@@ -9,6 +9,7 @@ Entites principales actuelles :
 - `MediaObject`
 - `Accommodation`
 - `AccommodationMedia`
+- `PropertyValue`
 - `WebPage`
 - `Article`
 - `CreativeWork`
@@ -17,3 +18,6 @@ Entites principales actuelles :
 - `Message`
 
 Les identifiants domaine sont des UUID.
+
+`PropertyValue.name` utilise le referentiel ferme `AccommodationQuality` :
+`Confort`, `Architecture`, `Intérieur`.

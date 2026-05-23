@@ -21,7 +21,7 @@ demonstration.
 - Des memberships explicites sur le projet MLK.
 - Un socle de contenus pour le projet : page, article, menu et categorie.
 - 5 biens immobiliers de demonstration charges comme `Accommodation`, avec
-  relations SQL vers `CategoryCode` et `MediaObject`.
+  relations SQL vers `CategoryCode`, `MediaObject` et `PropertyValue`.
 
 Les biens immobiliers utilisent les referentiels `CategoryCode` suivants :
 
@@ -30,6 +30,12 @@ Les biens immobiliers utilisent les referentiels `CategoryCode` suivants :
 - `accommodation-place` pour le lieu.
 - `amenity-feature` pour les equipements.
 - `tag` pour les tags editoriaux.
+
+Chaque bien charge les qualites `PropertyValue` par defaut suivantes :
+
+- `Confort` avec la valeur `0`.
+- `Architecture` avec la valeur `0`.
+- `Intérieur` avec la valeur `0`.
 
 ## Comptes de demonstration
 

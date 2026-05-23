@@ -12,3 +12,6 @@
   distinguer type de bien, type d'annonce, lieu, equipements et tags.
 - Les medias associes aux biens passent par `accommodation_media`, qui porte
   l'ordre, la legende et les mots-cles.
+- Les qualites d'un bien passent par `property_value`, rattachee a
+  `accommodation`, avec `name`, `value` et `position`. `name` est borne par
+  l'enum applicatif `AccommodationQuality`.

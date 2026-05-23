@@ -6,8 +6,11 @@ namespace App\Controller;
 
 use App\Entity\Accommodation;
 use App\Entity\CategoryCode;
+use App\Entity\PropertyValue;
 use App\Entity\Project;
+use App\Enum\AccommodationQuality;
 use App\Enum\ContentStatus;
+use ValueError;
 use Symfony\Component\Uid\Uuid;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
@@ -131,6 +134,36 @@ final readonly class DashboardAccommodationByIdentifierController
 
                 $accommodation->addTag($this->resolveCategoryCode($iri, $project, 'tag'));
             }
+        }
+
+        if (array_key_exists('qualities', $payload)) {
+            if (!is_array($payload['qualities'])) {
+                throw new BadRequestHttpException('qualities must be an array.');
+            }
+
+            $accommodation->clearQualities();
+            foreach ($payload['qualities'] as $quality) {
+                if (!is_array($quality)) {
+                    throw new BadRequestHttpException('qualities must contain only objects.');
+                }
+
+                $name = $quality['name'] ?? null;
+                $value = $quality['value'] ?? null;
+
+                if (!is_string($name) || (!is_int($value) && !is_float($value) && !is_string($value))) {
+                    throw new BadRequestHttpException('qualities items must contain name and value.');
+                }
+
+                try {
+                    $qualityName = AccommodationQuality::from($name);
+                } catch (ValueError) {
+                    throw new BadRequestHttpException('Unknown quality name.');
+                }
+
+                $accommodation->addQuality((new PropertyValue())->setName($qualityName)->setValue((int) $value));
+            }
+        } else {
+            $accommodation->ensureDefaultQualities();
         }
 
         $this->applyNullableInt($accommodation, $payload, 'yearBuilt');

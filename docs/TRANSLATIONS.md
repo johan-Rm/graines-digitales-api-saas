@@ -15,7 +15,7 @@ Translations also store `project_id`. The root relation remains authoritative fo
 ## Locale resolution
 
 - Project source locale defaults to `fr`.
-- Project enabled locales default to `["fr"]`.
+- Project enabled locales default to `["fr", "en", "es"]`.
 - Supported MVP locales are `fr`, `en`, `es` and `ar`.
 - Client reads may request a locale with `?locale=fr` or `Accept-Language`.
 - If the requested translation is missing, reads fall back to the project source locale and expose `requestedLocale`, `locale`, `fallbackLocale` and `fallback`.

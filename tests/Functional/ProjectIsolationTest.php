@@ -84,7 +84,49 @@ final class ProjectIsolationTest extends FunctionalTestCase
         self::assertSame('accommodation-place', $accommodation->getPlace()->getInCodeSet());
         self::assertCount(3, $accommodation->getAmenityFeature());
         self::assertCount(3, $accommodation->getTags());
+        self::assertCount(3, $accommodation->getQualities());
         self::assertCount(1, $accommodation->getAssociatedMedia());
+
+        $firstItem = $items[0] ?? null;
+        self::assertIsArray($firstItem);
+        self::assertArrayHasKey('qualities', $firstItem);
+    }
+
+    public function testAccommodationApiResponseUsesUuidRelationsAndResolvedLocaleFields(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+        $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
+
+        $response = $client->request('GET', sprintf(
+            '/api/projects/%s/accommodations/%s?locale=fr',
+            $project->getId(),
+            $accommodation->getId(),
+        ), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+
+        self::assertArrayNotHasKey('translations', $payload);
+        self::assertSame('fr', $payload['requestedLocale'] ?? null);
+        self::assertSame('fr', $payload['locale'] ?? null);
+        self::assertSame('Superbe local commercial a Erraounak', $payload['name'] ?? null);
+        self::assertSame((string) $accommodation->getCategory()?->getId(), $payload['category'] ?? null);
+        self::assertSame((string) $accommodation->getRealEstateListing()?->getId(), $payload['realEstateListing'] ?? null);
+        self::assertSame((string) $accommodation->getPlace()?->getId(), $payload['place'] ?? null);
+        self::assertSame(
+            array_map(static fn ($item): string => (string) $item->getId(), $accommodation->getAmenityFeature()->toArray()),
+            $payload['amenityFeature'] ?? null,
+        );
+        self::assertSame((string) $project->getId(), $payload['project'] ?? null);
+
+        $media = $payload['associatedMedia'][0] ?? null;
+        self::assertIsArray($media);
+        self::assertIsString($media['mediaObject'] ?? null);
+        self::assertArrayNotHasKey('project', $media);
     }
 
     public function testAccommodationFromAnotherProjectIsHidden(): void

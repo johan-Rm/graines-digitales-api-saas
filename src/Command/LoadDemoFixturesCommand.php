@@ -71,7 +71,7 @@ final class LoadDemoFixturesCommand extends Command
             $organization,
             'MLK - Modern Site Web',
             'mlk-modern-site-web',
-            ['fr', 'en'],
+            ['fr', 'en', 'es'],
             $johan,
         );
 
@@ -725,6 +725,8 @@ final class LoadDemoFixturesCommand extends Command
         foreach ($listing['tags'] ?? [] as $tagCode) {
             $accommodation->addTag($this->upsertCategoryCode($project, 'tag', $tagCode, $this->labelFromCode($tagCode), $actor));
         }
+
+        $accommodation->ensureDefaultQualities();
 
         $accommodation->clearAssociatedMedia();
         foreach ($listing['associatedMedia'] ?? [] as $position => $mediaData) {

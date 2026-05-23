@@ -4,6 +4,7 @@ namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Entity\Accommodation;
 use App\Entity\MediaObject;
 use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
@@ -35,6 +36,10 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             if (null === $data->getProject()) {
                 $data->setProject($project);
                 $data->markCreatedBy($actor);
+            }
+
+            if ($data instanceof Accommodation) {
+                $data->ensureDefaultQualities();
             }
 
             $data->touch($actor);

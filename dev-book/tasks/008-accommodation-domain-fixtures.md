@@ -84,6 +84,8 @@ tout le domaine immobilier long terme en une seule fois.
 - `realEstateListing` vers `CategoryCode`, avec `inCodeSet = real-estate-listing`.
 - `place` vers `CategoryCode`, avec `inCodeSet = accommodation-place`.
 - `amenityFeature` vers un tableau de `CategoryCode`, avec `inCodeSet = amenity-feature`.
+- `qualities` vers un tableau de `PropertyValue`, avec les valeurs par defaut `Confort`,
+  `Architecture` et `Intérieur` initialisees a `0`.
 - `tags` vers un tableau de `CategoryCode`, avec `inCodeSet = tag`.
 - `associatedMedia` vers `MediaObject`, avec une table de jointure portant au minimum :
   - `position`
@@ -151,3 +153,16 @@ tout le domaine immobilier long terme en une seule fois.
   relations utiles aux collections.
 - KISS : garder `Offer`, `RealEstateListing` et `Agent` simples tant que le besoin backoffice
   n'est pas stabilise.
+
+## Addendum 2026-05-23 : contrat de lecture Accommodation
+
+- [x] La lecture `Accommodation` n'expose plus la collection technique `translations`.
+- [x] Les champs localises sont servis directement au niveau racine selon la locale demandee
+      (`?locale=...` ou `Accept-Language`) avec fallback vers la locale source du projet.
+- [x] Les relations directes de l'`Accommodation` sont exposees par UUID au lieu d'embarquer
+      l'objet complet : `category`, `realEstateListing`, `place`, `amenityFeature`, `tags`,
+      `project`, `createdBy`, `updatedBy`.
+- [x] Les medias associes gardent leurs metadonnees de jointure (`position`, `caption`,
+      `keywords`) mais referencent `mediaObject` par UUID.
+- [x] Le projet par defaut reste en source locale `fr` et active `fr`, `en`, `es`.
+- [x] Le contrat est couvert par `ProjectIsolationTest::testAccommodationApiResponseUsesUuidRelationsAndResolvedLocaleFields`.

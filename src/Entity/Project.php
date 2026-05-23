@@ -51,7 +51,7 @@ class Project
      */
     #[ORM\Column(type: 'json')]
     #[Groups(['read', 'write'])]
-    private array $enabledLocales = ['fr'];
+    private array $enabledLocales = ['fr', 'en', 'es'];
 
     public function __construct()
     {

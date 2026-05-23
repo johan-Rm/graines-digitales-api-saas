@@ -46,6 +46,11 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
                 'realEstateAgentName' => 'Johan REMY',
                 'realEstateAgentPhone' => '+212600000000',
                 'realEstateAgentEmail' => 'agent@example.test',
+                'qualities' => [
+                    ['name' => 'Confort', 'value' => 4],
+                    ['name' => 'Architecture', 'value' => 5],
+                    ['name' => 'Intérieur', 'value' => 3],
+                ],
             ],
         ]);
 
@@ -61,6 +66,17 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         self::assertSame('660000', $accommodation->getOfferPrice());
         self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());
         self::assertCount(1, $accommodation->getAmenityFeature());
+        self::assertSame(
+            [
+                ['Confort', 4],
+                ['Architecture', 5],
+                ['Intérieur', 3],
+            ],
+            array_map(
+                static fn ($quality): array => [$quality->getName()->value, $quality->getValue()],
+                $accommodation->getQualities()->toArray(),
+            ),
+        );
     }
 
     public function testDashboardCanUpdateAccommodationByIdentifierUsingCodeSlug(): void

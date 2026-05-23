@@ -13,6 +13,7 @@ use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
+use App\Enum\AccommodationQuality;
 use App\Enum\ContentStatus;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
@@ -87,6 +88,14 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[ORM\OrderBy(['position' => 'ASC'])]
     #[Groups(['read', 'write'])]
     private Collection $associatedMedia;
+
+    /**
+     * @var Collection<int, PropertyValue>
+     */
+    #[ORM\OneToMany(mappedBy: 'accommodation', targetEntity: PropertyValue::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    #[Groups(['read', 'write'])]
+    private Collection $qualities;
 
     /**
      * @var Collection<int, AccommodationTranslation>
@@ -186,6 +195,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
         $this->amenityFeature = new ArrayCollection();
         $this->tags = new ArrayCollection();
         $this->associatedMedia = new ArrayCollection();
+        $this->qualities = new ArrayCollection();
         $this->translations = new ArrayCollection();
     }
 
@@ -206,6 +216,21 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function getAssociatedMedia(): Collection { return $this->associatedMedia; }
     public function addAssociatedMedia(AccommodationMedia $media): self { if (!$this->associatedMedia->contains($media)) { $this->associatedMedia->add($media); $media->setAccommodation($this); } return $this; }
     public function clearAssociatedMedia(): self { $this->associatedMedia->clear(); return $this; }
+    public function getQualities(): Collection { return $this->qualities; }
+    public function addQuality(PropertyValue $quality): self { if (!$this->qualities->contains($quality)) { $quality->setPosition($this->qualities->count() + 1); $this->qualities->add($quality); $quality->setAccommodation($this); } return $this; }
+    public function clearQualities(): self { $this->qualities->clear(); return $this; }
+    public function ensureDefaultQualities(): self
+    {
+        if (!$this->qualities->isEmpty()) {
+            return $this;
+        }
+
+        foreach (AccommodationQuality::cases() as $name) {
+            $this->addQuality((new PropertyValue())->setName($name)->setValue(0));
+        }
+
+        return $this;
+    }
     protected function createTranslation(): ResourceTranslation { return new AccommodationTranslation(); }
     protected function addTranslation(ResourceTranslation $translation): self { if (!$this->translations->contains($translation)) { $this->translations->add($translation); } return $this; }
     public function getTranslations(): Collection { return $this->translations; }
