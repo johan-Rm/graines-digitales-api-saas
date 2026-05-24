@@ -1,0 +1,151 @@
+# CLAUDE — Contexte projet : symfony-8-api-platform
+
+Fichier de gouvernance local. Complète le socle global `~/.agents/.claude/CLAUDE.md` sans le
+répéter. Les profils, principes et skills sont définis dans le global.
+
+## Projet
+
+API REST JSON-LD pour un CMS SaaS multi-tenant. Chaque tenant est un `Project` ; toutes les
+ressources lui appartiennent via `ProjectMember`. L'accès à une ressource exige d'être membre
+du projet propriétaire.
+
+## Stack
+
+- PHP 8.4, Symfony 8, API Platform 4.3
+- Base de données : PostgreSQL, Doctrine ORM 3 / DBAL 4
+- Authentification : LexikJWT + Gesdinet refresh token
+- Upload : VichUploader
+- Async : Symfony Messenger (`AnalyzeMediaObject`)
+- CORS : NelmioCorsBunde
+- Tests : PHPUnit (suite fonctionnelle API Platform + suite unitaire)
+- Runtime conteneurisé : `docker compose exec api`
+
+## Architecture — lecture obligatoire avant d'agir
+
+`docs/` est la source de vérité. Lire selon le périmètre :
+
+- `docs/02-system-design/` — frontières de modules, cycle de requête, règles de dépendances
+- `docs/03-api-contracts/` — conventions REST, pagination, versioning, payloads
+- `docs/04-domain-model/` — modèle métier, règles, cas d'usage
+- `docs/05-data-layer/` — schéma BDD, migrations, repositories
+- `docs/06-security/` — auth JWT, autorisation projet, validation, rate limiting
+- `docs/07-integrations/` — jobs async, services externes
+- `docs/09-quality/` — stratégie de tests, checklist de revue
+- `docs/TRANSLATIONS.md` — modèle de traduction Sylius-style
+
+## Frontières de modules
+
+```
+src/Entity/          état persisté, invariants locaux, traits
+src/State/           providers et processors API Platform (point central de la logique projet)
+src/Security/        utilisateur courant (CurrentUserProvider), règles d'accès projet (ProjectAccessGuard)
+src/Message/         messages Messenger
+src/MessageHandler/  handlers Messenger (idempotents)
+src/Controller/      controllers custom uniquement quand API Platform ne suffit pas
+src/Serializer/      ajustements de normalisation (AccommodationNormalizer, MediaObjectNormalizer)
+src/Encoder/         décodage multipart / fichiers uploadés
+src/Translation/     auto-traduction et résolution de locale
+src/Enum/            enums PHP natifs (AccommodationQuality, AiReviewStatus, ContentStatus, MediaStatus, ProjectRole)
+```
+
+## Pattern State central
+
+Toute ressource project-scoped passe par ce pattern :
+
+```
+ProjectScopedCollectionProvider   → liste filtrée par projectId + guard
+ProjectScopedItemProvider         → item vérifié par guard
+ProjectScopedPersistProcessor     → écriture avec vérification membership
+ProjectScopedRemoveProcessor      → suppression avec vérification membership
+```
+
+Les ressources traduisibles ont leurs variantes :
+
+```
+ProjectScopedTranslationCollectionProvider
+ProjectScopedTranslationItemProvider
+ProjectScopedTranslationPersistProcessor
+```
+
+Ne jamais contourner ces providers/processors pour accéder directement à Doctrine.
+
+## Modèle de sécurité
+
+Cycle de requête strict :
+
+1. Firewall → valide le JWT
+2. API Platform → résout l'opération
+3. Provider/Processor → extrait `{projectId}` de l'URL
+4. `ProjectAccessGuard` → vérifie le membership de l'utilisateur courant
+5. Doctrine → charge ou persiste
+6. Serializer → expose via groupes de sérialisation
+
+**Ne jamais faire confiance à un `project` transmis dans le payload.** L'ID projet vient
+toujours de l'URL.
+
+Rôles membership : `owner`, `admin`, `editor` → lecture + écriture / `viewer` → lecture seule.
+
+## Traits d'entité
+
+```
+UuidIdentity                → identifiant UUID v4
+AuditTrail                  → createdAt / updatedAt
+ProjectOwned                → lien project_id + ownership
+AutoSlug                    → génération automatique de slug
+TranslatableResourceBehavior → collection de translations
+ResourceTranslationFields   → locale, root resource, audit
+```
+
+## Modèle de traduction (Sylius-style)
+
+- Ressource racine : identité, appartenance projet, statut, audit, relations non localisées
+- Ressource `*Translation` : champs éditoriaux localisés, `locale`, audit, lien vers la racine
+- Traductions MVP : `WebPage`, `Article`, `CreativeWork`, `MenuItem`, `CategoryCode`
+- Contrainte unique : `(resource_id, locale)` par table de traduction
+- Slugs localisés uniques par `(project_id, slug, locale)` pour `WebPage` et `Article`
+- Locale par défaut projet : `fr` / Locales actives MVP : `fr`, `en`, `es`, `ar`
+- Fallback : si traduction manquante, retour locale source avec `fallback: true`
+
+Routes backoffice (pas de fallback côté backoffice) :
+
+```
+GET  /api/projects/{projectId}/web-pages/{id}/translations
+GET  /api/projects/{projectId}/web-pages/{id}/translations/{locale}
+PUT  /api/projects/{projectId}/web-pages/{id}/translations/{locale}
+```
+
+## Commandes courantes
+
+```bash
+# Développement
+docker compose exec api php bin/console lint:container
+docker compose exec api php bin/console doctrine:schema:validate
+
+# Tests — toujours dans le container
+docker compose exec api php bin/phpunit
+
+# Accès shell
+docker compose exec api bash
+
+# Migrations
+docker compose exec api php bin/console doctrine:migrations:migrate
+docker compose exec api php bin/console doctrine:migrations:diff
+```
+
+## Règles de développement
+
+- chaque resource project-scoped doit passer par les providers/processors dédiés
+- ne pas ajouter de controller custom si une opération API Platform suffit
+- les handlers Messenger doivent être idempotents
+- les traits d'entité sont la source d'autorité pour les champs transverses
+- les enums PHP natifs sont préférés aux constantes de classe
+- pas de `Any` ni de `mixed` non justifié dans les types
+- les tests fonctionnels recreent le schéma et chargent les fixtures — ne pas dépendre de données insérées manuellement
+
+## Points de vigilance spécifiques
+
+- l'isolation inter-projets est une invariante de sécurité — toute régression est critique
+- un changement de contrat DTO doit être répercuté dans `schemas/` (DGDOC)
+- les migrations doivent être réversibles et compatibles avec un déploiement sans downtime
+- `project_id` est indexé sur toutes les tables projet — vérifier lors d'une nouvelle entité
+- les slugs localisés ont une contrainte unique composite — ne pas oublier lors d'une migration
