@@ -128,9 +128,9 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[Groups(['read', 'write'])]
     private ?string $landArea = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'smallint', nullable: true)]
     #[Groups(['read', 'write'])]
-    private ?bool $level = null;
+    private ?int $level = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['read', 'write'])]
@@ -281,8 +281,8 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function setFloorSize(?string $floorSize): self { $this->floorSize = $floorSize; return $this; }
     public function getLandArea(): ?string { return $this->landArea; }
     public function setLandArea(?string $landArea): self { $this->landArea = $landArea; return $this; }
-    public function getLevel(): ?bool { return $this->level; }
-    public function setLevel(?bool $level): self { $this->level = $level; return $this; }
+    public function getLevel(): ?int { return $this->level; }
+    public function setLevel(?int $level): self { $this->level = $level; return $this; }
     public function getNumberOfRooms(): ?int { return $this->numberOfRooms; }
     public function setNumberOfRooms(?int $numberOfRooms): self { $this->numberOfRooms = $numberOfRooms; return $this; }
     public function getNumberOfBedrooms(): ?int { return $this->numberOfBedrooms; }

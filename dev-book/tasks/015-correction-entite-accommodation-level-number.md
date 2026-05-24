@@ -4,7 +4,7 @@
 
 - ID : TASK-015
 - Source : audit source de vérité schemas/ — 2026-05-24
-- Statut : À faire
+- Statut : Fait
 - Périmètre : `src/Entity/Accommodation.php`, migration Doctrine, fixtures
 - Dépendances fonctionnelles : aucune
 
