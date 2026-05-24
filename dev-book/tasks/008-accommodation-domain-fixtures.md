@@ -166,3 +166,15 @@ tout le domaine immobilier long terme en une seule fois.
       `keywords`) mais referencent `mediaObject` par UUID.
 - [x] Le projet par defaut reste en source locale `fr` et active `fr`, `en`, `es`.
 - [x] Le contrat est couvert par `ProjectIsolationTest::testAccommodationApiResponseUsesUuidRelationsAndResolvedLocaleFields`.
+
+## Addendum 2026-05-24 : contrat de lecture API generalise
+
+- [x] Le compactage de lecture n'est plus limite a `Accommodation` : les ressources API
+      exposent leurs relations directes par UUID.
+- [x] Les collections techniques `translations` sont masquees sur les lectures standard,
+      tandis que les champs localises resolus restent exposes au niveau racine.
+- [x] Les objets de jointure ou de valeur conservent leurs champs utiles, mais leurs
+      relations imbriquees sont aussi compactees en UUID.
+- [x] Le contrat est couvert par
+      `ProjectIsolationTest::testGenericApiResponsesUseUuidRelationsAndHideTranslationCollections`
+      et `ProjectIsolationTest::testProjectApiResponseUsesUuidRelations`.

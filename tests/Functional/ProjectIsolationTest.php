@@ -129,6 +129,61 @@ final class ProjectIsolationTest extends FunctionalTestCase
         self::assertArrayNotHasKey('project', $media);
     }
 
+    public function testGenericApiResponsesUseUuidRelationsAndHideTranslationCollections(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+        $page = $this->findWebPageByProject($project);
+        $categoryCode = $this->findCategoryCode($project, 'accommodation-type', 'riad');
+
+        $pageResponse = $client->request('GET', sprintf(
+            '/api/projects/%s/web-pages/%s?locale=fr',
+            $project->getId(),
+            $page->getId(),
+        ), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $pagePayload = $pageResponse->toArray(false);
+        self::assertArrayNotHasKey('translations', $pagePayload);
+        self::assertSame((string) $project->getId(), $pagePayload['project'] ?? null);
+        self::assertIsString($pagePayload['createdBy'] ?? null);
+
+        $categoryResponse = $client->request('GET', sprintf(
+            '/api/projects/%s/category-codes/%s?locale=fr',
+            $project->getId(),
+            $categoryCode->getId(),
+        ), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $categoryPayload = $categoryResponse->toArray(false);
+        self::assertArrayNotHasKey('translations', $categoryPayload);
+        self::assertSame((string) $project->getId(), $categoryPayload['project'] ?? null);
+        self::assertSame('Riad', $categoryPayload['label'] ?? null);
+    }
+
+    public function testProjectApiResponseUsesUuidRelations(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+
+        $response = $client->request('GET', sprintf('/api/projects/%s', $project->getId()), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+
+        self::assertIsString($payload['organization'] ?? null);
+        self::assertIsString($payload['createdBy'] ?? null);
+        self::assertIsString($payload['updatedBy'] ?? null);
+    }
+
     public function testAccommodationFromAnotherProjectIsHidden(): void
     {
         $client = static::createClient();
@@ -176,5 +231,18 @@ final class ProjectIsolationTest extends FunctionalTestCase
             static fn (array $item): ?string => $item['id'] ?? null,
             $items,
         ));
+    }
+
+    private function findCategoryCode(object $project, string $inCodeSet, string $code): CategoryCode
+    {
+        $categoryCode = $this->entityManager()->getRepository(CategoryCode::class)->findOneBy([
+            'project' => $project,
+            'inCodeSet' => $inCodeSet,
+            'code' => $code,
+        ]);
+
+        self::assertInstanceOf(CategoryCode::class, $categoryCode);
+
+        return $categoryCode;
     }
 }

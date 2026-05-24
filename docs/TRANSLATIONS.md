@@ -19,6 +19,7 @@ Translations also store `project_id`. The root relation remains authoritative fo
 - Supported MVP locales are `fr`, `en`, `es` and `ar`.
 - Client reads may request a locale with `?locale=fr` or `Accept-Language`.
 - If the requested translation is missing, reads fall back to the project source locale and expose `requestedLocale`, `locale`, `fallbackLocale` and `fallback`.
+- Standard API reads expose resolved localized fields directly on the root resource and hide the technical `translations` collection.
 
 Backoffice translation routes do not hide missing translations:
 
