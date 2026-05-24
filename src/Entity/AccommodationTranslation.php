@@ -5,11 +5,13 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
+use App\State\ProjectScopedAccommodationTranslationCollectionProvider;
 use App\State\ProjectScopedTranslationCollectionProvider;
 use App\State\ProjectScopedTranslationItemProvider;
 use App\State\ProjectScopedTranslationPersistProcessor;
@@ -25,6 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['slug'], name: 'idx_accommodation_translation_slug')]
 #[ApiResource(
     operations: [
+        new GetCollection(uriTemplate: '/projects/{projectId}/accommodation-translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedAccommodationTranslationCollectionProvider::class),
         new GetCollection(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', provider: ProjectScopedTranslationCollectionProvider::class),
         new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations/{locale}', provider: ProjectScopedTranslationItemProvider::class),
         new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations/{locale}', provider: ProjectScopedTranslationItemProvider::class, processor: ProjectScopedTranslationPersistProcessor::class),
@@ -92,6 +95,8 @@ class AccommodationTranslation implements ResourceTranslation
 
     public function getTranslatable(): ?TranslatableResource { return $this->translatable; }
     public function setTranslatable(TranslatableResource $translatable): self { $this->translatable = $translatable; $this->project = $translatable->getProject(); return $this; }
+    #[Groups(['read'])]
+    public function getAccommodation(): ?string { return $this->translatable instanceof Accommodation ? (string) $this->translatable->getId() : null; }
     public function getProject(): ?Project { return $this->project; }
     public function getSlug(): string { return $this->slug; }
     public function setSlug(string $slug): self { $this->slug = self::normalizeSlug($slug); return $this; }

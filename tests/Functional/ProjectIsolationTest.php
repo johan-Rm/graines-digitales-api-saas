@@ -233,6 +233,69 @@ final class ProjectIsolationTest extends FunctionalTestCase
         ));
     }
 
+    public function testAccommodationTranslationsCollectionReturnsProjectTranslations(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+        $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
+
+        $accommodation->setCurrentLocale('es');
+        $accommodation
+            ->setSlug('local-comercial-erraounak')
+            ->setName('Local comercial en Erraounak')
+            ->setBody('Descripcion espanola del local comercial.');
+        $this->entityManager()->flush();
+
+        $response = $client->request('GET', sprintf('/api/projects/%s/accommodation-translations', $project->getId()), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+        $items = $payload['member'] ?? $payload;
+
+        self::assertIsArray($items);
+
+        $spanishTranslations = array_values(array_filter(
+            $items,
+            static fn (array $item): bool => ($item['accommodation'] ?? null) === (string) $accommodation->getId()
+                && ($item['locale'] ?? null) === 'es',
+        ));
+
+        self::assertCount(1, $spanishTranslations);
+        self::assertSame('Local comercial en Erraounak', $spanishTranslations[0]['name'] ?? null);
+    }
+
+    public function testSoftDeletedAccommodationIsHiddenFromTranslationsCollection(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+        $accommodation = $this->findAccommodationByIdentifier('BAVR001', $project);
+        $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
+            'email' => 'admin@grainesdigitales.local',
+        ]);
+
+        self::assertInstanceOf(User::class, $admin);
+        $accommodation->archive($admin);
+        $this->entityManager()->flush();
+
+        $response = $client->request('GET', sprintf('/api/projects/%s/accommodation-translations', $project->getId()), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+        $items = $payload['member'] ?? $payload;
+
+        self::assertIsArray($items);
+        self::assertNotContains((string) $accommodation->getId(), array_map(
+            static fn (array $item): ?string => $item['accommodation'] ?? null,
+            $items,
+        ));
+    }
+
     private function findCategoryCode(object $project, string $inCodeSet, string $code): CategoryCode
     {
         $categoryCode = $this->entityManager()->getRepository(CategoryCode::class)->findOneBy([

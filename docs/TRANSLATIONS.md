@@ -6,7 +6,8 @@ The content API uses a local Sylius-style translatable model.
 
 - Root resources keep identity, project ownership, status, audit fields and non-localized relations.
 - `*Translation` resources keep localized editorial fields, `locale`, audit fields and the link to their root resource.
-- MVP translatable resources are `WebPage`, `Article`, `CreativeWork`, `MenuItem` and `CategoryCode`.
+- MVP translatable resources are `WebPage`, `Article`, `CreativeWork`, `MenuItem`,
+  `CategoryCode` and `Accommodation`.
 - `(resource_id, locale)` is unique on every translation table.
 - Localized slugs for `WebPage` and `Article` are unique by `project_id`, `slug` and `locale`.
 
@@ -30,3 +31,14 @@ PUT /api/projects/{projectId}/web-pages/{id}/translations/{locale}
 ```
 
 Equivalent routes exist for articles, creative works, menu items and category codes.
+
+Accommodation translations also expose a project-level collection route for
+backoffice screens that need every accommodation locale in one call:
+
+```txt
+GET /api/projects/{projectId}/accommodation-translations
+```
+
+This collection returns translations for non-archived accommodations in the
+requested project only, with the parent accommodation UUID exposed as
+`accommodation`.
