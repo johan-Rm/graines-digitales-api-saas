@@ -40,7 +40,15 @@ final class ApiResourceNormalizer implements NormalizerInterface
         $context[self::ALREADY_CALLED] = true;
 
         if ($object instanceof MediaObject) {
-            $object->contentUrl = $this->storage->resolveUri($object, 'file');
+            $project = $object->getProject();
+            $mediaBaseUrl = $project?->getMediaBaseUrl();
+            $filePath = $object->getFilePath();
+
+            if ($mediaBaseUrl && $filePath) {
+                $object->contentUrl = rtrim($mediaBaseUrl, '/').'/'.ltrim($filePath, '/');
+            } else {
+                $object->contentUrl = $this->storage->resolveUri($object, 'file');
+            }
         }
 
         $data = $this->normalizer->normalize($object, $format, $context);

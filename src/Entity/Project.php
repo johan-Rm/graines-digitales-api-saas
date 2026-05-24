@@ -136,4 +136,25 @@ class Project
 
         return $this;
     }
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $mediaPath = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $mediaBaseUrl = null;
+
+    public function getMediaPath(): ?string { return $this->mediaPath; }
+    public function setMediaPath(?string $mediaPath): self { $this->mediaPath = $mediaPath; return $this; }
+
+    public function getMediaBaseUrl(): ?string { return $this->mediaBaseUrl; }
+    public function setMediaBaseUrl(?string $mediaBaseUrl): self { $this->mediaBaseUrl = $mediaBaseUrl; return $this; }
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $watermarkPath = null;
+
+    public function getWatermarkPath(): ?string { return $this->watermarkPath; }
+    public function setWatermarkPath(?string $watermarkPath): self { $this->watermarkPath = $watermarkPath; return $this; }
 }
