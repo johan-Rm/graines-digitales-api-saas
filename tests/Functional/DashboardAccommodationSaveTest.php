@@ -114,6 +114,90 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         self::assertCount(1, $accommodation->getAmenityFeature());
     }
 
+    public function testDashboardAutoCreatesMissingAccommodationTranslationsFromSourceLocale(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $client->request('PUT', sprintf('/api/projects/%s/accommodations/BAVLC001?locale=fr', $project->getId()), [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/ld+json',
+                'Content-Type' => 'application/ld+json',
+            ],
+            'json' => [
+                'name' => 'Local source pour traduction automatique',
+                'body' => '<p>Texte source pour traduction automatique.</p>',
+                'metaTitle' => 'Titre source automatique',
+                'metaDescription' => 'Description source automatique',
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager()->clear();
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+        $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
+        $englishTranslation = $accommodation->getTranslation('en');
+
+        self::assertNotNull($englishTranslation);
+        self::assertSame('Local source pour traduction automatique', $englishTranslation->getName());
+        self::assertSame('<p>Texte source pour traduction automatique.</p>', $englishTranslation->getBody());
+        self::assertSame('Titre source automatique', $englishTranslation->getMetaTitle());
+        self::assertSame('Description source automatique', $englishTranslation->getMetaDescription());
+    }
+
+    public function testDashboardTranslationPayloadKeepsCustomValuesAndFillsOnlyMissingFields(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('blue-bay-mogador');
+
+        $client->request('PUT', sprintf('/api/projects/%s/accommodations/FBAVVG001?locale=fr', $project->getId()), [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/ld+json',
+                'Content-Type' => 'application/ld+json',
+            ],
+            'json' => [
+                'translations' => [
+                    [
+                        'locale' => 'fr',
+                        'name' => 'Local source personnalise',
+                        'body' => '<p>Corps source personnalise.</p>',
+                        'metaTitle' => 'Meta source',
+                    ],
+                    [
+                        'locale' => 'en',
+                        'name' => 'Custom English name',
+                        'body' => '',
+                    ],
+                    [
+                        'locale' => 'es',
+                        'name' => '',
+                        'metaTitle' => 'Titulo personalizado',
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager()->clear();
+        $project = $this->findProjectBySlug('blue-bay-mogador');
+        $accommodation = $this->findAccommodationByIdentifier('FBAVVG001', $project);
+        $englishTranslation = $accommodation->getTranslation('en');
+        $spanishTranslation = $accommodation->getTranslation('es');
+
+        self::assertNotNull($englishTranslation);
+        self::assertNotNull($spanishTranslation);
+        self::assertSame('Custom English name', $englishTranslation->getName());
+        self::assertSame('<p>Corps source personnalise.</p>', $englishTranslation->getBody());
+        self::assertSame('Local source personnalise', $spanishTranslation->getName());
+        self::assertSame('Titulo personalizado', $spanishTranslation->getMetaTitle());
+    }
+
     public function testDashboardRejectsUnknownCategoryCode(): void
     {
         $client = static::createClient();

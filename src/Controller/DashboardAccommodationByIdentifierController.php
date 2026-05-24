@@ -14,6 +14,7 @@ use ValueError;
 use Symfony\Component\Uid\Uuid;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\AccommodationAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ final readonly class DashboardAccommodationByIdentifierController
         private EntityManagerInterface $entityManager,
         private CurrentUserProvider $currentUserProvider,
         private ProjectAccessGuard $projectAccessGuard,
+        private AccommodationAutoTranslator $autoTranslator,
     ) {
     }
 
@@ -52,6 +54,7 @@ final readonly class DashboardAccommodationByIdentifierController
         $locale = (string) $request->query->get('locale', $project->getSourceLocale());
         $accommodation->setCurrentLocale($locale);
         $this->applyPayload($accommodation, $project, $payload);
+        $this->autoTranslator->synchronize($accommodation, $project, $locale, $payload);
         $accommodation->touch($this->currentUserProvider->getUser());
 
         foreach ($accommodation->getTranslations() as $translation) {
@@ -87,9 +90,17 @@ final readonly class DashboardAccommodationByIdentifierController
             $accommodation->setIdentifier($payload['identifier']);
         }
 
-        foreach (['slug', 'name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription'] as $field) {
+        foreach (['slug', 'name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription', 'locationDescription'] as $field) {
             if (array_key_exists($field, $payload)) {
                 $setter = 'set'.ucfirst($field);
+                if ('slug' === $field) {
+                    if (is_string($payload[$field]) && '' !== trim($payload[$field])) {
+                        $accommodation->{$setter}($payload[$field]);
+                    }
+
+                    continue;
+                }
+
                 $accommodation->{$setter}(is_string($payload[$field]) ? $payload[$field] : null);
             }
         }

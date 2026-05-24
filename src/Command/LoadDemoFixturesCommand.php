@@ -213,7 +213,7 @@ final class LoadDemoFixturesCommand extends Command
         $coastal = $this->upsertOrganization('Atlas Coastal Living', 'atlas-coastal-living', $actor);
 
         $riadProject = $this->upsertProject($heritage, 'Riads Medina Essaouira', 'riads-medina-essaouira', ['fr', 'en'], $actor);
-        $villaProject = $this->upsertProject($heritage, 'Villas Arganier Ghazoua', 'villas-arganier-ghazoua', ['fr', 'en'], $actor);
+        $villaProject = $this->upsertProject($heritage, 'Villas Arganier Ghazoua', 'villas-arganier-ghazoua', ['fr', 'en', 'es'], $actor);
         $coastalProject = $this->upsertProject($coastal, 'Blue Bay Mogador', 'blue-bay-mogador', ['fr', 'en', 'es'], $actor);
 
         foreach ([$riadProject, $villaProject, $coastalProject] as $project) {
