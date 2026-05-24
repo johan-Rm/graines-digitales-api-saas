@@ -131,7 +131,7 @@ class MediaObject implements ProjectScopedResource
 
     #[ORM\Column(enumType: MediaStatus::class)]
     #[Groups(['read'])]
-    private MediaStatus $status = MediaStatus::PendingAnalysis;
+    private MediaStatus $status = MediaStatus::PendingWatermark;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['read', 'write'])]

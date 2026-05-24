@@ -9,10 +9,11 @@ use App\Entity\MediaObject;
 use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
 use App\Entity\TranslatableResource;
-use App\Message\AnalyzeMediaObject;
+use App\Message\WatermarkMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
@@ -23,6 +24,8 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
+        #[Autowire(env: 'WEBAPPS_DIR')]
+        private string $webappsDir,
     ) {
     }
 
@@ -62,10 +65,33 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
 
         $result = $this->decorated->process($data, $operation, $uriVariables, $context);
 
-        if ($data instanceof MediaObject) {
-            $this->messageBus->dispatch(new AnalyzeMediaObject((string) $data->getId()));
+        if ($data instanceof MediaObject && null !== $data->getFilePath()) {
+            $this->copyToOriginals($data);
+            $this->messageBus->dispatch(new WatermarkMediaObject((string) $data->getId()));
         }
 
         return $result;
+    }
+
+    private function copyToOriginals(MediaObject $mediaObject): void
+    {
+        $mediaPath = $mediaObject->getProject()?->getMediaPath();
+        if (null === $mediaPath) {
+            return;
+        }
+
+        $webappsDir = rtrim($this->webappsDir, '/');
+        $source = $webappsDir.'/'.$mediaPath.'/'.$mediaObject->getFilePath();
+        $originalsDir = $webappsDir.'/'.$mediaPath.'/originals';
+
+        if (!file_exists($source)) {
+            return;
+        }
+
+        if (!is_dir($originalsDir)) {
+            mkdir($originalsDir, 0777, true);
+        }
+
+        copy($source, $originalsDir.'/'.$mediaObject->getFilePath());
     }
 }
