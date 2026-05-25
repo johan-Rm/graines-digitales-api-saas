@@ -12,12 +12,14 @@ use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
 use App\Entity\MenuItem;
 use App\Entity\Organization;
+use App\Entity\OrganizationMember;
 use App\Entity\Project;
 use App\Entity\ProjectMember;
 use App\Entity\User;
 use App\Entity\WebPage;
 use App\Entity\WebPageTranslation;
 use App\Enum\ContentStatus;
+use App\Enum\OrganizationRole;
 use App\Enum\ProjectRole;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -66,7 +68,15 @@ final class LoadDemoFixturesCommand extends Command
         $johan = $this->upsertUser('johan.remy@graines-digitales.online', ['ROLE_ADMIN'], self::JOHAN_PASSWORD);
         $caroline = $this->upsertUser('buzac@mlk-my-little-kasbah.immo', ['ROLE_USER'], self::DEMO_PASSWORD);
 
-        $organization = $this->upsertOrganization('MLK - My Little Kasbah', 'mlk-my-little-kasbah', $johan);
+        $organization = $this->upsertOrganization('MLK - My Little Kasbah', 'mlk-my-little-kasbah', $johan)
+            ->setAcronym('MLK')
+            ->setFullName('MLK - My Little Kasbah')
+            ->setAlternateName('MLK - My Little Kasbah')
+            ->setLocation('Essaouira')
+            ->setImage('/images/mlk-logo.jpg')
+            ->setEmail(['contact@mlk-my-little-kasbah.immo'])
+            ->setPhoneNumbers(['+33 (0)7 67 235 008', '+212 (0)7 26 403 203'])
+            ->setDescription('MLK - My Little Kasbah accompagne vos projets immobiliers a Essaouira investissement, achat, vente et gestion locative avec une expertise locale et internationale.');
         $project = $this->upsertProject(
             $organization,
             'MLK - Modern Site Web',
@@ -75,6 +85,7 @@ final class LoadDemoFixturesCommand extends Command
             $johan,
         );
 
+        $this->upsertOrganizationMember($organization, $johan, OrganizationRole::Owner, $johan);
         $this->upsertProjectMember($project, $johan, ProjectRole::Owner, $johan);
         $this->upsertProjectMember($project, $caroline, ProjectRole::Admin, $johan);
 
@@ -168,6 +179,31 @@ final class LoadDemoFixturesCommand extends Command
         return $project;
     }
 
+    private function upsertOrganizationMember(
+        Organization $organization,
+        User $user,
+        OrganizationRole $role,
+        User $actor,
+    ): OrganizationMember {
+        $member = $this->entityManager->getRepository(OrganizationMember::class)->findOneBy([
+            'organization' => $organization,
+            'user' => $user,
+        ]);
+
+        if (!$member instanceof OrganizationMember) {
+            $member = new OrganizationMember();
+            $member->setOrganization($organization);
+            $member->setUser($user);
+            $member->markCreatedBy($actor);
+            $this->entityManager->persist($member);
+        }
+
+        $member->setRole($role);
+        $member->touch($actor);
+
+        return $member;
+    }
+
     private function upsertProjectMember(Project $project, User $user, ProjectRole $role, User $actor): ProjectMember
     {
         $member = $this->entityManager->getRepository(ProjectMember::class)->findOneBy([
@@ -211,6 +247,9 @@ final class LoadDemoFixturesCommand extends Command
 
         $heritage = $this->upsertOrganization('Essaouira Patrimoine Immobilier', 'essaouira-patrimoine-immobilier', $actor);
         $coastal = $this->upsertOrganization('Atlas Coastal Living', 'atlas-coastal-living', $actor);
+
+        $this->upsertOrganizationMember($heritage, $admin, OrganizationRole::Owner, $actor);
+        $this->upsertOrganizationMember($coastal, $admin, OrganizationRole::Owner, $actor);
 
         $riadProject = $this->upsertProject($heritage, 'Riads Medina Essaouira', 'riads-medina-essaouira', ['fr', 'en'], $actor);
         $villaProject = $this->upsertProject($heritage, 'Villas Arganier Ghazoua', 'villas-arganier-ghazoua', ['fr', 'en', 'es'], $actor);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\OrganizationMember;
 use App\Entity\ProjectMember;
 use App\Entity\User;
 use App\Enum\ProjectRole;
@@ -12,7 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -24,7 +24,6 @@ final readonly class CreateProjectMemberUserController
     public function __construct(
         private ProjectAccessGuard $projectAccessGuard,
         private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher,
         private ValidatorInterface $validator,
     ) {
     }
@@ -32,7 +31,7 @@ final readonly class CreateProjectMemberUserController
     #[Route('/api/projects/{projectId}/members', name: 'api_project_members_create_user', methods: ['POST'])]
     public function __invoke(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->projectAccessGuard->getWritableProject($projectId);
+        $project = $this->projectAccessGuard->getProjectForMemberManagement($projectId);
 
         try {
             $payload = $request->toArray();
@@ -87,21 +86,23 @@ final readonly class CreateProjectMemberUserController
         $email = strtolower((string) $payload['email']);
         $projectRole = ProjectRole::from((string) ($payload['projectRole'] ?? ProjectRole::Admin->value));
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-        $createdUser = false;
 
         if (!$user instanceof User) {
-            if (!isset($payload['password']) || !is_string($payload['password'])) {
-                return new JsonResponse([
-                    'message' => 'Password is required when creating a new user.',
-                ], Response::HTTP_BAD_REQUEST);
-            }
+            return new JsonResponse([
+                'message' => 'User must belong to the project organization before project membership can be created.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
-            $user = new User();
-            $user->setEmail($email);
-            $user->setRoles(array_values(array_unique($payload['roles'] ?? ['ROLE_USER'])));
-            $user->setPassword($this->passwordHasher->hashPassword($user, $payload['password']));
-            $this->entityManager->persist($user);
-            $createdUser = true;
+        $organization = $project->getOrganization();
+        $organizationMembership = $this->entityManager->getRepository(OrganizationMember::class)->findOneBy([
+            'organization' => $organization,
+            'user' => $user,
+        ]);
+
+        if (!$organizationMembership instanceof OrganizationMember) {
+            return new JsonResponse([
+                'message' => 'User must belong to the project organization before project membership can be created.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $membership = $this->entityManager->getRepository(ProjectMember::class)->findOneBy([
@@ -126,7 +127,7 @@ final readonly class CreateProjectMemberUserController
                 'id' => (string) $user->getId(),
                 'email' => $user->getEmail(),
                 'roles' => $user->getRoles(),
-                'created' => $createdUser,
+                'created' => false,
             ],
             'membership' => [
                 'id' => (string) $membership->getId(),
@@ -134,6 +135,6 @@ final readonly class CreateProjectMemberUserController
                 'role' => $membership->getRole()->value,
                 'created' => $createdMembership,
             ],
-        ], $createdUser || $createdMembership ? Response::HTTP_CREATED : Response::HTTP_OK);
+        ], $createdMembership ? Response::HTTP_CREATED : Response::HTTP_OK);
     }
 }

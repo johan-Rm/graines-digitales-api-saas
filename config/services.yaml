@@ -1,3 +1,6 @@
+parameters:
+    platform_super_admin_emails: ''
+
 services:
     _defaults:
         autowire: true
@@ -37,3 +40,7 @@ services:
     App\State\ProjectScopedRemoveProcessor:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.remove_processor'
+
+    App\Security\PlatformSuperAdminResolver:
+        arguments:
+            $superAdminEmails: '%env(default:platform_super_admin_emails:PLATFORM_SUPER_ADMIN_EMAILS)%'

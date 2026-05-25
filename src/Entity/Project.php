@@ -3,6 +3,11 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\UuidIdentity;
@@ -15,9 +20,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['organization_id'], name: 'idx_project_organization')]
 #[ORM\Index(columns: ['slug'], name: 'idx_project_slug')]
 #[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('IS_AUTHENTICATED_FULLY')"),
+        new Get(security: "is_granted('ROLE_ADMIN')"),
+        new Put(security: "is_granted('ROLE_ADMIN')"),
+        new Delete(security: "is_granted('ROLE_ADMIN')"),
+    ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']],
-    security: "is_granted('ROLE_ADMIN')",
     processor: ProjectPersistProcessor::class
 )]
 class Project

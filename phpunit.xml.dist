@@ -35,6 +35,7 @@
         <env name="JWT_PUBLIC_KEY" value="%kernel.project_dir%/config/jwt/public.pem"/>
         <env name="JWT_PASSPHRASE" value="9aa790f4ba0c7e148bb6deee8c34aa2c26a5a6db50732c8fec28244c89de42dd"/>
         <env name="JWT_TOKEN_TTL" value="3600"/>
+        <env name="PLATFORM_SUPER_ADMIN_EMAILS" value="admin@grainesdigitales.local,johan.remy@graines-digitales.online" force="true"/>
         <!-- ###- lexik/jwt-authentication-bundle ### -->
 
         <!-- ###+ nelmio/cors-bundle ### -->

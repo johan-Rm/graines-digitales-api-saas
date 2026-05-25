@@ -27,3 +27,14 @@ Payload minimal :
 ```
 
 `roles` est optionnel et vaut `["ROLE_ADMIN"]` par defaut pour l'usage local.
+
+## Super admin plateforme
+
+Le role plateforme `ROLE_SUPER_ADMIN` n'est pas accorde par payload API.
+
+Il est resolu cote serveur a partir de `PLATFORM_SUPER_ADMIN_EMAILS`, une liste d'emails
+separes par des virgules. Un utilisateur dont l'email est declare dans cette variable
+obtient les droits plateforme a l'execution.
+
+Cette configuration sert notamment a reserver la creation des organisations a l'operateur
+SaaS.

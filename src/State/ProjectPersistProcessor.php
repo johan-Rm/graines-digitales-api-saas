@@ -9,6 +9,7 @@ use App\Entity\Project;
 use App\Entity\ProjectMember;
 use App\Enum\ProjectRole;
 use App\Security\CurrentUserProvider;
+use App\Security\OrganizationAccessGuard;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class ProjectPersistProcessor implements ProcessorInterface
@@ -17,11 +18,16 @@ final readonly class ProjectPersistProcessor implements ProcessorInterface
         private ProcessorInterface $decorated,
         private EntityManagerInterface $entityManager,
         private CurrentUserProvider $currentUserProvider,
+        private OrganizationAccessGuard $organizationAccessGuard,
     ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
+        if ($data instanceof Project && $operation instanceof Post && null !== $data->getOrganization()) {
+            $this->organizationAccessGuard->assertCanCreateProject($data->getOrganization());
+        }
+
         $result = $this->decorated->process($data, $operation, $uriVariables, $context);
 
         if (!$data instanceof Project || !$operation instanceof Post) {
