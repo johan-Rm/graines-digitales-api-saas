@@ -91,13 +91,11 @@ tout le domaine immobilier long terme en une seule fois.
   - `position`
   - `caption`
   - `keywords`
-- `offer` via une entite ou value object persiste simple :
+- `offer` via un objet JSON persiste simple :
   - `price`
   - `priceCurrency`
   - `priceSpecification`
   - `availability`
-- `realEstateAgent` : a cadrer en V1 minimale. Option pragmatique : champs simples sur
-  `Accommodation` ou petite entite `RealEstateAgent` si plusieurs biens partagent le meme agent.
 
 ## Hors perimetre V1
 

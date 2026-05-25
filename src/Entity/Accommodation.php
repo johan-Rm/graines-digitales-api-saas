@@ -156,37 +156,12 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[Groups(['read', 'write'])]
     private bool $isActive = true;
 
-    #[ORM\Column(length: 80, nullable: true)]
+    /**
+     * @var array{price?: string|null, priceCurrency?: string|null, priceSpecification?: string|null, availability?: string|null}
+     */
+    #[ORM\Column(type: 'json')]
     #[Groups(['read', 'write'])]
-    private ?string $offerPrice = null;
-
-    #[ORM\Column(length: 8, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $offerPriceCurrency = null;
-
-    #[ORM\Column(length: 160, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $offerPriceSpecification = null;
-
-    #[ORM\Column(length: 120, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $offerAvailability = null;
-
-    #[ORM\Column(length: 120, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $realEstateAgentIdentifier = null;
-
-    #[ORM\Column(length: 180, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $realEstateAgentName = null;
-
-    #[ORM\Column(length: 80, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $realEstateAgentPhone = null;
-
-    #[ORM\Column(length: 180, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $realEstateAgentEmail = null;
+    private array $offer = [];
 
     public function __construct()
     {
@@ -295,20 +270,22 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function setOccupancy(?int $occupancy): self { $this->occupancy = $occupancy; return $this; }
     public function isActive(): bool { return $this->isActive; }
     public function setIsActive(bool $isActive): self { $this->isActive = $isActive; return $this; }
-    public function getOfferPrice(): ?string { return $this->offerPrice; }
-    public function setOfferPrice(?string $offerPrice): self { $this->offerPrice = $offerPrice; return $this; }
-    public function getOfferPriceCurrency(): ?string { return $this->offerPriceCurrency; }
-    public function setOfferPriceCurrency(?string $offerPriceCurrency): self { $this->offerPriceCurrency = $offerPriceCurrency; return $this; }
-    public function getOfferPriceSpecification(): ?string { return $this->offerPriceSpecification; }
-    public function setOfferPriceSpecification(?string $offerPriceSpecification): self { $this->offerPriceSpecification = $offerPriceSpecification; return $this; }
-    public function getOfferAvailability(): ?string { return $this->offerAvailability; }
-    public function setOfferAvailability(?string $offerAvailability): self { $this->offerAvailability = $offerAvailability; return $this; }
-    public function getRealEstateAgentIdentifier(): ?string { return $this->realEstateAgentIdentifier; }
-    public function setRealEstateAgentIdentifier(?string $realEstateAgentIdentifier): self { $this->realEstateAgentIdentifier = $realEstateAgentIdentifier; return $this; }
-    public function getRealEstateAgentName(): ?string { return $this->realEstateAgentName; }
-    public function setRealEstateAgentName(?string $realEstateAgentName): self { $this->realEstateAgentName = $realEstateAgentName; return $this; }
-    public function getRealEstateAgentPhone(): ?string { return $this->realEstateAgentPhone; }
-    public function setRealEstateAgentPhone(?string $realEstateAgentPhone): self { $this->realEstateAgentPhone = $realEstateAgentPhone; return $this; }
-    public function getRealEstateAgentEmail(): ?string { return $this->realEstateAgentEmail; }
-    public function setRealEstateAgentEmail(?string $realEstateAgentEmail): self { $this->realEstateAgentEmail = $realEstateAgentEmail; return $this; }
+    /**
+     * @return array{price?: string|null, priceCurrency?: string|null, priceSpecification?: string|null, availability?: string|null}
+     */
+    public function getOffer(): array { return $this->offer; }
+    /**
+     * @param array<string, mixed> $offer
+     */
+    public function setOffer(array $offer): self
+    {
+        $this->offer = array_filter([
+            'price' => isset($offer['price']) && is_scalar($offer['price']) ? (string) $offer['price'] : null,
+            'priceCurrency' => isset($offer['priceCurrency']) && is_scalar($offer['priceCurrency']) ? (string) $offer['priceCurrency'] : null,
+            'priceSpecification' => isset($offer['priceSpecification']) && is_scalar($offer['priceSpecification']) ? (string) $offer['priceSpecification'] : null,
+            'availability' => isset($offer['availability']) && is_scalar($offer['availability']) ? (string) $offer['availability'] : null,
+        ], static fn (?string $value): bool => null !== $value && '' !== $value);
+
+        return $this;
+    }
 }

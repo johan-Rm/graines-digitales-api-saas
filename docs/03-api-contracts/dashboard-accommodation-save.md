@@ -17,6 +17,12 @@ mise a jour est celle du parametre `locale`.
 {
   "name": "Superbe local commercial a Erraounak",
   "body": "<p>Local commercial renove.</p>",
+  "offer": {
+    "price": "660000",
+    "priceCurrency": "MAD",
+    "priceSpecification": "net vendeur",
+    "availability": "InStock"
+  },
   "metaTitle": "Local commercial a vendre a Essaouira",
   "metaDescription": "Local commercial renove a Erraounak."
 }
@@ -59,6 +65,7 @@ Regles de sauvegarde :
   source.
 - Les champs globaux de l'`Accommodation` restent communs a toutes les locales et ne
   doivent pas etre dupliques dans chaque objet de traduction.
+- Le prix et la disponibilite sont portes par l'objet global `offer`.
 - Pour limiter les effets de bord, le dashboard doit envoyer uniquement les champs que
   l'utilisateur vient de modifier, plus les traductions a completer.
 

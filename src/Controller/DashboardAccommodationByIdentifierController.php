@@ -76,8 +76,7 @@ final readonly class DashboardAccommodationByIdentifierController
             'isActive' => $accommodation->isActive(),
             'areaSize' => $accommodation->getAreaSize(),
             'floorSize' => $accommodation->getFloorSize(),
-            'offerPrice' => $accommodation->getOfferPrice(),
-            'offerPriceCurrency' => $accommodation->getOfferPriceCurrency(),
+            'offer' => $accommodation->getOffer(),
         ]);
     }
 
@@ -187,14 +186,14 @@ final readonly class DashboardAccommodationByIdentifierController
         $this->applyNullableInt($accommodation, $payload, 'occupancy');
         $this->applyNullableString($accommodation, $payload, 'floorSize');
         $this->applyNullableString($accommodation, $payload, 'landArea');
-        $this->applyNullableString($accommodation, $payload, 'offerPrice');
-        $this->applyNullableString($accommodation, $payload, 'offerPriceCurrency');
-        $this->applyNullableString($accommodation, $payload, 'offerPriceSpecification');
-        $this->applyNullableString($accommodation, $payload, 'offerAvailability');
-        $this->applyNullableString($accommodation, $payload, 'realEstateAgentIdentifier');
-        $this->applyNullableString($accommodation, $payload, 'realEstateAgentName');
-        $this->applyNullableString($accommodation, $payload, 'realEstateAgentPhone');
-        $this->applyNullableString($accommodation, $payload, 'realEstateAgentEmail');
+
+        if (array_key_exists('offer', $payload)) {
+            if (!is_array($payload['offer'])) {
+                throw new BadRequestHttpException('offer must be an object.');
+            }
+
+            $accommodation->setOffer($payload['offer']);
+        }
 
         if (array_key_exists('level', $payload)) {
             $accommodation->setLevel(is_bool($payload['level']) ? $payload['level'] : null);

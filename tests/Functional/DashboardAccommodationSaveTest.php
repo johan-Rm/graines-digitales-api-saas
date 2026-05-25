@@ -38,14 +38,12 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
                 'tags' => [sprintf('/api/projects/%s/category-codes/%s', $project->getId(), $amenity->getId())],
                 'areaSize' => 27,
                 'floorSize' => '27',
-                'offerPrice' => '660000',
-                'offerPriceCurrency' => 'MAD',
-                'offerAvailability' => 'InStock',
-                'offerPriceSpecification' => 'net vendeur',
-                'realEstateAgentIdentifier' => 'gd-demo-agent',
-                'realEstateAgentName' => 'Johan REMY',
-                'realEstateAgentPhone' => '+212600000000',
-                'realEstateAgentEmail' => 'agent@example.test',
+                'offer' => [
+                    'price' => '660000',
+                    'priceCurrency' => 'MAD',
+                    'availability' => 'InStock',
+                    'priceSpecification' => 'net vendeur',
+                ],
                 'qualities' => [
                     ['name' => 'Confort', 'value' => 4],
                     ['name' => 'Architecture', 'value' => 5],
@@ -59,11 +57,11 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
 
         self::assertSame('BAVLC001', $payload['identifier'] ?? null);
         self::assertSame('superbe-local-commercial-erraounak', $payload['slug'] ?? null);
-        self::assertSame('660000', $payload['offerPrice'] ?? null);
+        self::assertSame('660000', $payload['offer']['price'] ?? null);
 
         $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
         self::assertSame(27, $accommodation->getAreaSize());
-        self::assertSame('660000', $accommodation->getOfferPrice());
+        self::assertSame('660000', $accommodation->getOffer()['price'] ?? null);
         self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());
         self::assertCount(1, $accommodation->getAmenityFeature());
         self::assertSame(
@@ -98,14 +96,14 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
                 'place' => sprintf('/api/projects/%s/category-codes/nouvelle-ville', $project->getId()),
                 'amenityFeature' => [sprintf('/api/projects/%s/category-codes/vue-degagee', $project->getId())],
                 'tags' => [sprintf('/api/projects/%s/category-codes/commerce', $project->getId())],
-                'offerPrice' => '670000',
+                'offer' => ['price' => '670000'],
             ],
         ]);
 
         self::assertResponseIsSuccessful();
         $payload = $response->toArray(false);
         self::assertSame('BAVLC001', $payload['identifier'] ?? null);
-        self::assertSame('670000', $payload['offerPrice'] ?? null);
+        self::assertSame('670000', $payload['offer']['price'] ?? null);
 
         $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
         self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());

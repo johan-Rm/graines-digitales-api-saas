@@ -745,14 +745,7 @@ final class LoadDemoFixturesCommand extends Command
             ->setNumberOfGarages($listing['numberOfGarages'] ?? null)
             ->setOccupancy($listing['occupancy'] ?? null)
             ->setIsActive($listing['isActive'] ?? true)
-            ->setOfferPrice($offer['price'] ?? null)
-            ->setOfferPriceCurrency($offer['priceCurrency'] ?? null)
-            ->setOfferPriceSpecification($offer['priceSpecification'] ?? null)
-            ->setOfferAvailability($offer['availability'] ?? null)
-            ->setRealEstateAgentIdentifier('gd-demo-agent')
-            ->setRealEstateAgentName('Graines Digitales Immobilier')
-            ->setRealEstateAgentPhone('+212 000 000 000')
-            ->setRealEstateAgentEmail('contact@grainesdigitales.local')
+            ->setOffer($offer)
             ->touch($actor);
 
         $accommodation->clearAmenityFeature();
