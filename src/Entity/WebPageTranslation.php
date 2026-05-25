@@ -49,7 +49,7 @@ class WebPageTranslation implements ResourceTranslation
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read'])]
     private string $slug = '';
 
     #[ORM\Column(length: 220, nullable: true)]
@@ -88,7 +88,7 @@ class WebPageTranslation implements ResourceTranslation
     public function getMetaDescription(): ?string { return $this->metaDescription; }
     public function setMetaDescription(?string $metaDescription): self { $this->metaDescription = $metaDescription; return $this; }
     public function getHeadline(): ?string { return $this->headline; }
-    public function setHeadline(?string $headline): self { $this->headline = $headline; if ('' === $this->slug) { $this->slug = self::normalizeSlug($headline); } return $this; }
+    public function setHeadline(?string $headline): self { $this->headline = $headline; $this->slug = self::normalizeSlug($headline); return $this; }
     public function getBody(): ?string { return $this->body; }
     public function setBody(?string $body): self { $this->body = $body; return $this; }
     public function getSchemaData(): ?array { return $this->schemaData; }

@@ -217,7 +217,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function getFallbackLocale(): ?string { return $this->fallbackLocale; }
     #[Groups(['read'])]
     public function isFallback(): bool { return $this->fallback; }
-    #[Groups(['read', 'write'])]
+    #[Groups(['read'])]
     public function getSlug(): string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getSlug() : ''; }
     public function setSlug(string $slug): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSlug($slug); return $this; }
     #[Groups(['read', 'write'])]

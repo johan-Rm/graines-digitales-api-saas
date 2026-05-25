@@ -52,7 +52,7 @@ class AccommodationTranslation implements ResourceTranslation
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read'])]
     private string $slug = '';
 
     #[ORM\Column(length: 220, nullable: true)]
@@ -101,7 +101,23 @@ class AccommodationTranslation implements ResourceTranslation
     public function getSlug(): string { return $this->slug; }
     public function setSlug(string $slug): self { $this->slug = self::normalizeSlug($slug); return $this; }
     public function getName(): ?string { return $this->name; }
-    public function setName(?string $name): self { $this->name = $name; if ('' === $this->slug) { $this->slug = self::normalizeSlug($name); } return $this; }
+    public function setName(?string $name): self { $this->name = $name; return $this; }
+    public function recomputeSlug(): void
+    {
+        if (!$this->translatable instanceof Accommodation) {
+            return;
+        }
+
+        $primary = ('' !== trim((string) $this->name))
+            ? (string) $this->name
+            : ($this->translatable->getCategory()?->getCode() ?? '');
+
+        $this->slug = self::buildSlug(
+            $primary,
+            $this->translatable->getPlace()?->getCode() ?? '',
+            $this->translatable->getIdentifier(),
+        );
+    }
     public function getLabel(): ?string { return $this->label; }
     public function setLabel(?string $label): self { $this->label = $label; return $this; }
     public function getHighlight(): ?string { return $this->highlight; }

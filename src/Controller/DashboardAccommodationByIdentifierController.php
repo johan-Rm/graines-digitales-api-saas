@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Accommodation;
+use App\Entity\AccommodationTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\PropertyValue;
 use App\Entity\Project;
@@ -58,7 +59,11 @@ final readonly class DashboardAccommodationByIdentifierController
         $accommodation->touch($this->currentUserProvider->getUser());
 
         foreach ($accommodation->getTranslations() as $translation) {
+            if (!$translation instanceof AccommodationTranslation) {
+                continue;
+            }
             $translation->setTranslatable($accommodation);
+            $translation->recomputeSlug();
             $translation->touch($this->currentUserProvider->getUser());
             $this->entityManager->persist($translation);
         }
@@ -89,17 +94,9 @@ final readonly class DashboardAccommodationByIdentifierController
             $accommodation->setIdentifier($payload['identifier']);
         }
 
-        foreach (['slug', 'name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription', 'locationDescription'] as $field) {
+        foreach (['name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription', 'locationDescription'] as $field) {
             if (array_key_exists($field, $payload)) {
                 $setter = 'set'.ucfirst($field);
-                if ('slug' === $field) {
-                    if (is_string($payload[$field]) && '' !== trim($payload[$field])) {
-                        $accommodation->{$setter}($payload[$field]);
-                    }
-
-                    continue;
-                }
-
                 $accommodation->{$setter}(is_string($payload[$field]) ? $payload[$field] : null);
             }
         }

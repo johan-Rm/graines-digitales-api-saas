@@ -49,7 +49,7 @@ class ArticleTranslation implements ResourceTranslation
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read'])]
     private string $slug = '';
 
     #[ORM\Column(length: 220)]
@@ -77,7 +77,7 @@ class ArticleTranslation implements ResourceTranslation
     public function getSlug(): string { return $this->slug; }
     public function setSlug(string $slug): self { $this->slug = self::normalizeSlug($slug); return $this; }
     public function getHeadline(): string { return $this->headline; }
-    public function setHeadline(string $headline): self { $this->headline = $headline; if ('' === $this->slug) { $this->slug = self::normalizeSlug($headline); } return $this; }
+    public function setHeadline(string $headline): self { $this->headline = $headline; $this->slug = self::normalizeSlug($headline); return $this; }
     public function getBody(): ?string { return $this->body; }
     public function setBody(?string $body): self { $this->body = $body; return $this; }
     public function getSchemaData(): ?array { return $this->schemaData; }

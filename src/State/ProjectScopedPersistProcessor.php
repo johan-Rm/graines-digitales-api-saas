@@ -5,6 +5,7 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Accommodation;
+use App\Entity\AccommodationTranslation;
 use App\Entity\MediaObject;
 use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
@@ -52,6 +53,9 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
                 foreach ($data->getTranslations() as $translation) {
                     if ($translation instanceof ResourceTranslation) {
                         $translation->setTranslatable($data);
+                        if ($translation instanceof AccommodationTranslation) {
+                            $translation->recomputeSlug();
+                        }
                         $translation->touch($actor);
                         $this->entityManager->persist($translation);
                     }

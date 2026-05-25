@@ -4,6 +4,7 @@ namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Entity\AccommodationTranslation;
 use App\Entity\ResourceTranslation;
 use App\Security\CurrentUserProvider;
 use App\Translation\TranslatableResourceResolver;
@@ -32,6 +33,9 @@ final readonly class ProjectScopedTranslationPersistProcessor implements Process
         $translation = $resource?->getTranslation($locale) ?? $data;
         $translation->setLocale($locale);
         $translation->setTranslatable($resource);
+        if ($translation instanceof AccommodationTranslation) {
+            $translation->recomputeSlug();
+        }
         $translation->touch($this->currentUserProvider->getUser());
 
         return $this->decorated->process($translation, $operation, $uriVariables, $context);

@@ -90,9 +90,7 @@ class Project
     public function setName(string $name): self
     {
         $this->name = $name;
-        if ('' === $this->slug) {
-            $this->slug = self::normalizeSlug($name);
-        }
+        $this->slug = self::normalizeSlug($name);
 
         return $this;
     }

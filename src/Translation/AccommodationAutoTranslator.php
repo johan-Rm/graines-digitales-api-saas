@@ -13,7 +13,6 @@ final readonly class AccommodationAutoTranslator
      * @var list<string>
      */
     private const LOCALIZED_FIELDS = [
-        'slug',
         'name',
         'label',
         'highlight',
@@ -116,17 +115,7 @@ final readonly class AccommodationAutoTranslator
             }
 
             $setter = 'set'.ucfirst($field);
-            $value = $payload[$field];
-
-            if ('slug' === $field) {
-                if (is_string($value) && '' !== trim($value)) {
-                    $translation->{$setter}($value);
-                }
-
-                continue;
-            }
-
-            $translation->{$setter}(is_string($value) ? $value : null);
+            $translation->{$setter}(is_string($payload[$field]) ? $payload[$field] : null);
         }
     }
 
