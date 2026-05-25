@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\UuidIdentity;
+use App\State\OrganizationByOwnerEmailProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -22,7 +23,13 @@ use Symfony\Component\Validator\Constraints as Assert;
         new GetCollection(security: "is_granted('ROLE_ADMIN')"),
         new Post(security: "is_granted('ROLE_SUPER_ADMIN')"),
         new Get(security: "is_granted('ROLE_ADMIN')"),
-        new Put(security: "is_granted('ROLE_SUPER_ADMIN')"),
+        new Get(
+            uriTemplate: '/organizations/by-owner-email/{email}',
+            uriVariables: ['email'],
+            security: "is_granted('ROLE_ADMIN')",
+            provider: OrganizationByOwnerEmailProvider::class,
+        ),
+        new Put(security: "is_granted('ROLE_ADMIN')"),
         new Delete(security: "is_granted('ROLE_SUPER_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['read']],

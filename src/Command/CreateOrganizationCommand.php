@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
     name: 'app:organization:create',
@@ -25,6 +26,7 @@ final class CreateOrganizationCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly UserPasswordHasherInterface $passwordHasher,
     ) {
         parent::__construct();
     }
@@ -34,7 +36,8 @@ final class CreateOrganizationCommand extends Command
         $this
             ->addArgument('name', InputArgument::REQUIRED, 'The organization name.')
             ->addOption('slug', null, InputOption::VALUE_REQUIRED, 'Override the auto-generated slug.')
-            ->addOption('owner-email', null, InputOption::VALUE_REQUIRED, 'Email of an existing user to set as owner.')
+            ->addOption('owner-email', null, InputOption::VALUE_REQUIRED, 'Email of the owner (created if not found).')
+            ->addOption('owner-password', null, InputOption::VALUE_REQUIRED, 'Password for the owner (required if the user does not exist yet).')
         ;
     }
 
@@ -72,10 +75,22 @@ final class CreateOrganizationCommand extends Command
             $ownerEmail = strtolower(trim($ownerEmail));
             $owner = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $ownerEmail]);
 
-            if (!$owner instanceof User) {
-                $io->error(sprintf('No user found with email "%s".', $ownerEmail));
+            $ownerPassword = $input->getOption('owner-password');
 
-                return Command::FAILURE;
+            if (!$owner instanceof User) {
+                if (!is_string($ownerPassword) || '' === trim($ownerPassword)) {
+                    $io->error(sprintf('User "%s" not found. Provide --owner-password to create them.', $ownerEmail));
+
+                    return Command::FAILURE;
+                }
+
+                $owner = new User();
+                $owner->setEmail($ownerEmail);
+                $owner->setRoles(['ROLE_ADMIN']);
+                $owner->setPassword($this->passwordHasher->hashPassword($owner, $ownerPassword));
+                $this->entityManager->persist($owner);
+
+                $io->note(sprintf('User created: %s', $ownerEmail));
             }
         }
 

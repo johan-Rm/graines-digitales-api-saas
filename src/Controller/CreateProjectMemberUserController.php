@@ -50,7 +50,7 @@ final readonly class CreateProjectMemberUserController
                     new Assert\NotBlank(),
                     new Assert\Length(min: 8, max: 4096),
                 ]),
-                'projectRole' => new Assert\Optional([
+                'role' => new Assert\Optional([
                     new Assert\Type('string'),
                     new Assert\Choice(choices: array_map(
                         static fn (ProjectRole $role): string => $role->value,
@@ -84,7 +84,7 @@ final readonly class CreateProjectMemberUserController
         }
 
         $email = strtolower((string) $payload['email']);
-        $projectRole = ProjectRole::from((string) ($payload['projectRole'] ?? ProjectRole::Admin->value));
+        $projectRole = ProjectRole::from((string) ($payload['role'] ?? ProjectRole::Admin->value));
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
 
         if (!$user instanceof User) {
