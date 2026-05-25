@@ -17,6 +17,23 @@ final readonly class OrganizationAccessGuard
     ) {
     }
 
+    public function assertCanManageOrganizationMembers(Organization $organization): void
+    {
+        $user = $this->currentUserProvider->getUser();
+        if (!$user instanceof User) {
+            throw new AccessDeniedHttpException('Authentication is required.');
+        }
+
+        if ($this->superAdminResolver->isSuperAdmin($user)) {
+            return;
+        }
+
+        $membership = $this->getMembership($organization, $user);
+        if (!$membership instanceof OrganizationMember || !$membership->getRole()->canManageMembers()) {
+            throw new AccessDeniedHttpException('Organization member management access is required.');
+        }
+    }
+
     public function assertCanCreateProject(Organization $organization): void
     {
         $user = $this->currentUserProvider->getUser();

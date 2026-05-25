@@ -26,6 +26,11 @@ final readonly class PlatformSuperAdminResolver
             return false;
         }
 
-        return in_array(strtolower($user->getEmail()), $this->emails, true);
+        return $this->isSuperAdminEmail($user->getEmail());
+    }
+
+    public function isSuperAdminEmail(string $email): bool
+    {
+        return in_array(strtolower($email), $this->emails, true);
     }
 }
