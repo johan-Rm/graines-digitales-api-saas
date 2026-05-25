@@ -44,6 +44,45 @@ class Organization
     #[Groups(['read', 'write'])]
     private string $slug = '';
 
+    #[ORM\Column(length: 40, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $acronym = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $fullName = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $alternateName = null;
+
+    #[ORM\Column(length: 160, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $location = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $image = null;
+
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json')]
+    #[Assert\All([new Assert\Email])]
+    #[Groups(['read', 'write'])]
+    private array $email = [];
+
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json')]
+    #[Groups(['read', 'write'])]
+    private array $phoneNumbers = [];
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?string $description = null;
+
     public function __construct()
     {
         $this->initializeUuid();
@@ -73,6 +112,114 @@ class Organization
     public function setSlug(string $slug): self
     {
         $this->slug = self::normalizeSlug($slug);
+
+        return $this;
+    }
+
+    public function getAcronym(): ?string
+    {
+        return $this->acronym;
+    }
+
+    public function setAcronym(?string $acronym): self
+    {
+        $this->acronym = $acronym;
+
+        return $this;
+    }
+
+    public function getFullName(): ?string
+    {
+        return $this->fullName;
+    }
+
+    public function setFullName(?string $fullName): self
+    {
+        $this->fullName = $fullName;
+
+        return $this;
+    }
+
+    public function getAlternateName(): ?string
+    {
+        return $this->alternateName;
+    }
+
+    public function setAlternateName(?string $alternateName): self
+    {
+        $this->alternateName = $alternateName;
+
+        return $this;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?string $location): self
+    {
+        $this->location = $location;
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getEmail(): array
+    {
+        return $this->email;
+    }
+
+    /**
+     * @param list<string> $email
+     */
+    public function setEmail(array $email): self
+    {
+        $this->email = array_values($email);
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getPhoneNumbers(): array
+    {
+        return $this->phoneNumbers;
+    }
+
+    /**
+     * @param list<string> $phoneNumbers
+     */
+    public function setPhoneNumbers(array $phoneNumbers): self
+    {
+        $this->phoneNumbers = array_values($phoneNumbers);
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
 
         return $this;
     }
