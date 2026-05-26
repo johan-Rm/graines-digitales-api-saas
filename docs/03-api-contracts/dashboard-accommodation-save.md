@@ -23,6 +23,10 @@ mise a jour est celle du parametre `locale`.
     "priceSpecification": "net vendeur",
     "availability": "InStock"
   },
+  "areaSize": "27",
+  "areaTerrace": "12",
+  "floorSize": "27",
+  "landArea": "550/580",
   "metaTitle": "Local commercial a vendre a Essaouira",
   "metaDescription": "Local commercial renove a Erraounak."
 }
@@ -66,6 +70,8 @@ Regles de sauvegarde :
 - Les champs globaux de l'`Accommodation` restent communs a toutes les locales et ne
   doivent pas etre dupliques dans chaque objet de traduction.
 - Le prix et la disponibilite sont portes par l'objet global `offer`.
+- Les surfaces `floorSize`, `areaSize`, `areaTerrace` et `landArea` sont exposees et
+  sauvegardees comme des chaines pour conserver les valeurs composees ou formatees.
 - Pour limiter les effets de bord, le dashboard doit envoyer uniquement les champs que
   l'utilisateur vient de modifier, plus les traductions a completer.
 

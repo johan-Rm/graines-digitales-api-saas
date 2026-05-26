@@ -82,7 +82,9 @@ final readonly class DashboardAccommodationByIdentifierController
             'locale' => $locale,
             'isActive' => $accommodation->isActive(),
             'areaSize' => $accommodation->getAreaSize(),
+            'areaTerrace' => $accommodation->getAreaTerrace(),
             'floorSize' => $accommodation->getFloorSize(),
+            'landArea' => $accommodation->getLandArea(),
             'offer' => $accommodation->getOffer(),
         ]);
     }
@@ -180,14 +182,14 @@ final readonly class DashboardAccommodationByIdentifierController
         }
 
         $this->applyNullableInt($accommodation, $payload, 'yearBuilt');
-        $this->applyNullableInt($accommodation, $payload, 'areaSize');
-        $this->applyNullableInt($accommodation, $payload, 'areaTerrace');
+        $this->applyNullableString($accommodation, $payload, 'areaSize');
+        $this->applyNullableString($accommodation, $payload, 'areaTerrace');
         $this->applyNullableInt($accommodation, $payload, 'numberOfRooms');
         $this->applyNullableInt($accommodation, $payload, 'numberOfBedrooms');
         $this->applyNullableInt($accommodation, $payload, 'numberOfBathroomsTotal');
         $this->applyNullableInt($accommodation, $payload, 'numberOfGarages');
         $this->applyNullableInt($accommodation, $payload, 'occupancy');
-        $this->applyNullableInt($accommodation, $payload, 'floorSize');
+        $this->applyNullableString($accommodation, $payload, 'floorSize');
         $this->applyNullableString($accommodation, $payload, 'landArea');
 
         if (array_key_exists('offer', $payload)) {

@@ -112,17 +112,17 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[Groups(['read', 'write'])]
     private ?int $yearBuilt = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(length: 80, nullable: true)]
     #[Groups(['read', 'write'])]
-    private ?int $areaSize = null;
+    private ?string $areaSize = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(length: 80, nullable: true)]
     #[Groups(['read', 'write'])]
-    private ?int $areaTerrace = null;
+    private ?string $areaTerrace = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(length: 80, nullable: true)]
     #[Groups(['read', 'write'])]
-    private ?int $floorSize = null;
+    private ?string $floorSize = null;
 
     #[ORM\Column(length: 80, nullable: true)]
     #[Groups(['read', 'write'])]
@@ -248,12 +248,12 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
     public function getYearBuilt(): ?int { return $this->yearBuilt; }
     public function setYearBuilt(?int $yearBuilt): self { $this->yearBuilt = $yearBuilt; return $this; }
-    public function getAreaSize(): ?int { return $this->areaSize; }
-    public function setAreaSize(?int $areaSize): self { $this->areaSize = $areaSize; return $this; }
-    public function getAreaTerrace(): ?int { return $this->areaTerrace; }
-    public function setAreaTerrace(?int $areaTerrace): self { $this->areaTerrace = $areaTerrace; return $this; }
-    public function getFloorSize(): ?int { return $this->floorSize; }
-    public function setFloorSize(?int $floorSize): self { $this->floorSize = $floorSize; return $this; }
+    public function getAreaSize(): ?string { return $this->areaSize; }
+    public function setAreaSize(?string $areaSize): self { $this->areaSize = $areaSize; return $this; }
+    public function getAreaTerrace(): ?string { return $this->areaTerrace; }
+    public function setAreaTerrace(?string $areaTerrace): self { $this->areaTerrace = $areaTerrace; return $this; }
+    public function getFloorSize(): ?string { return $this->floorSize; }
+    public function setFloorSize(?string $floorSize): self { $this->floorSize = $floorSize; return $this; }
     public function getLandArea(): ?string { return $this->landArea; }
     public function setLandArea(?string $landArea): self { $this->landArea = $landArea; return $this; }
     public function getLevel(): ?int { return $this->level; }
