@@ -63,7 +63,9 @@ final readonly class DashboardAccommodationByIdentifierController
                 continue;
             }
             $translation->setTranslatable($accommodation);
-            $translation->recomputeSlug();
+            if (!isset($payload['slug']) || $translation->getLocale() !== $locale) {
+                $translation->recomputeSlug();
+            }
             $translation->touch($this->currentUserProvider->getUser());
             $this->entityManager->persist($translation);
         }
@@ -92,6 +94,10 @@ final readonly class DashboardAccommodationByIdentifierController
     {
         if (isset($payload['identifier']) && is_string($payload['identifier'])) {
             $accommodation->setIdentifier($payload['identifier']);
+        }
+
+        if (isset($payload['slug']) && is_string($payload['slug'])) {
+            $accommodation->setSlug($payload['slug']);
         }
 
         foreach (['name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription', 'locationDescription'] as $field) {

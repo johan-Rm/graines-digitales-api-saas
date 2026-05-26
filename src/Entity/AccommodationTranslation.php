@@ -101,7 +101,7 @@ class AccommodationTranslation implements ResourceTranslation
     public function getSlug(): string { return $this->slug; }
     public function setSlug(string $slug): self { $this->slug = self::normalizeSlug($slug); return $this; }
     public function getName(): ?string { return $this->name; }
-    public function setName(?string $name): self { $this->name = $name; return $this; }
+    public function setName(?string $name): self { $this->name = $name; if ('' === $this->slug) { $this->slug = self::normalizeSlug($name); } return $this; }
     public function recomputeSlug(): void
     {
         if (!$this->translatable instanceof Accommodation) {
