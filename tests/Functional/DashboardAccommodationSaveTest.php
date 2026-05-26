@@ -7,6 +7,38 @@ use App\Entity\Project;
 
 final class DashboardAccommodationSaveTest extends FunctionalTestCase
 {
+    public function testAccommodationIdentifierIsGeneratedFromListingCategoryPair(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $category = $this->findCategoryCode($project, 'accommodation-type', 'local-commercial');
+        $listing = $this->findCategoryCode($project, 'real-estate-listing', 'bien-a-vendre');
+        $place = $this->findCategoryCode($project, 'accommodation-place', 'nouvelle-ville');
+
+        $response = $client->request('POST', sprintf('/api/projects/%s/accommodations?locale=fr', $project->getId()), [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/ld+json',
+                'Content-Type' => 'application/ld+json',
+            ],
+            'json' => [
+                'identifier' => 'CLIENT-SHOULD-NOT-WIN',
+                'name' => 'Deuxieme local commercial',
+                'category' => sprintf('/api/projects/%s/category-codes/%s', $project->getId(), $category->getId()),
+                'realEstateListing' => sprintf('/api/projects/%s/category-codes/%s', $project->getId(), $listing->getId()),
+                'place' => sprintf('/api/projects/%s/category-codes/%s', $project->getId(), $place->getId()),
+                'offer' => ['price' => '720000'],
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        $payload = $response->toArray(false);
+
+        self::assertSame('BAVLC002', $payload['identifier'] ?? null);
+    }
+
     public function testDashboardCanUpdateAccommodationByIdentifier(): void
     {
         $client = static::createClient();

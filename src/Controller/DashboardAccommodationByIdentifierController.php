@@ -94,10 +94,6 @@ final readonly class DashboardAccommodationByIdentifierController
      */
     private function applyPayload(Accommodation $accommodation, Project $project, array $payload): void
     {
-        if (isset($payload['identifier']) && is_string($payload['identifier'])) {
-            $accommodation->setIdentifier($payload['identifier']);
-        }
-
         if (isset($payload['slug']) && is_string($payload['slug'])) {
             $accommodation->setSlug($payload['slug']);
         }

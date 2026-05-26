@@ -25,6 +25,7 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
+        private AccommodationIdentifierGenerator $accommodationIdentifierGenerator,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -43,6 +44,9 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             }
 
             if ($data instanceof Accommodation) {
+                if ('' === trim($data->getIdentifier())) {
+                    $data->setIdentifier($this->accommodationIdentifierGenerator->generate($data));
+                }
                 $data->ensureDefaultQualities();
             }
 

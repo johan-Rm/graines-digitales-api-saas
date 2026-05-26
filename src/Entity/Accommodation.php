@@ -31,7 +31,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
+        new Post(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class),
         new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
         new Delete(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
@@ -47,7 +47,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     use UuidIdentity;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read'])]
     private string $identifier = '';
 
     #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
