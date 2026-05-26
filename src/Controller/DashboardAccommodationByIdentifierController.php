@@ -181,7 +181,7 @@ final readonly class DashboardAccommodationByIdentifierController
         $this->applyNullableInt($accommodation, $payload, 'numberOfBathroomsTotal');
         $this->applyNullableInt($accommodation, $payload, 'numberOfGarages');
         $this->applyNullableInt($accommodation, $payload, 'occupancy');
-        $this->applyNullableString($accommodation, $payload, 'floorSize');
+        $this->applyNullableInt($accommodation, $payload, 'floorSize');
         $this->applyNullableString($accommodation, $payload, 'landArea');
 
         if (array_key_exists('offer', $payload)) {
