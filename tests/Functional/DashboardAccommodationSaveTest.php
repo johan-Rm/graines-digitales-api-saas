@@ -37,7 +37,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
                 'amenityFeature' => [sprintf('/api/projects/%s/category-codes/%s', $project->getId(), $amenityFeature->getId())],
                 'tags' => [sprintf('/api/projects/%s/category-codes/%s', $project->getId(), $amenity->getId())],
                 'areaSize' => 27,
-                'floorSize' => '27',
+                'floorSize' => 27,
                 'offer' => [
                     'price' => '660000',
                     'priceCurrency' => 'MAD',
@@ -57,10 +57,12 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
 
         self::assertSame('BAVLC001', $payload['identifier'] ?? null);
         self::assertSame('superbe-local-commercial-erraounak', $payload['slug'] ?? null);
+        self::assertSame(27, $payload['floorSize'] ?? null);
         self::assertSame('660000', $payload['offer']['price'] ?? null);
 
         $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
         self::assertSame(27, $accommodation->getAreaSize());
+        self::assertSame(27, $accommodation->getFloorSize());
         self::assertSame('660000', $accommodation->getOffer()['price'] ?? null);
         self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());
         self::assertCount(1, $accommodation->getAmenityFeature());
