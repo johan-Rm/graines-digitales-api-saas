@@ -21,6 +21,7 @@ Les tests ne doivent pas dependre de donnees inserees manuellement.
 ## Execution locale
 
 ```bash
+docker compose exec -e APP_ENV=test -e DATABASE_URL=postgresql://graines_digitales_api:graines_digitales_api@postgres:5432/graines_digitales_api_test?serverVersion=17\&charset=utf8 api php bin/console doctrine:database:create --if-not-exists
 docker compose exec api php bin/phpunit
 ```
 
