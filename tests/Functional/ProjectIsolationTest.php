@@ -114,11 +114,11 @@ final class ProjectIsolationTest extends FunctionalTestCase
         self::assertSame('fr', $payload['requestedLocale'] ?? null);
         self::assertSame('fr', $payload['locale'] ?? null);
         self::assertSame('Superbe local commercial a Erraounak', $payload['name'] ?? null);
-        self::assertSame((string) $accommodation->getCategory()?->getId(), $payload['category'] ?? null);
-        self::assertSame((string) $accommodation->getRealEstateListing()?->getId(), $payload['realEstateListing'] ?? null);
-        self::assertSame((string) $accommodation->getPlace()?->getId(), $payload['place'] ?? null);
+        self::assertSame($accommodation->getCategory()?->getCode(), $payload['category'] ?? null);
+        self::assertSame($accommodation->getRealEstateListing()?->getCode(), $payload['realEstateListing'] ?? null);
+        self::assertSame($accommodation->getPlace()?->getCode(), $payload['place'] ?? null);
         self::assertSame(
-            array_map(static fn ($item): string => (string) $item->getId(), $accommodation->getAmenityFeature()->toArray()),
+            array_map(static fn ($item): string => $item->getCode(), $accommodation->getAmenityFeature()->toArray()),
             $payload['amenityFeature'] ?? null,
         );
         self::assertSame((string) $project->getId(), $payload['project'] ?? null);
@@ -272,7 +272,7 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('riads-medina-essaouira');
-        $accommodation = $this->findAccommodationByIdentifier('BAVR001', $project);
+        $accommodation = $this->findAccommodationByIdentifier('BAVR002', $project);
         $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
             'email' => 'admin@grainesdigitales.local',
         ]);

@@ -100,7 +100,7 @@ ResourceTranslationFields   → locale, root resource, audit
 
 - Ressource racine : identité, appartenance projet, statut, audit, relations non localisées
 - Ressource `*Translation` : champs éditoriaux localisés, `locale`, audit, lien vers la racine
-- Traductions MVP : `WebPage`, `Article`, `CreativeWork`, `MenuItem`, `CategoryCode`
+- Traductions MVP : `WebPage`, `Article`, `CategoryCode`, `Accommodation`
 - Contrainte unique : `(resource_id, locale)` par table de traduction
 - Slugs localisés uniques par `(project_id, slug, locale)` pour `WebPage` et `Article`
 - Locale par défaut projet : `fr` / Locales actives MVP : `fr`, `en`, `es`, `ar`
@@ -131,6 +131,11 @@ docker compose exec api bash
 docker compose exec api php bin/console doctrine:migrations:migrate
 docker compose exec api php bin/console doctrine:migrations:diff
 ```
+
+Pendant une intervention IA courante, Claude ne doit pas lancer automatiquement toute la
+suite PHPUnit. Utiliser des validations ciblees liees au changement, puis indiquer ce qui
+n'a pas ete lance. La suite PHPUnit complete est reservee aux validations pre-merge et aux
+merges vers `develop`, sauf demande explicite.
 
 ## Règles de développement
 

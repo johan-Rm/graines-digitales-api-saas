@@ -6,7 +6,9 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Accommodation;
 use App\Entity\AccommodationTranslation;
+use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
+use App\Entity\Project;
 use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
 use App\Entity\TranslatableResource;
@@ -15,6 +17,7 @@ use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
@@ -44,6 +47,8 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             }
 
             if ($data instanceof Accommodation) {
+                $this->validateAccommodationCategoryCodes($data, $project);
+
                 if ('' === trim($data->getIdentifier())) {
                     $data->setIdentifier($this->accommodationIdentifierGenerator->generate($data));
                 }
@@ -79,6 +84,40 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         }
 
         return $result;
+    }
+
+    private function validateAccommodationCategoryCodes(Accommodation $accommodation, Project $project): void
+    {
+        if (!$accommodation->hasCategory() || !$accommodation->hasRealEstateListing() || !$accommodation->hasPlace()) {
+            throw new BadRequestHttpException('Accommodation requires category, realEstateListing and place.');
+        }
+
+        $this->validateRequiredCategoryCode($accommodation->getCategory(), $project, Accommodation::CATEGORY_CODE_SET, 'category');
+        $this->validateRequiredCategoryCode($accommodation->getRealEstateListing(), $project, Accommodation::REAL_ESTATE_LISTING_CODE_SET, 'realEstateListing');
+        $this->validateRequiredCategoryCode($accommodation->getPlace(), $project, Accommodation::PLACE_CODE_SET, 'place');
+
+        foreach ($accommodation->getAmenityFeature() as $amenityFeature) {
+            if ($amenityFeature instanceof CategoryCode) {
+                $this->validateRequiredCategoryCode($amenityFeature, $project, Accommodation::AMENITY_FEATURE_CODE_SET, 'amenityFeature');
+            }
+        }
+
+        foreach ($accommodation->getTags() as $tag) {
+            if ($tag instanceof CategoryCode) {
+                $this->validateRequiredCategoryCode($tag, $project, Accommodation::TAG_CODE_SET, 'tags');
+            }
+        }
+    }
+
+    private function validateRequiredCategoryCode(CategoryCode $categoryCode, Project $project, string $expectedCodeSet, string $field): void
+    {
+        if ($expectedCodeSet !== $categoryCode->getInCodeSet()) {
+            throw new BadRequestHttpException(sprintf('Accommodation.%s must reference a CategoryCode from "%s".', $field, $expectedCodeSet));
+        }
+
+        if ((string) $categoryCode->getProject()?->getId() !== (string) $project->getId()) {
+            throw new BadRequestHttpException(sprintf('Accommodation.%s must reference a CategoryCode from the current project.', $field));
+        }
     }
 
     private function copyToOriginals(MediaObject $mediaObject): void

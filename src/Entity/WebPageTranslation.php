@@ -68,10 +68,6 @@ class WebPageTranslation implements ResourceTranslation
     #[Groups(['read', 'write'])]
     private ?string $body = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?array $schemaData = null;
-
     public function __construct()
     {
         $this->initializeUuid();
@@ -91,6 +87,4 @@ class WebPageTranslation implements ResourceTranslation
     public function setHeadline(?string $headline): self { $this->headline = $headline; if ('' === $this->slug) { $this->slug = self::normalizeSlug($headline); } return $this; }
     public function getBody(): ?string { return $this->body; }
     public function setBody(?string $body): self { $this->body = $body; return $this; }
-    public function getSchemaData(): ?array { return $this->schemaData; }
-    public function setSchemaData(?array $schemaData): self { $this->schemaData = $schemaData; return $this; }
 }

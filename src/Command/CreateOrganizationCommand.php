@@ -86,7 +86,7 @@ final class CreateOrganizationCommand extends Command
 
                 $owner = new User();
                 $owner->setEmail($ownerEmail);
-                $owner->setRoles(['ROLE_ADMIN']);
+                $owner->setRoles(['ROLE_USER']);
                 $owner->setPassword($this->passwordHasher->hashPassword($owner, $ownerPassword));
                 $this->entityManager->persist($owner);
 

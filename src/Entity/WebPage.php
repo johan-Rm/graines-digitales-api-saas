@@ -50,6 +50,14 @@ class WebPage implements ProjectScopedResource, TranslatableResource
     #[Groups(['read', 'write'])]
     private Collection $translations;
 
+    /**
+     * @var Collection<int, WebPageMedia>
+     */
+    #[ORM\OneToMany(mappedBy: 'webPage', targetEntity: WebPageMedia::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    #[Groups(['read', 'write'])]
+    private Collection $associatedMedia;
+
     #[ORM\Column(enumType: ContentStatus::class)]
     #[Groups(['read', 'write'])]
     private ContentStatus $status = ContentStatus::Draft;
@@ -59,11 +67,15 @@ class WebPage implements ProjectScopedResource, TranslatableResource
         $this->initializeUuid();
         $this->initializeAuditTrail();
         $this->translations = new ArrayCollection();
+        $this->associatedMedia = new ArrayCollection();
     }
 
     protected function createTranslation(): ResourceTranslation { return new WebPageTranslation(); }
     protected function addTranslation(ResourceTranslation $translation): self { if (!$this->translations->contains($translation)) { $this->translations->add($translation); } return $this; }
     public function getTranslations(): Collection { return $this->translations; }
+    public function getAssociatedMedia(): Collection { return $this->associatedMedia; }
+    public function addAssociatedMedia(WebPageMedia $media): self { if (!$this->associatedMedia->contains($media)) { $this->associatedMedia->add($media); $media->setWebPage($this); } return $this; }
+    public function clearAssociatedMedia(): self { $this->associatedMedia->clear(); return $this; }
     #[Groups(['read'])]
     public function getRequestedLocale(): string { return $this->requestedLocale; }
     #[Groups(['read'])]
@@ -92,7 +104,4 @@ class WebPage implements ProjectScopedResource, TranslatableResource
     public function setBody(?string $body): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setBody($body); return $this; }
     public function getStatus(): ContentStatus { return $this->status; }
     public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
-    #[Groups(['read', 'write'])]
-    public function getSchemaData(): ?array { $translation = $this->getTranslation(); return $translation instanceof WebPageTranslation ? $translation->getSchemaData() : null; }
-    public function setSchemaData(?array $schemaData): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSchemaData($schemaData); return $this; }
 }

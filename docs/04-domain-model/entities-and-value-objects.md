@@ -13,8 +13,6 @@ Entites principales actuelles :
 - `PropertyValue`
 - `WebPage`
 - `Article`
-- `CreativeWork`
-- `MenuItem`
 - `CategoryCode`
 - `Message`
 

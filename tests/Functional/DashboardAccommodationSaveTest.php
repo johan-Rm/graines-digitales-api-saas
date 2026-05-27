@@ -7,6 +7,11 @@ use App\Entity\Project;
 
 final class DashboardAccommodationSaveTest extends FunctionalTestCase
 {
+    protected function shouldResetDatabaseBeforeEachTest(): bool
+    {
+        return true;
+    }
+
     public function testAccommodationIdentifierIsGeneratedFromListingCategoryPair(): void
     {
         $client = static::createClient();

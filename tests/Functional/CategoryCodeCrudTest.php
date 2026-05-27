@@ -16,7 +16,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $response = $client->request('POST', sprintf('/api/projects/%s/category-codes', $project->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'atelier-artisan',
+                'codeValue' => 'atelier-artisan',
                 'inCodeSet' => 'accommodation-type',
             ],
         ]);
@@ -25,7 +25,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $payload = $response->toArray(false);
 
         self::assertNotEmpty($payload['@id'] ?? null);
-        self::assertSame('atelier-artisan', $payload['code'] ?? null);
+        self::assertSame('atelier-artisan', $payload['codeValue'] ?? null);
         self::assertSame('accommodation-type', $payload['inCodeSet'] ?? null);
 
         $categoryCode = $this->findCategoryCode($project, 'accommodation-type', 'atelier-artisan');
@@ -42,7 +42,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $client->request('POST', sprintf('/api/projects/%s/category-codes', $villaProject->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'atelier-bois-test',
+                'codeValue' => 'atelier-bois-test',
                 'inCodeSet' => 'accommodation-type',
             ],
         ]);
@@ -52,7 +52,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $client->request('POST', sprintf('/api/projects/%s/category-codes', $villaProject->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'atelier-bois-test',
+                'codeValue' => 'atelier-bois-test',
                 'inCodeSet' => 'accommodation-type',
             ],
         ]);
@@ -62,14 +62,14 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $response = $client->request('POST', sprintf('/api/projects/%s/category-codes', $riadProject->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'atelier-bois-test',
+                'codeValue' => 'atelier-bois-test',
                 'inCodeSet' => 'accommodation-type',
             ],
         ]);
 
         self::assertResponseStatusCodeSame(201);
         $payload = $response->toArray(false);
-        self::assertSame('atelier-bois-test', $payload['code'] ?? null);
+        self::assertSame('atelier-bois-test', $payload['codeValue'] ?? null);
     }
 
     public function testCategoryCodeCreationValidatesRequiredKebabCaseCode(): void
@@ -81,7 +81,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $client->request('POST', sprintf('/api/projects/%s/category-codes', $project->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'Local Commercial',
+                'codeValue' => 'Local Commercial',
                 'inCodeSet' => 'accommodation-type',
             ],
         ]);
@@ -91,7 +91,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $client->request('POST', sprintf('/api/projects/%s/category-codes', $project->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => 'nouveau-code',
+                'codeValue' => 'nouveau-code',
             ],
         ]);
 
@@ -174,7 +174,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $response = $client->request('POST', sprintf('/api/projects/%s/category-codes', $project->getId()), [
             'headers' => $this->jsonLdHeaders($token),
             'json' => [
-                'code' => $code,
+                'codeValue' => $code,
                 'inCodeSet' => 'dashboard-test',
             ],
         ]);
@@ -182,7 +182,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(201);
         $payload = $response->toArray(false);
 
-        return $this->findCategoryCode($project, 'dashboard-test', (string) $payload['code']);
+        return $this->findCategoryCode($project, 'dashboard-test', (string) $payload['codeValue']);
     }
 
     private function findCategoryCode(Project $project, string $inCodeSet, string $code): CategoryCode

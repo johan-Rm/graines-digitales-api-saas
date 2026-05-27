@@ -22,8 +22,6 @@ ecraser une valeur personnalisee par l'utilisateur.
 - `Accommodation`
 - `WebPage`
 - `Article`
-- `CreativeWork`
-- `MenuItem`
 - `CategoryCode`
 
 ## Routes concernees
@@ -33,8 +31,6 @@ Routes generiques de gestion des traductions :
 ```txt
 PUT /api/projects/{projectId}/web-pages/{id}/translations/{locale}
 PUT /api/projects/{projectId}/articles/{id}/translations/{locale}
-PUT /api/projects/{projectId}/creative-works/{id}/translations/{locale}
-PUT /api/projects/{projectId}/menu-items/{id}/translations/{locale}
 PUT /api/projects/{projectId}/category-codes/{id}/translations/{locale}
 PUT /api/projects/{projectId}/accommodations/{id}/translations/{locale}
 ```

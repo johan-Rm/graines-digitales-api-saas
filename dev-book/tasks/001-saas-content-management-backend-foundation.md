@@ -44,8 +44,6 @@ Le MVP doit rester centre sur les fondations : tenancy, permissions, contenus ge
 
 - `web_page`
 - `article`
-- `creative_work`
-- `menu_item`
 - `message`
 
 ## Hors perimetre MVP
@@ -216,7 +214,7 @@ L'architecture doit rester compatible avec une approche hexagonale ou DDD sobre 
 - [ ] Ajouter les controles d'acces centralises : ownership, membership, role par projet.
 - [ ] Implementer le filtrage automatique des collections et items par `projectId`.
 - [ ] Exposer les premieres routes API Platform sous `/api/projects/{projectId}/...`.
-- [ ] Implementer les entites niveau 2 : `WebPage`, `Article`, `CreativeWork`, `MenuItem`, `Message`.
+- [ ] Implementer les entites niveau 2 : `WebPage`, `Article`, `Message`.
 - [ ] Brancher les modeles sur les schemas disponibles dans `schemas/webapp/` sans chercher a tout implementer.
 - [ ] Formaliser les DTOs d'API dans `schemas/dtos/symfony_api/` pour les ressources MVP exposees.
 - [ ] Documenter pour chaque DTO l'ecart utile avec `schemas/webapp/` quand l'entite Doctrine ou le payload API differe.

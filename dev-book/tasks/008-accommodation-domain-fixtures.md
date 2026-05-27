@@ -11,8 +11,8 @@
 
 ## Constat
 
-Les 5 biens immobiliers de demonstration sont actuellement charges comme `CreativeWork`
-avec un payload `schemaData` dont le type est `Accommodation`.
+Les 5 biens immobiliers de demonstration etaient initialement charges comme contenu
+generique avec un payload `schemaData` dont le type est `Accommodation`.
 
 Cette approche est utile pour prototyper rapidement les donnees, mais elle ne respecte pas
 l'objectif long terme de TASK-001 : garder le coeur metier en SQL structure et reserver
@@ -26,7 +26,7 @@ immobilieres proprement.
 
 Introduire un modele `Accommodation` project-scoped et translatable pour les biens
 immobiliers, puis adapter les fixtures demo afin que les 5 biens soient crees via cette
-entite et ses relations au lieu d'etre stockes comme `CreativeWork`.
+entite et ses relations au lieu d'etre stockes comme contenu generique.
 
 Le modele doit rester compatible avec le schema webapp existant, sans chercher a implementer
 tout le domaine immobilier long terme en une seule fois.
@@ -39,7 +39,7 @@ tout le domaine immobilier long terme en une seule fois.
   - `GET /api/projects/{projectId}/accommodations`
   - `GET /api/projects/{projectId}/accommodations/{id}`
 - Garder les regles existantes de tenancy, JWT, membership et soft delete.
-- Migrer les 5 fixtures immobilieres actuelles depuis `CreativeWork` vers `Accommodation`.
+- Migrer les 5 fixtures immobilieres actuelles vers `Accommodation`.
 - Documenter le nouveau chargement de fixtures.
 
 ## Donnees structurees attendues
@@ -119,7 +119,7 @@ tout le domaine immobilier long terme en une seule fois.
 - [x] Ajouter les groupes de serialisation et le contrat API de lecture minimal.
 - [x] Adapter `LoadDemoFixturesCommand` pour creer les `CategoryCode`, medias et 5
       accommodations relationnelles.
-- [x] Retirer le chargement des biens immobiliers sous forme de `CreativeWork` si la nouvelle
+- [x] Retirer le chargement des biens immobiliers sous forme de contenu generique si la nouvelle
       route couvre le besoin.
 - [x] Mettre a jour `docs/10-operations/demo-fixtures.md`.
 - [x] Ajouter ou adapter des tests fonctionnels sur la collection `accommodations`.
@@ -132,7 +132,7 @@ tout le domaine immobilier long terme en une seule fois.
 - [x] `docker compose exec -T api php bin/console app:fixtures:load-demo`
 - [x] `docker compose exec -T api php bin/phpunit`
 - [x] La BDD contient 5 `Accommodation` rattaches aux bons projets.
-- [x] Les biens ne sont plus seulement presents dans `creative_work_translation.schema_data`.
+- [x] Les biens ne sont plus seulement presents dans un champ `schemaData` generique.
 - [x] Les categories, lieux, tags, amenities, offres, listings et medias sont verifiables
       par relations SQL.
 - [x] Les relations `CategoryCode` utilisent les bons `inCodeSet`.

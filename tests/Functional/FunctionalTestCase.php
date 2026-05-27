@@ -16,12 +16,22 @@ use Symfony\Component\Console\Output\NullOutput;
 
 abstract class FunctionalTestCase extends ApiTestCase
 {
+    private static ?string $databasePreparedForClass = null;
+
     protected function setUp(): void
     {
         self::bootKernel();
-        $this->recreateSchema();
-        $this->loadDemoFixtures();
+        if ($this->shouldResetDatabaseBeforeEachTest() || self::$databasePreparedForClass !== static::class) {
+            $this->recreateSchema();
+            $this->loadTestFixtures();
+            self::$databasePreparedForClass = static::class;
+        }
         self::ensureKernelShutdown();
+    }
+
+    protected function shouldResetDatabaseBeforeEachTest(): bool
+    {
+        return false;
     }
 
     protected function login(object $client, string $email): string
@@ -106,7 +116,7 @@ abstract class FunctionalTestCase extends ApiTestCase
         return self::getContainer()->get(EntityManagerInterface::class);
     }
 
-    private function recreateSchema(): void
+    protected function recreateSchema(): void
     {
         $entityManager = $this->entityManager();
         $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
@@ -116,13 +126,16 @@ abstract class FunctionalTestCase extends ApiTestCase
         $schemaTool->createSchema($metadata);
     }
 
-    private function loadDemoFixtures(): void
+    private function loadTestFixtures(): void
     {
         $application = new Application(self::$kernel);
         $application->setAutoExit(false);
-        $application->run(new ArrayInput([
-            'command' => 'app:fixtures:load-demo',
-            '--with-test-tenants' => true,
-        ]), new NullOutput());
+        $output = new \Symfony\Component\Console\Output\BufferedOutput();
+        $exitCode = $application->run(new ArrayInput([
+            'command' => 'app:fixtures:load-test',
+        ]), $output);
+        if (0 !== $exitCode) {
+            throw new \RuntimeException('app:fixtures:load-test failed: '.$output->fetch());
+        }
     }
 }

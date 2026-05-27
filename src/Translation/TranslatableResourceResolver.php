@@ -8,10 +8,8 @@ use App\Entity\Article;
 use App\Entity\ArticleTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\CategoryCodeTranslation;
-use App\Entity\CreativeWork;
-use App\Entity\CreativeWorkTranslation;
-use App\Entity\MenuItem;
-use App\Entity\MenuItemTranslation;
+use App\Entity\MediaObject;
+use App\Entity\MediaObjectTranslation;
 use App\Entity\TranslatableResource;
 use App\Entity\ResourceTranslation;
 use App\Entity\WebPage;
@@ -30,9 +28,8 @@ final readonly class TranslatableResourceResolver
         AccommodationTranslation::class => Accommodation::class,
         WebPageTranslation::class => WebPage::class,
         ArticleTranslation::class => Article::class,
-        CreativeWorkTranslation::class => CreativeWork::class,
-        MenuItemTranslation::class => MenuItem::class,
         CategoryCodeTranslation::class => CategoryCode::class,
+        MediaObjectTranslation::class => MediaObject::class,
     ];
 
     public function __construct(

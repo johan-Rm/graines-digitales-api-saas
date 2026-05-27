@@ -46,7 +46,6 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
     #[Assert\NotBlank]
     #[Assert\Length(max: 120)]
     #[Assert\Regex(pattern: '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', message: 'This value must be kebab-case.')]
-    #[Groups(['read', 'write'])]
     private string $code = '';
 
     #[ORM\Column(length: 120)]
@@ -83,6 +82,18 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
         $this->code = $code;
 
         return $this;
+    }
+
+    #[Groups(['read', 'write'])]
+    public function getCodeValue(): string
+    {
+        return $this->code;
+    }
+
+    #[Groups(['write'])]
+    public function setCodeValue(string $codeValue): self
+    {
+        return $this->setCode($codeValue);
     }
 
     public function getInCodeSet(): string

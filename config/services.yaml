@@ -9,6 +9,10 @@ services:
     App\:
         resource: '../src/'
 
+    App\State\ProjectCollectionProvider:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.collection_provider'
+
     App\State\ProjectScopedCollectionProvider:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.collection_provider'

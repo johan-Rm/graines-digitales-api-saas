@@ -98,7 +98,11 @@ Voir `docs/TRANSLATIONS.md` pour le contrat des routes et les invariants.
 docker compose exec api php bin/phpunit
 ```
 
-Validation backend complete avant merge :
+Pendant une intervention IA ou une petite correction locale, preferer les tests cibles
+lies au changement. La suite PHPUnit complete est reservee aux validations pre-merge et
+aux merges vers `develop`, sauf demande explicite.
+
+Validation backend complete avant merge vers `develop` :
 
 ```bash
 docker compose exec api php bin/console lint:container

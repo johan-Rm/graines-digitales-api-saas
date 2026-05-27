@@ -55,8 +55,6 @@ Doctrine ORM 3, aux DTOs explicites et a l'isolation stricte par projet.
 
 - `WebPage`
 - `Article`
-- `CreativeWork`
-- `MenuItem`
 - `CategoryCode`
 
 ### Champs localisables prioritaires
@@ -185,7 +183,7 @@ Prioriser les tests suivants :
 - [x] Definir une interface ou un trait local `ResourceTranslation` si utile.
 - [x] Ajouter la configuration de locales par projet.
 - [x] Ajouter la locale source par projet.
-- [x] Creer les entites de traduction MVP : `WebPageTranslation`, `ArticleTranslation`, `CreativeWorkTranslation`, `MenuItemTranslation`, `CategoryCodeTranslation`.
+- [x] Creer les entites de traduction MVP : `WebPageTranslation`, `ArticleTranslation`, `CategoryCodeTranslation`.
 - [x] Deplacer les champs localises prioritaires vers les entites de traduction.
 - [x] Ajouter les contraintes SQL et index de locale/slug.
 - [x] Adapter les providers/processors API Platform pour resoudre la traduction courante.

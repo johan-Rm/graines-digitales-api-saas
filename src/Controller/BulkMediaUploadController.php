@@ -55,8 +55,7 @@ final readonly class BulkMediaUploadController
 
         $created = [];
         $errors = [];
-        $finalAlt = $this->optionalString($request, 'finalAlt');
-        $finalDescription = $this->optionalString($request, 'finalDescription');
+        $caption = $this->optionalString($request, 'caption');
 
         foreach ($files as $index => $file) {
             $mediaObject = new MediaObject();
@@ -64,8 +63,7 @@ final readonly class BulkMediaUploadController
             $mediaObject->markCreatedBy($actor);
             $mediaObject->touch($actor);
             $mediaObject->setFile($file);
-            $mediaObject->setFinalAlt($finalAlt);
-            $mediaObject->setFinalDescription($finalDescription);
+            $mediaObject->setCaption($caption);
             $mediaObject->setChecksumSha256(hash_file('sha256', $file->getPathname()) ?: null);
 
             $violations = $this->validator->validate($mediaObject, null, ['Default', 'media:create']);
@@ -99,6 +97,7 @@ final readonly class BulkMediaUploadController
                 'size' => $mediaObject->getSize(),
                 'originalFilename' => $mediaObject->getOriginalFilename(),
                 'checksumSha256' => $mediaObject->getChecksumSha256(),
+                'caption' => $mediaObject->getCaption(),
             ];
         }
 

@@ -23,6 +23,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity]
 #[ORM\Index(columns: ['project_id'], name: 'idx_accommodation_project')]
@@ -41,6 +43,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class Accommodation implements ProjectScopedResource, TranslatableResource
 {
+    public const CATEGORY_CODE_SET = 'accommodation-type';
+    public const REAL_ESTATE_LISTING_CODE_SET = 'real-estate-listing';
+    public const PLACE_CODE_SET = 'accommodation-place';
+    public const AMENITY_FEATURE_CODE_SET = 'amenity-feature';
+    public const TAG_CODE_SET = 'tag';
+
     use AuditTrail;
     use ProjectOwned;
     use TranslatableResourceBehavior;
@@ -52,18 +60,21 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
 
     #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Assert\NotNull]
     #[Groups(['read', 'write'])]
-    private ?CategoryCode $category = null;
+    private CategoryCode $category;
 
     #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Assert\NotNull]
     #[Groups(['read', 'write'])]
-    private ?CategoryCode $realEstateListing = null;
+    private CategoryCode $realEstateListing;
 
     #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Assert\NotNull]
     #[Groups(['read', 'write'])]
-    private ?CategoryCode $place = null;
+    private CategoryCode $place;
 
     /**
      * @var Collection<int, CategoryCode>
@@ -176,11 +187,14 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
 
     public function getIdentifier(): string { return $this->identifier; }
     public function setIdentifier(string $identifier): self { $this->identifier = $identifier; return $this; }
-    public function getCategory(): ?CategoryCode { return $this->category; }
+    public function hasCategory(): bool { return isset($this->category); }
+    public function getCategory(): CategoryCode { return $this->category ?? throw new \LogicException('Accommodation category is required.'); }
     public function setCategory(CategoryCode $category): self { $this->category = $category; return $this; }
-    public function getRealEstateListing(): ?CategoryCode { return $this->realEstateListing; }
+    public function hasRealEstateListing(): bool { return isset($this->realEstateListing); }
+    public function getRealEstateListing(): CategoryCode { return $this->realEstateListing ?? throw new \LogicException('Accommodation real estate listing is required.'); }
     public function setRealEstateListing(CategoryCode $realEstateListing): self { $this->realEstateListing = $realEstateListing; return $this; }
-    public function getPlace(): ?CategoryCode { return $this->place; }
+    public function hasPlace(): bool { return isset($this->place); }
+    public function getPlace(): CategoryCode { return $this->place ?? throw new \LogicException('Accommodation place is required.'); }
     public function setPlace(CategoryCode $place): self { $this->place = $place; return $this; }
     public function getAmenityFeature(): Collection { return $this->amenityFeature; }
     public function addAmenityFeature(CategoryCode $amenityFeature): self { if (!$this->amenityFeature->contains($amenityFeature)) { $this->amenityFeature->add($amenityFeature); } return $this; }
@@ -287,5 +301,33 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
         ], static fn (?string $value): bool => null !== $value && '' !== $value);
 
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validateCategoryCodeSets(ExecutionContextInterface $context): void
+    {
+        $this->validateCategoryCodeSet($context, 'category', $this->category ?? null, self::CATEGORY_CODE_SET);
+        $this->validateCategoryCodeSet($context, 'realEstateListing', $this->realEstateListing ?? null, self::REAL_ESTATE_LISTING_CODE_SET);
+        $this->validateCategoryCodeSet($context, 'place', $this->place ?? null, self::PLACE_CODE_SET);
+
+        foreach ($this->amenityFeature as $index => $amenityFeature) {
+            $this->validateCategoryCodeSet($context, sprintf('amenityFeature[%d]', $index), $amenityFeature, self::AMENITY_FEATURE_CODE_SET);
+        }
+
+        foreach ($this->tags as $index => $tag) {
+            $this->validateCategoryCodeSet($context, sprintf('tags[%d]', $index), $tag, self::TAG_CODE_SET);
+        }
+    }
+
+    private function validateCategoryCodeSet(ExecutionContextInterface $context, string $path, ?CategoryCode $categoryCode, string $expectedCodeSet): void
+    {
+        if (!$categoryCode instanceof CategoryCode || $expectedCodeSet === $categoryCode->getInCodeSet()) {
+            return;
+        }
+
+        $context
+            ->buildViolation(sprintf('This CategoryCode must belong to "%s".', $expectedCodeSet))
+            ->atPath($path)
+            ->addViolation();
     }
 }

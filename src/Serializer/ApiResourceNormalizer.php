@@ -23,6 +23,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
     private const EMBEDDED_TYPES = [
         'AccommodationMedia',
         'PropertyValue',
+        'WebPageMedia',
     ];
 
     public function __construct(
@@ -111,7 +112,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
         }
 
         if ($this->isResourceObject($value)) {
-            return $this->idFromResourceObject($value);
+            return $this->compactResourceObject($value);
         }
 
         if (array_is_list($value)) {
@@ -132,7 +133,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
         }
 
         if ($this->isResourceObject($item) && !$this->isEmbeddedType($item)) {
-            return $this->idFromResourceObject($item);
+            return $this->compactResourceObject($item);
         }
 
         unset($item['translations']);
@@ -166,8 +167,14 @@ final class ApiResourceNormalizer implements NormalizerInterface
     /**
      * @param array<string, mixed> $value
      */
-    private function idFromResourceObject(array $value): ?string
+    private function compactResourceObject(array $value): ?string
     {
+        if ('CategoryCode' === ($value['@type'] ?? null)) {
+            $code = $value['codeValue'] ?? null;
+
+            return is_string($code) ? $code : null;
+        }
+
         $id = $value['id'] ?? null;
 
         return is_string($id) ? $id : null;

@@ -17,12 +17,12 @@ final readonly class AccommodationIdentifierGenerator
     public function generate(Accommodation $accommodation): string
     {
         $project = $accommodation->getProject();
-        $realEstateListing = $accommodation->getRealEstateListing();
-        $category = $accommodation->getCategory();
-
-        if (!$project instanceof Project || !$realEstateListing instanceof CategoryCode || !$category instanceof CategoryCode) {
+        if (!$project instanceof Project || !$accommodation->hasRealEstateListing() || !$accommodation->hasCategory()) {
             throw new BadRequestHttpException('Accommodation identifier requires project, realEstateListing and category.');
         }
+
+        $realEstateListing = $accommodation->getRealEstateListing();
+        $category = $accommodation->getCategory();
 
         $prefix = self::initials($realEstateListing->getCode()).self::initials($category->getCode());
         $identifiers = $this->existingPairIdentifiers($project, $realEstateListing, $category);

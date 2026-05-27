@@ -13,6 +13,7 @@ use ApiPlatform\OpenApi\Model;
 use App\Controller\BulkMediaUploadController;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
+use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\AiReviewStatus;
 use App\Enum\MediaStatus;
@@ -20,6 +21,8 @@ use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
 use App\State\ProjectScopedRemoveProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -54,8 +57,7 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
                                         'maxItems' => 20,
                                         'items' => ['type' => 'string', 'format' => 'binary'],
                                     ],
-                                    'finalAlt' => ['type' => 'string'],
-                                    'finalDescription' => ['type' => 'string'],
+                                    'caption' => ['type' => 'string'],
                                 ],
                             ],
                         ],
@@ -78,8 +80,7 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
                                 'required' => ['file'],
                                 'properties' => [
                                     'file' => ['type' => 'string', 'format' => 'binary'],
-                                    'finalAlt' => ['type' => 'string'],
-                                    'finalDescription' => ['type' => 'string'],
+                                    'caption' => ['type' => 'string'],
                                 ],
                             ],
                         ],
@@ -93,11 +94,19 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
-class MediaObject implements ProjectScopedResource
+class MediaObject implements ProjectScopedResource, TranslatableResource
 {
     use AuditTrail;
     use ProjectOwned;
+    use TranslatableResourceBehavior;
     use UuidIdentity;
+
+    /**
+     * @var Collection<int, MediaObjectTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: MediaObjectTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['read', 'write'])]
+    private Collection $translations;
 
     #[Vich\UploadableField(mapping: 'media_object', fileNameProperty: 'filePath', size: 'size', mimeType: 'mimeType', originalName: 'originalFilename')]
     #[Assert\NotNull(groups: ['media:create'])]
@@ -150,11 +159,15 @@ class MediaObject implements ProjectScopedResource
     private ?string $finalFilename = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read'])]
+    private ?string $mainEntity = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['read'])]
     private ?string $finalAlt = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read'])]
     private ?string $finalDescription = null;
 
     #[ORM\Column(enumType: AiReviewStatus::class)]
@@ -165,8 +178,23 @@ class MediaObject implements ProjectScopedResource
     {
         $this->initializeUuid();
         $this->initializeAuditTrail();
+        $this->translations = new ArrayCollection();
     }
 
+    protected function createTranslation(): ResourceTranslation { return new MediaObjectTranslation(); }
+    protected function addTranslation(ResourceTranslation $translation): self { if (!$this->translations->contains($translation)) { $this->translations->add($translation); } return $this; }
+    public function getTranslations(): Collection { return $this->translations; }
+    #[Groups(['read'])]
+    public function getRequestedLocale(): string { return $this->requestedLocale; }
+    #[Groups(['read'])]
+    public function getLocale(): string { return $this->currentLocale; }
+    #[Groups(['read'])]
+    public function getFallbackLocale(): ?string { return $this->fallbackLocale; }
+    #[Groups(['read'])]
+    public function isFallback(): bool { return $this->fallback; }
+    #[Groups(['read', 'write'])]
+    public function getCaption(): ?string { $translation = $this->getTranslation(); return $translation instanceof MediaObjectTranslation ? $translation->getCaption() : null; }
+    public function setCaption(?string $caption): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setCaption($caption); return $this; }
     public function getFile(): ?File { return $this->file; }
     public function setFile(?File $file): self { $this->file = $file; return $this; }
     public function getFilePath(): ?string { return $this->filePath; }
@@ -189,6 +217,8 @@ class MediaObject implements ProjectScopedResource
     public function setAiSuggestedDescription(?string $aiSuggestedDescription): self { $this->aiSuggestedDescription = $aiSuggestedDescription; return $this; }
     public function getFinalFilename(): ?string { return $this->finalFilename; }
     public function setFinalFilename(?string $finalFilename): self { $this->finalFilename = $finalFilename; return $this; }
+    public function getMainEntity(): ?string { return $this->mainEntity; }
+    public function setMainEntity(?string $mainEntity): self { $this->mainEntity = $mainEntity; return $this; }
     public function getFinalAlt(): ?string { return $this->finalAlt; }
     public function setFinalAlt(?string $finalAlt): self { $this->finalAlt = $finalAlt; return $this; }
     public function getFinalDescription(): ?string { return $this->finalDescription; }

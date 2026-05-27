@@ -42,7 +42,7 @@ Frontières :
 ## Modèle de traduction
 
 Sylius-style : ressource racine (identité, ownership) + `*Translation` (champs localisés).
-Ressources traduisibles MVP : `WebPage`, `Article`, `CreativeWork`, `MenuItem`, `CategoryCode`.
+Ressources traduisibles MVP : `WebPage`, `Article`, `CategoryCode`, `Accommodation`.
 Lire `docs/TRANSLATIONS.md` avant toute modification du modèle de traduction.
 
 ## Sécurité
@@ -52,6 +52,13 @@ Lire `docs/TRANSLATIONS.md` avant toute modification du modèle de traduction.
 - `ProjectAccessGuard` vérifie le membership avant toute opération
 
 ## Commandes
+
+Pendant une intervention IA courante, ne pas lancer automatiquement toute la suite PHPUnit.
+Privilégier les validations ciblées liées au fichier ou au comportement modifié, puis
+documenter ce qui n'a pas été lancé.
+
+La suite PHPUnit complète est réservée aux validations pré-merge et aux merges vers
+`develop`, sauf demande explicite.
 
 ```bash
 docker compose exec api php bin/console lint:container

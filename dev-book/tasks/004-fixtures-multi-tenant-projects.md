@@ -20,7 +20,7 @@ isoles par projet.
 - Au moins deux projets par organisation.
 - Plusieurs utilisateurs avec roles differents.
 - Memberships explicites par projet.
-- Contenus `WebPage`, `Article`, `MenuItem`, `CategoryCode`.
+- Contenus `WebPage`, `Article`, `CategoryCode`.
 - Quelques `MediaObject` de demonstration si le pipeline upload est pret.
 
 ## Contraintes

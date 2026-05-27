@@ -161,19 +161,142 @@ SYMFONY_PROJECT_ID={projectUuid}
 
 ---
 
-## 10 — Verification
+## 10 — Deuxieme organisation
 
-- `POST /api/projects/{projectUuid}/category-codes` — code categorie
-- `POST /api/media-objects` — upload image
-- `POST /api/projects/{projectUuid}/accommodations` — bien immobilier
+```bash
+docker compose exec api php bin/console app:organization:create "Blue Bay Mogador" --owner-email=johan.remy+1@graines-digitales.online --owner-password=password1234
+```
 
 ---
 
-## Raccourci en developpement local
+## 11 — Token JWT
 
-```bash
-docker compose exec api php bin/console app:fixtures:load-demo
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "johan.remy+1@graines-digitales.online",
+  "password": "password1234"
+}
 ```
 
-Cette commande est desactivee en `APP_ENV=prod`.
-Voir [demo-fixtures.md](demo-fixtures.md) pour le detail des donnees creees.
+Conserver le `token` retourne pour les requetes suivantes.
+
+## 12 — UUID de la deuxieme organisation
+
+```http
+GET /api/organizations
+Authorization: Bearer {token}
+```
+
+Noter l'UUID de l'organisation `Blue Bay Mogador`
+(`{blueBayOrganizationUuid}`).
+
+---
+
+## 13 — Deuxieme membre de l'organisation
+
+```http
+POST /api/organizations/{uuid}/members
+Authorization: Bearer {token}
+Content-Type: application/ld+json
+
+{
+  "email": "manager@blue-bay-mogador.test",
+  "password": "password1234",
+  "role": "admin"
+}
+```
+
+---
+
+## 14 — Champs metier de la deuxieme organisation
+
+```http
+PUT /api/organizations/{blueBayOrganizationUuid}
+Authorization: Bearer {token}
+Content-Type: application/ld+json
+
+{
+  "name": "Blue Bay Mogador",
+  "acronym": "BBM",
+  "fullName": "Blue Bay Mogador",
+  "location": "Essaouira",
+  "email": ["contact@blue-bay-mogador.test"],
+  "phoneNumbers": ["+212 (0)6 12 345 678"],
+  "description": "Blue Bay Mogador est une organisation de demonstration dediee aux tests multi-projets et a la validation de l'isolation des donnees."
+}
+```
+
+---
+
+## 15 — Deuxieme projet
+
+Ce projet n'est pas destine a representer un vrai site client. Il sert a
+verifier les parcours multi-projets et l'isolation des donnees.
+
+```http
+POST /api/projects
+Authorization: Bearer {token}
+Content-Type: application/ld+json
+
+{
+  "organization": "/api/organizations/{blueBayOrganizationUuid}",
+  "name": "blue-bay-mogador",
+  "sourceLocale": "fr",
+  "enabledLocales": ["fr", "en"],
+  "mediaPath": "blue-bay-mogador/public/images",
+  "mediaBaseUrl": "{SITE_URL}/blue-bay-mogador/images"
+}
+```
+
+Noter l'`@id` retourne (`/api/projects/{blueBayProjectUuid}`).
+
+---
+
+## 16 — Membres du deuxieme projet
+
+L'utilisateur doit etre membre de l'organisation Blue Bay avant d'etre ajoute au
+projet.
+
+```http
+POST /api/projects/{blueBayProjectUuid}/members
+Authorization: Bearer {token}
+Content-Type: application/ld+json
+
+{
+  "email": "johan.remy+1@graines-digitales.online",
+  "role": "owner"
+}
+```
+
+```http
+POST /api/organizations/{blueBayOrganizationUuid}/members
+Authorization: Bearer {token}
+Content-Type: application/ld+json
+
+{
+  "email": "manager@blue-bay-mogador.test",
+  "role": "admin"
+}
+```
+
+---
+
+## 17 — Configuration frontend secondaire
+
+Si le frontend doit cibler le projet secondaire :
+
+```env
+SYMFONY_PROJECT_ID={blueBayProjectUuid}
+```
+
+---
+
+## Chargement de donnees projet
+
+La commande historique `app:fixtures:load-demo` a ete supprimee.
+Le chargement de donnees projet doit passer par la future commande
+`app:seed:load-project`, decrite dans
+`dev-book/tasks/022-real-data-project-resource-loader.md`.
