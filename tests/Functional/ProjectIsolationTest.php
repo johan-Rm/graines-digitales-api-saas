@@ -296,6 +296,32 @@ final class ProjectIsolationTest extends FunctionalTestCase
         ));
     }
 
+    public function testSuperAdminCanAccessProjectWithoutExplicitMembership(): void
+    {
+        $client = static::createClient();
+        $superAdminToken = $this->login($client, 'admin@grainesdigitales.local');
+
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+        $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
+            'email' => 'admin@grainesdigitales.local',
+        ]);
+
+        self::assertInstanceOf(User::class, $admin);
+
+        $this->entityManager()->createQuery(
+            'DELETE FROM App\Entity\ProjectMember pm WHERE pm.project = :project AND pm.user = :user',
+        )
+            ->setParameter('project', $project)
+            ->setParameter('user', $admin)
+            ->execute();
+
+        $client->request('GET', sprintf('/api/projects/%s/web-pages', $project->getId()), [
+            'headers' => ['Authorization' => 'Bearer '.$superAdminToken],
+        ]);
+
+        self::assertResponseIsSuccessful();
+    }
+
     private function findCategoryCode(object $project, string $inCodeSet, string $code): CategoryCode
     {
         $categoryCode = $this->entityManager()->getRepository(CategoryCode::class)->findOneBy([

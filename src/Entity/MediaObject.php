@@ -17,6 +17,7 @@ use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\AiReviewStatus;
 use App\Enum\MediaStatus;
+use App\State\MediaObjectCollectionProvider;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
@@ -35,6 +36,7 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
 #[ORM\Index(columns: ['checksum_sha256'], name: 'idx_media_object_checksum')]
 #[ApiResource(
     operations: [
+        new GetCollection(uriTemplate: '/media-objects', security: "is_granted('IS_AUTHENTICATED_FULLY')", provider: MediaObjectCollectionProvider::class),
         new GetCollection(uriTemplate: '/projects/{projectId}/media-objects', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
         new Post(
             uriTemplate: '/projects/{projectId}/media-objects/bulk',

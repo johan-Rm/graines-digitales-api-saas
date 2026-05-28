@@ -38,3 +38,6 @@ obtient les droits plateforme a l'execution.
 
 Cette configuration sert notamment a reserver la creation des organisations a l'operateur
 SaaS.
+
+Le super admin peut aussi lire et modifier les ressources project-scoped en local. Les
+utilisateurs projet standard doivent rester membres du projet cible via `ProjectMember`.

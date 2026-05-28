@@ -12,6 +12,7 @@ use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\UuidIdentity;
 use App\State\OrganizationByOwnerEmailProvider;
+use App\State\OrganizationCollectionProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -20,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['slug'], name: 'idx_organization_slug')]
 #[ApiResource(
     operations: [
-        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new GetCollection(security: "is_granted('IS_AUTHENTICATED_FULLY')", provider: OrganizationCollectionProvider::class),
         new Post(security: "is_granted('ROLE_SUPER_ADMIN')"),
         new Get(security: "is_granted('ROLE_ADMIN')"),
         new Get(

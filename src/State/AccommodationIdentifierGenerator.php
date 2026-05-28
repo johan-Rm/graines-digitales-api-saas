@@ -14,7 +14,7 @@ final readonly class AccommodationIdentifierGenerator
     {
     }
 
-    public function generate(Accommodation $accommodation): string
+    public function generate(Accommodation $accommodation, ?Accommodation $excludedAccommodation = null): string
     {
         $project = $accommodation->getProject();
         if (!$project instanceof Project || !$accommodation->hasRealEstateListing() || !$accommodation->hasCategory()) {
@@ -25,7 +25,7 @@ final readonly class AccommodationIdentifierGenerator
         $category = $accommodation->getCategory();
 
         $prefix = self::initials($realEstateListing->getCode()).self::initials($category->getCode());
-        $identifiers = $this->existingPairIdentifiers($project, $realEstateListing, $category);
+        $identifiers = $this->existingPairIdentifiers($project, $realEstateListing, $category, $excludedAccommodation);
         $maxSuffix = 0;
 
         foreach ($identifiers as $identifier) {
@@ -56,9 +56,9 @@ final readonly class AccommodationIdentifierGenerator
     /**
      * @return list<string>
      */
-    private function existingPairIdentifiers(Project $project, CategoryCode $realEstateListing, CategoryCode $category): array
+    private function existingPairIdentifiers(Project $project, CategoryCode $realEstateListing, CategoryCode $category, ?Accommodation $excludedAccommodation): array
     {
-        $identifiers = $this->entityManager->createQueryBuilder()
+        $queryBuilder = $this->entityManager->createQueryBuilder()
             ->select('accommodation.identifier')
             ->from(Accommodation::class, 'accommodation')
             ->andWhere('accommodation.project = :project')
@@ -67,7 +67,15 @@ final readonly class AccommodationIdentifierGenerator
             ->andWhere('accommodation.deletedAt IS NULL')
             ->setParameter('project', $project)
             ->setParameter('realEstateListing', $realEstateListing)
-            ->setParameter('category', $category)
+            ->setParameter('category', $category);
+
+        if (null !== $excludedAccommodation?->getId()) {
+            $queryBuilder
+                ->andWhere('accommodation.id != :excludedAccommodationId')
+                ->setParameter('excludedAccommodationId', $excludedAccommodation->getId());
+        }
+
+        $identifiers = $queryBuilder
             ->getQuery()
             ->getSingleColumnResult();
 

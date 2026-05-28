@@ -17,6 +17,7 @@ final readonly class ProjectAccessGuard
         private EntityManagerInterface $entityManager,
         private CurrentUserProvider $currentUserProvider,
         private OrganizationAccessGuard $organizationAccessGuard,
+        private PlatformSuperAdminResolver $superAdminResolver,
     ) {
     }
 
@@ -44,6 +45,10 @@ final readonly class ProjectAccessGuard
         $project = $this->entityManager->find(Project::class, Uuid::fromString($projectId));
         if (!$project instanceof Project) {
             throw new NotFoundHttpException('Project not found.');
+        }
+
+        if ($this->superAdminResolver->isSuperAdmin($user)) {
+            return $project;
         }
 
         $membership = $this->entityManager->getRepository(ProjectMember::class)->findOneBy([
@@ -77,6 +82,10 @@ final readonly class ProjectAccessGuard
         $project = $this->entityManager->find(Project::class, Uuid::fromString($projectId));
         if (!$project instanceof Project) {
             throw new NotFoundHttpException('Project not found.');
+        }
+
+        if ($this->superAdminResolver->isSuperAdmin($user)) {
+            return $project;
         }
 
         $membership = $this->entityManager->getRepository(ProjectMember::class)->findOneBy([
