@@ -137,6 +137,9 @@ Analyse cible du dossier `blue-bay-mogador/data/fr/metadata` :
   optionnel.
   Repartition observee : 35 `tag`, 21 `amenity-feature`, 1 `article-section`,
   12 `accommodation-category`, 28 `accommodation-place`, 4 `real-estate-listing`.
+  Le modele backend courant utilise `accommodation-type` pour la relation
+  `Accommodation.category` ; la V1 normalise donc `accommodation-category` vers
+  `accommodation-type` pendant l'import.
 - `media-object.yaml` : 125 entrees, champs `url`, `mainEntity`, `caption` optionnel.
   Il n'y a plus d'`identifier` media source : la cle stable d'import doit etre l'URL
   normalisee ou le chemin fichier.
@@ -193,7 +196,8 @@ Analyse cible du dossier `blue-bay-mogador/data/fr/metadata` :
    - chaque entree est importee comme `CategoryCode` rattache au projet :
      - `category-code.yaml` : `codeValue` alimente la cle metier interne persistante,
        `inCodeSet = inCodeSet`, `label = name`.
-     - les entrees `accommodation-category`, `accommodation-place` et
+     - les entrees `accommodation-category` sont normalisees vers `accommodation-type`, et
+       les entrees `accommodation-place` et
        `real-estate-listing` sont lues depuis ce meme fichier.
      - le champ `text` est conserve dans `CategoryCode.metadata` tant qu'aucun champ modele
        dedie n'existe.
@@ -264,45 +268,45 @@ l'orchestration centrale.
 
 ## Plan d'execution
 
-- [ ] Choisir le nom final de la variable `.env` qui porte le chemin racine d'import.
+- [x] Choisir le nom final de la variable `.env` qui porte le chemin racine d'import.
 - [x] Supprimer l'enregistrement Symfony de `app:fixtures:load-demo`.
-- [ ] Creer `app:seed:load-project` avec un argument `{projectSlug}`.
-- [ ] Resoudre le `Project` existant par slug et echouer explicitement s'il est absent.
-- [ ] Definir et documenter la structure de dossiers attendue sous
+- [x] Creer `app:seed:load-project` avec un argument `{projectSlug}`.
+- [x] Resoudre le `Project` existant par slug et echouer explicitement s'il est absent.
+- [x] Definir et documenter la structure de dossiers attendue sous
       `{SEED_PROJECT_PATH}/{projectSlug}`.
-- [ ] Remplacer les donnees codees en dur par une lecture de fichiers depuis le chemin
+- [x] Remplacer les donnees codees en dur par une lecture de fichiers depuis le chemin
       configure et le slug projet.
-- [ ] Ajouter une etape preflight qui parse et valide toutes les sources du projet avant la
+- [x] Ajouter une etape preflight qui parse et valide toutes les sources du projet avant la
       premiere ecriture Doctrine.
-- [ ] Ajouter un rapport d'analyse avant import : volumes detectes, fichiers ignores,
+- [x] Ajouter un rapport d'analyse avant import : volumes detectes, fichiers ignores,
       references resolues, erreurs bloquantes et avertissements.
-- [ ] Ajouter une confirmation interactive avant toute ecriture Doctrine.
-- [ ] Ajouter une selection interactive des familles d'entites a importer :
+- [x] Ajouter une confirmation interactive avant toute ecriture Doctrine.
+- [x] Ajouter une selection interactive des familles d'entites a importer :
       metadata, media, web-pages, accommodations ou tout importer.
-- [ ] Ajouter une option explicite pour les executions non interactives confirmees, par
+- [x] Ajouter une option explicite pour les executions non interactives confirmees, par
       exemple `--force`, qui reste interdite si le preflight echoue.
-- [ ] Ajouter une option non interactive de selection, par exemple `--only=metadata,media`.
-- [ ] Valider les dependances de selection avant import et refuser une selection incoherente.
-- [ ] Separer clairement le chargement des metadata, medias, pages et accommodations.
-- [ ] Introduire des importers specialises par famille d'entites, avec dependances
+- [x] Ajouter une option non interactive de selection, par exemple `--only=metadata,media`.
+- [x] Valider les dependances de selection avant import et refuser une selection incoherente.
+- [x] Separer clairement le chargement des metadata, medias, pages et accommodations.
+- [x] Introduire des importers specialises par famille d'entites, avec dependances
       declarees.
-- [ ] Construire un plan d'import depuis les dependances declarees et la selection demandee.
-- [ ] Garantir que le plan V1 aboutit a l'ordre :
+- [x] Construire un plan d'import depuis les dependances declarees et la selection demandee.
+- [x] Garantir que le plan V1 aboutit a l'ordre :
       metadata -> medias/images -> web-pages -> accommodations.
-- [ ] Garantir que `project_id` vient du `Project` resolu en base par `{projectSlug}`, jamais
+- [x] Garantir que `project_id` vient du `Project` resolu en base par `{projectSlug}`, jamais
       d'un payload fichier.
-- [ ] Valider que chaque reference `WebPage.associatedMedia` existe dans les medias charges.
-- [ ] Valider que chaque reference `Accommodation.amenityFeature` existe comme
+- [x] Valider que chaque reference `WebPage.associatedMedia` existe dans les medias charges.
+- [x] Valider que chaque reference `Accommodation.amenityFeature` existe comme
       `CategoryCode` avec `inCodeSet = amenity-feature`.
-- [ ] Valider que chaque reference `Accommodation.category` existe comme `CategoryCode` avec
-      `inCodeSet = accommodation-category`.
-- [ ] Valider que chaque reference `Accommodation.place` existe comme `CategoryCode` avec
+- [x] Valider que chaque reference `Accommodation.category` existe comme `CategoryCode` avec
+      `inCodeSet = accommodation-type`.
+- [x] Valider que chaque reference `Accommodation.place` existe comme `CategoryCode` avec
       `inCodeSet = accommodation-place`.
-- [ ] Valider que chaque reference `Accommodation.realEstateListing` existe comme
+- [x] Valider que chaque reference `Accommodation.realEstateListing` existe comme
       `CategoryCode` avec `inCodeSet = real-estate-listing`.
-- [ ] Decider si les alias media `media-{basename}` sont supportes temporairement ou si le
+- [x] Decider si les alias media `media-{basename}` sont supportes temporairement ou si le
       seed doit etre corrige avant import.
-- [ ] Ajouter une validation d'entree lisible : chemin absent, fichier manquant, YAML invalide,
+- [x] Ajouter une validation d'entree lisible : chemin absent, fichier manquant, YAML invalide,
       projet inconnu, ressource rattachee au mauvais projet.
 - [ ] Conserver ou remplacer l'option `--with-test-tenants` sans casser les tests
       fonctionnels existants.
@@ -315,13 +319,14 @@ l'orchestration centrale.
 
 ## Validations attendues
 
-- [ ] `docker compose exec -T api php -l src/Command/LoadProjectSeedCommand.php`
-- [ ] `docker compose exec -T api php bin/console lint:container`
-- [ ] `docker compose exec -T api php bin/console doctrine:schema:validate`
+- [x] `docker compose exec -T api php -l src/Command/LoadProjectSeedCommand.php`
+- [x] `docker compose exec -T api php bin/console lint:container`
+- [x] `docker compose exec -T api php bin/console doctrine:schema:validate`
 - [ ] `docker compose exec -T api php bin/console app:seed:load-project mlk-modern-site-web`
 - [ ] `docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogador`
 - [x] `docker compose exec -T api php bin/console app:fixtures:load-demo` n'existe plus.
-- [ ] Relancer la commande deux fois ne duplique pas les donnees.
+- [x] Relancer la commande deux fois ne duplique pas les donnees pour le perimetre valide
+      `metadata,media`.
 - [ ] Les ressources importees pour un projet ne sont pas visibles depuis un autre projet.
 - [ ] Une reference media de page absente produit une erreur explicite avec le fichier source.
 - [ ] Une reference amenity absente ou dans le mauvais `inCodeSet` produit une erreur explicite
@@ -337,6 +342,24 @@ l'orchestration centrale.
 - [ ] Le plan d'import est calcule depuis les dependances declarees par les importers, et non
       depuis une sequence rigide codee directement dans la commande.
 - [ ] Les tests fonctionnels critiques d'isolation inter-projets restent verts.
+
+## Etat de validation du seed Blue Bay
+
+Validation locale du 2026-05-27 :
+
+- `metadata,media` s'importe correctement pour `blue-bay-mogador`.
+- Les images seed sont copiees dans `WEBAPPS_DIR/{project.mediaPath}` et dans
+  `WEBAPPS_DIR/{project.mediaPath}/originals`.
+- Une seconde execution de `metadata,media` ne duplique pas les `CategoryCode` et
+  `MediaObject`.
+- L'import complet reste bloque par le preflight, comme attendu, car le seed contient encore
+  des references non resolues :
+  - plusieurs `WebPage.associatedMedia` pointent vers des fichiers absents du dossier
+    `resources/images` et de `media-object.yaml` ;
+  - plusieurs `Accommodation.amenityFeature` pointent vers des valeurs absentes de
+    `CategoryCode` avec `inCodeSet = amenity-feature` ;
+  - quelques `Accommodation.associatedMedia` pointent encore vers des UUID historiques non
+    resolvables par la V1.
 
 Note : tant que les ecarts du seed identifies ci-dessus ne sont pas corriges ou traites par
 une regle explicite, les commandes `app:seed:load-project` doivent echouer proprement en

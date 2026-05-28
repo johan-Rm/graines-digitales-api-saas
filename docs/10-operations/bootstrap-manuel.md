@@ -7,6 +7,7 @@ environnement Docker completement vierge.
 
 - Docker Compose operationnel
 - `.env.local` configure : DSN PostgreSQL, cles JWT, `PLATFORM_SUPER_ADMIN_EMAILS`
+- `.env` configure avec `SEED_PROJECT_HOST_DIR` vers le dossier seed local
 
 ---
 
@@ -18,6 +19,22 @@ Si un environnement precedent existe, repartir proprement :
 docker compose down --volumes --remove-orphans
 docker compose up -d
 docker compose exec api php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+Les etapes 1 a 17 peuvent ensuite etre executees automatiquement :
+
+```bash
+docker compose exec api php bin/console app:bootstrap:manual
+```
+
+La commande est idempotente : elle cree ou met a jour les utilisateurs,
+organisations, projets et memberships attendus, puis affiche les UUID projets a
+reporter cote frontend.
+
+Options utiles :
+
+```bash
+docker compose exec api php bin/console app:bootstrap:manual --password=password1234 --site-url=http://localhost:3000
 ```
 
 ---
@@ -297,6 +314,30 @@ SYMFONY_PROJECT_ID={blueBayProjectUuid}
 ## Chargement de donnees projet
 
 La commande historique `app:fixtures:load-demo` a ete supprimee.
-Le chargement de donnees projet doit passer par la future commande
-`app:seed:load-project`, decrite dans
+Le chargement de donnees projet doit passer par la commande `app:seed:load-project`, decrite dans
 `dev-book/tasks/022-real-data-project-resource-loader.md`.
+
+La commande commence toujours par un preflight sans ecriture. Elle analyse le dossier
+source, affiche les volumes detectes et bloque l'import si une reference critique est
+absente.
+
+```bash
+docker compose exec api php bin/console app:seed:load-project blue-bay-mogador
+```
+
+En mode interactif, la commande demande les familles d'entites a importer puis une
+confirmation avant toute ecriture.
+
+En mode non interactif, l'import doit etre explicitement confirme :
+
+```bash
+docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogador --no-interaction --force
+```
+
+Il est possible de limiter les familles importees :
+
+```bash
+docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogador --no-interaction --force --only=metadata,media
+```
+
+Familles disponibles : `metadata`, `media`, `web-pages`, `accommodations`.

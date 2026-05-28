@@ -1,0 +1,261 @@
+<?php
+
+namespace App\Seed;
+
+use App\Entity\Accommodation;
+use App\Entity\AccommodationMedia;
+use App\Entity\AccommodationTranslation;
+use App\Entity\CategoryCode;
+use App\Entity\MediaObject;
+use App\Entity\Project;
+use App\Enum\ContentStatus;
+use App\State\AccommodationIdentifierGenerator;
+use Doctrine\ORM\EntityManagerInterface;
+
+final readonly class AccommodationSeedImporter implements ProjectSeedImporterInterface
+{
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private AccommodationIdentifierGenerator $identifierGenerator,
+    )
+    {
+    }
+
+    public function family(): string
+    {
+        return ProjectSeedFamily::ACCOMMODATIONS;
+    }
+
+    public function requires(ProjectSeedData $data): array
+    {
+        $requires = [ProjectSeedFamily::METADATA];
+
+        foreach ($data->accommodations as $accommodation) {
+            if ([] !== $accommodation['associatedMedia']) {
+                $requires[] = ProjectSeedFamily::MEDIA;
+                break;
+            }
+        }
+
+        return array_values(array_unique($requires));
+    }
+
+    public function import(Project $project, ProjectSeedData $data): int
+    {
+        $count = 0;
+        $reservedIdentifiers = [];
+
+        foreach ($data->accommodations as $source) {
+            $accommodation = $this->findAccommodation($project, $source['identifier'], $source['slug'], $source['locale']);
+
+            if (!$accommodation instanceof Accommodation) {
+                $accommodation = (new Accommodation())
+                    ->setProject($project);
+            }
+
+            $accommodation->setCurrentLocale($source['locale']);
+            $accommodation
+                ->setCategory($this->categoryCode($project, Accommodation::CATEGORY_CODE_SET, $source['category']))
+                ->setPlace($this->categoryCode($project, Accommodation::PLACE_CODE_SET, $source['place']))
+                ->setRealEstateListing($this->categoryCode($project, Accommodation::REAL_ESTATE_LISTING_CODE_SET, $source['realEstateListing']))
+                ->setSlug($source['slug'])
+                ->setName($source['name'])
+                ->setLabel($source['name'])
+                ->setHighlight($source['highlight'])
+                ->setBody($source['body'])
+                ->setReview($source['review'])
+                ->setMetaTitle($source['metaTitle'])
+                ->setMetaDescription($source['metaDescription'])
+                ->setOffer($source['offer'])
+                ->setStatus(ContentStatus::Published)
+                ->setIsActive($this->boolField($source['fields'], 'isActive', true))
+                ->setYearBuilt($this->intField($source['fields'], 'yearBuilt'))
+                ->setAreaSize($this->stringField($source['fields'], 'areaSize'))
+                ->setAreaTerrace($this->stringField($source['fields'], 'areaTerrace'))
+                ->setFloorSize($this->stringField($source['fields'], 'floorSize'))
+                ->setLandArea($this->stringField($source['fields'], 'landArea'))
+                ->setLevel($this->intField($source['fields'], 'level'))
+                ->setNumberOfRooms($this->intField($source['fields'], 'numberOfRooms'))
+                ->setNumberOfBedrooms($this->intField($source['fields'], 'numberOfBedrooms'))
+                ->setNumberOfBathroomsTotal($this->intField($source['fields'], 'numberOfBathroomsTotal'))
+                ->setNumberOfGarages($this->intField($source['fields'], 'numberOfGarages'))
+                ->setOccupancy($this->intField($source['fields'], 'occupancy'))
+                ->clearAmenityFeature()
+                ->clearTags()
+                ->clearAssociatedMedia();
+
+            $accommodation->setIdentifier($this->resolveIdentifier($accommodation, $source['identifier'], $reservedIdentifiers));
+
+            foreach ($source['amenityFeature'] as $amenityFeature) {
+                $accommodation->addAmenityFeature($this->categoryCode($project, Accommodation::AMENITY_FEATURE_CODE_SET, $amenityFeature));
+            }
+
+            foreach ($source['tags'] as $tag) {
+                $accommodation->addTag($this->categoryCode($project, Accommodation::TAG_CODE_SET, $tag));
+            }
+
+            foreach ($source['associatedMedia'] as $index => $edge) {
+                $mediaObject = $this->findMediaObject($project, $edge['image']);
+                if (!$mediaObject instanceof MediaObject) {
+                    throw new \RuntimeException(sprintf('Media reference "%s" was not found while importing accommodation "%s".', $edge['image'], $source['slug']));
+                }
+
+                $accommodation->addAssociatedMedia(
+                    (new AccommodationMedia())
+                        ->setMediaObject($mediaObject)
+                        ->setPosition($index + 1)
+                        ->setCaption($edge['caption'])
+                        ->setKeywords($edge['keywords']),
+                );
+            }
+
+            $accommodation->ensureDefaultQualities();
+            $this->entityManager->persist($accommodation);
+            $count++;
+        }
+
+        return $count;
+    }
+
+    private function findAccommodation(Project $project, ?string $identifier, string $slug, string $locale): ?Accommodation
+    {
+        $accommodation = null;
+        if (null !== $identifier) {
+            $accommodation = $this->entityManager->getRepository(Accommodation::class)->findOneBy([
+                'project' => $project,
+                'identifier' => $identifier,
+            ]);
+        }
+
+        if ($accommodation instanceof Accommodation) {
+            return $accommodation;
+        }
+
+        $result = $this->entityManager->createQueryBuilder()
+            ->select('accommodation')
+            ->from(Accommodation::class, 'accommodation')
+            ->innerJoin(AccommodationTranslation::class, 'translation', 'WITH', 'translation.translatable = accommodation')
+            ->where('accommodation.project = :project')
+            ->andWhere('translation.project = :project')
+            ->andWhere('translation.slug = :slug')
+            ->andWhere('translation.locale = :locale')
+            ->setParameter('project', $project)
+            ->setParameter('slug', $slug)
+            ->setParameter('locale', $locale)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $result instanceof Accommodation ? $result : null;
+    }
+
+    /**
+     * @param array<string, true> $reservedIdentifiers
+     */
+    private function resolveIdentifier(Accommodation $accommodation, ?string $sourceIdentifier, array &$reservedIdentifiers): string
+    {
+        if (null !== $sourceIdentifier) {
+            $identifier = strtoupper($sourceIdentifier);
+            $reservedIdentifiers[$identifier] = true;
+
+            return $identifier;
+        }
+
+        if (1 === preg_match('/^[A-Z]+[0-9]{3,}$/', $accommodation->getIdentifier())) {
+            $reservedIdentifiers[$accommodation->getIdentifier()] = true;
+
+            return $accommodation->getIdentifier();
+        }
+
+        $identifier = $this->identifierGenerator->generate($accommodation, $accommodation);
+        while (isset($reservedIdentifiers[$identifier])) {
+            $identifier = $this->nextIdentifier($identifier);
+        }
+
+        $reservedIdentifiers[$identifier] = true;
+
+        return $identifier;
+    }
+
+    private function nextIdentifier(string $identifier): string
+    {
+        if (1 !== preg_match('/^(?<prefix>[A-Z]+)(?<suffix>[0-9]{3,})$/', $identifier, $matches)) {
+            throw new \RuntimeException(sprintf('Cannot increment generated accommodation identifier "%s".', $identifier));
+        }
+
+        $suffix = (int) $matches['suffix'] + 1;
+
+        return sprintf('%s%0'.strlen($matches['suffix']).'d', $matches['prefix'], $suffix);
+    }
+
+    private function categoryCode(Project $project, string $codeSet, string $code): CategoryCode
+    {
+        $categoryCode = $this->entityManager->getRepository(CategoryCode::class)->findOneBy([
+            'project' => $project,
+            'inCodeSet' => $codeSet,
+            'code' => $code,
+        ]);
+
+        if (!$categoryCode instanceof CategoryCode) {
+            throw new \RuntimeException(sprintf('CategoryCode "%s" in code set "%s" was not found.', $code, $codeSet));
+        }
+
+        return $categoryCode;
+    }
+
+    private function findMediaObject(Project $project, string $reference): ?MediaObject
+    {
+        $filename = str_starts_with($reference, 'media-') ? substr($reference, 6) : ltrim($reference, '/');
+        if (str_starts_with($reference, 'media-') || !str_contains(basename($reference), '.')) {
+            $result = $this->entityManager->createQueryBuilder()
+                ->select('mediaObject')
+                ->from(MediaObject::class, 'mediaObject')
+                ->where('mediaObject.project = :project')
+                ->andWhere('mediaObject.filePath LIKE :basename')
+                ->setParameter('project', $project)
+                ->setParameter('basename', $filename.'.%')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $result instanceof MediaObject ? $result : null;
+        }
+
+        $mediaObject = $this->entityManager->getRepository(MediaObject::class)->findOneBy([
+            'project' => $project,
+            'filePath' => $filename,
+        ]);
+
+        return $mediaObject instanceof MediaObject ? $mediaObject : null;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     */
+    private function intField(array $fields, string $key): ?int
+    {
+        $value = $fields[$key] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     */
+    private function stringField(array $fields, string $key): ?string
+    {
+        $value = $fields[$key] ?? null;
+
+        return is_scalar($value) && '' !== trim((string) $value) ? (string) $value : null;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     */
+    private function boolField(array $fields, string $key, bool $default): bool
+    {
+        $value = $fields[$key] ?? null;
+
+        return is_bool($value) ? $value : $default;
+    }
+}

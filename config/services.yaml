@@ -1,13 +1,26 @@
 parameters:
     platform_super_admin_emails: ''
+    seed_project_path: ''
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
 
+    _instanceof:
+        App\Seed\ProjectSeedImporterInterface:
+            tags: ['app.project_seed_importer']
+
     App\:
         resource: '../src/'
+
+    App\State\MediaObjectCollectionProvider:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.collection_provider'
+
+    App\State\OrganizationCollectionProvider:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.collection_provider'
 
     App\State\ProjectCollectionProvider:
         arguments:
