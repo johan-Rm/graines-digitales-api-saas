@@ -9,6 +9,7 @@ use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedTranslationCollectionProvider;
+use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -47,18 +48,22 @@ class WebPageTranslation implements ResourceTranslation
     private string $slug = '';
 
     #[ORM\Column(length: 220, nullable: true)]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $metaTitle = null;
 
     #[ORM\Column(length: 320, nullable: true)]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $metaDescription = null;
 
     #[ORM\Column(length: 220, nullable: true)]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $headline = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $body = null;
 

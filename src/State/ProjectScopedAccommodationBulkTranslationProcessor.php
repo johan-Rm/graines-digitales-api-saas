@@ -8,7 +8,7 @@ use App\Entity\Accommodation;
 use App\Entity\AccommodationTranslation;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
-use App\Translation\AccommodationAutoTranslator;
+use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class ProjectScopedAccommodationBulkTranslationProcessor implements ProcessorInterface
@@ -18,7 +18,7 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
         private ProjectAccessGuard $projectAccessGuard,
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
-        private AccommodationAutoTranslator $autoTranslator,
+        private ResourceAutoTranslator $autoTranslator,
     ) {
     }
 

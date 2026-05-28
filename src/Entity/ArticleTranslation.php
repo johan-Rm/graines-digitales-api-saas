@@ -9,6 +9,7 @@ use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedTranslationCollectionProvider;
+use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -48,10 +49,12 @@ class ArticleTranslation implements ResourceTranslation
 
     #[ORM\Column(length: 220)]
     #[Assert\NotBlank]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private string $headline = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $body = null;
 

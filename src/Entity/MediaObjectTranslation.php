@@ -8,6 +8,7 @@ use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedTranslationCollectionProvider;
+use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -37,6 +38,7 @@ class MediaObjectTranslation implements ResourceTranslation
     private ?Project $project = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $caption = null;
 

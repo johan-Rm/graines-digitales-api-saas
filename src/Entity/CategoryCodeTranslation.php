@@ -8,6 +8,7 @@ use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedTranslationCollectionProvider;
+use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -39,6 +40,7 @@ class CategoryCodeTranslation implements ResourceTranslation
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
+    #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private string $label = '';
 
