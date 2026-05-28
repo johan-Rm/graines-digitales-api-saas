@@ -58,7 +58,9 @@ final class ApiResourceNormalizer implements NormalizerInterface
             return $data;
         }
 
-        return $this->compactRoot($data);
+        $withTranslations = in_array('read:with-translations', $context['groups'] ?? [], true);
+
+        return $this->compactRoot($data, $withTranslations);
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
@@ -94,18 +96,20 @@ final class ApiResourceNormalizer implements NormalizerInterface
      *
      * @return array<string, mixed>
      */
-    private function compactRoot(array $data): array
+    private function compactRoot(array $data, bool $withTranslations = false): array
     {
-        unset($data['translations']);
+        if (!$withTranslations) {
+            unset($data['translations']);
+        }
 
         foreach ($data as $key => $value) {
-            $data[$key] = $this->compactValue($value);
+            $data[$key] = $this->compactValue($value, $withTranslations);
         }
 
         return $data;
     }
 
-    private function compactValue(mixed $value): mixed
+    private function compactValue(mixed $value, bool $withTranslations = false): mixed
     {
         if (!is_array($value)) {
             return $value;
@@ -116,33 +120,45 @@ final class ApiResourceNormalizer implements NormalizerInterface
         }
 
         if (array_is_list($value)) {
-            return array_map(fn (mixed $item): mixed => $this->compactListItem($item), $value);
+            return array_map(fn (mixed $item): mixed => $this->compactListItem($item, $withTranslations), $value);
         }
 
         foreach ($value as $key => $item) {
-            $value[$key] = $this->compactValue($item);
+            $value[$key] = $this->compactValue($item, $withTranslations);
         }
 
         return $value;
     }
 
-    private function compactListItem(mixed $item): mixed
+    private function compactListItem(mixed $item, bool $withTranslations = false): mixed
     {
         if (!is_array($item)) {
             return $item;
         }
 
-        if ($this->isResourceObject($item) && !$this->isEmbeddedType($item)) {
+        if ($this->isResourceObject($item) && !$this->isEmbeddedType($item) && (!$withTranslations || !$this->isTranslationType($item))) {
             return $this->compactResourceObject($item);
         }
 
-        unset($item['translations']);
+        if (!$withTranslations) {
+            unset($item['translations']);
+        }
 
         foreach ($item as $key => $value) {
-            $item[$key] = $this->compactValue($value);
+            $item[$key] = $this->compactValue($value, $withTranslations);
         }
 
         return $item;
+    }
+
+    /**
+     * @param array<string, mixed> $value
+     */
+    private function isTranslationType(array $value): bool
+    {
+        $type = $value['@type'] ?? null;
+
+        return is_string($type) && str_ends_with($type, 'Translation');
     }
 
     /**

@@ -41,12 +41,11 @@ final readonly class CategoryCodePersistProcessor implements ProcessorInterface
         $data->touch($actor);
         $this->entityManager->persist($data);
 
-        foreach ($data->getTranslations() as $translation) {
-            if ($translation instanceof ResourceTranslation) {
-                $translation->setTranslatable($data);
-                $translation->touch($actor);
-                $this->entityManager->persist($translation);
-            }
+        $translation = $data->getTranslation($data->getCurrentLocale());
+        if ($translation instanceof ResourceTranslation) {
+            $translation->setTranslatable($data);
+            $translation->touch($actor);
+            $this->entityManager->persist($translation);
         }
 
         try {

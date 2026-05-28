@@ -59,15 +59,14 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             $this->entityManager->persist($data);
 
             if ($data instanceof TranslatableResource) {
-                foreach ($data->getTranslations() as $translation) {
-                    if ($translation instanceof ResourceTranslation) {
-                        $translation->setTranslatable($data);
-                        if ($translation instanceof AccommodationTranslation) {
-                            $translation->recomputeSlug();
-                        }
-                        $translation->touch($actor);
-                        $this->entityManager->persist($translation);
+                $translation = $data->getTranslation($data->getCurrentLocale());
+                if ($translation instanceof ResourceTranslation) {
+                    $translation->setTranslatable($data);
+                    if ($translation instanceof AccommodationTranslation) {
+                        $translation->recomputeSlug();
                     }
+                    $translation->touch($actor);
+                    $this->entityManager->persist($translation);
                 }
             }
 

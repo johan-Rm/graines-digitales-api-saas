@@ -8,14 +8,19 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
+use App\State\BulkTranslationInput;
 use App\State\CategoryCodePersistProcessor;
 use App\State\CategoryCodeRemoveProcessor;
+use App\State\ProjectScopedBulkTranslationCreateProcessor;
+use App\State\ProjectScopedBulkTranslationProcessor;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
+use App\State\ProjectScopedPersistProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -30,6 +35,9 @@ use Symfony\Component\Validator\Constraints as Assert;
         new GetCollection(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
         new Post(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: CategoryCodePersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class),
+        new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', name: 'put_category_code_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/category-codes/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_category_code_translations', input: BulkTranslationInput::class, read: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Delete(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: CategoryCodeRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
@@ -58,7 +66,7 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
      * @var Collection<int, CategoryCodeTranslation>
      */
     #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: CategoryCodeTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read', 'write:translations'])]
     private Collection $translations;
 
     #[ORM\Column(type: 'json', nullable: true)]

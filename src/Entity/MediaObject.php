@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model;
 use App\Controller\BulkMediaUploadController;
 use App\Entity\Traits\AuditTrail;
@@ -17,7 +18,10 @@ use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\AiReviewStatus;
 use App\Enum\MediaStatus;
+use App\State\BulkTranslationInput;
 use App\State\MediaObjectCollectionProvider;
+use App\State\ProjectScopedBulkTranslationCreateProcessor;
+use App\State\ProjectScopedBulkTranslationProcessor;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
@@ -91,6 +95,9 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
             )
         ),
         new Get(uriTemplate: '/projects/{projectId}/media-objects/{id}', provider: ProjectScopedItemProvider::class),
+        new Put(uriTemplate: '/projects/{projectId}/media-objects/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Put(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations', name: 'put_media_object_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/media-objects/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_media_object_translations', input: BulkTranslationInput::class, read: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Delete(uriTemplate: '/projects/{projectId}/media-objects/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
@@ -107,7 +114,7 @@ class MediaObject implements ProjectScopedResource, TranslatableResource
      * @var Collection<int, MediaObjectTranslation>
      */
     #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: MediaObjectTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read', 'write:translations'])]
     private Collection $translations;
 
     #[Vich\UploadableField(mapping: 'media_object', fileNameProperty: 'filePath', size: 'size', mimeType: 'mimeType', originalName: 'originalFilename')]

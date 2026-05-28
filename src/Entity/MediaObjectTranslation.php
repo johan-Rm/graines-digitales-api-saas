@@ -3,15 +3,11 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedTranslationCollectionProvider;
-use App\State\ProjectScopedTranslationItemProvider;
-use App\State\ProjectScopedTranslationPersistProcessor;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -22,8 +18,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations', provider: ProjectScopedTranslationCollectionProvider::class),
-        new Get(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations/{locale}', provider: ProjectScopedTranslationItemProvider::class),
-        new Put(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations/{locale}', provider: ProjectScopedTranslationItemProvider::class, processor: ProjectScopedTranslationPersistProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]

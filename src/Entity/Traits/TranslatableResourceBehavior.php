@@ -83,6 +83,13 @@ trait TranslatableResourceBehavior
 
     abstract protected function addTranslation(ResourceTranslation $translation): self;
 
+    public function removeTranslation(ResourceTranslation $translation): self
+    {
+        $this->getTranslations()->removeElement($translation);
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, ResourceTranslation>
      */

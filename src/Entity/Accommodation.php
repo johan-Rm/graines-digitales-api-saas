@@ -17,6 +17,9 @@ use App\Enum\AccommodationQuality;
 use App\Enum\ContentStatus;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
+use App\State\BulkTranslationInput;
+use App\State\ProjectScopedAccommodationBulkTranslationProcessor;
+use App\State\ProjectScopedBulkTranslationCreateProcessor;
 use App\State\ProjectScopedPersistProcessor;
 use App\State\ProjectScopedRemoveProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -36,6 +39,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
         new Post(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class),
         new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'put_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/accommodations/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_accommodation_translations', input: BulkTranslationInput::class, read: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Delete(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
@@ -112,7 +117,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
      * @var Collection<int, AccommodationTranslation>
      */
     #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: AccommodationTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read', 'write:translations'])]
     private Collection $translations;
 
     #[ORM\Column(enumType: ContentStatus::class)]

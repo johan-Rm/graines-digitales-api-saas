@@ -14,6 +14,9 @@ use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\ContentStatus;
+use App\State\BulkTranslationInput;
+use App\State\ProjectScopedBulkTranslationCreateProcessor;
+use App\State\ProjectScopedBulkTranslationProcessor;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
@@ -31,6 +34,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(uriTemplate: '/projects/{projectId}/web-pages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/web-pages/{id}', provider: ProjectScopedItemProvider::class),
         new Put(uriTemplate: '/projects/{projectId}/web-pages/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Put(uriTemplate: '/projects/{projectId}/web-pages/{id}/translations', name: 'put_web_page_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/web-pages/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_web_page_translations', input: BulkTranslationInput::class, read: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Delete(uriTemplate: '/projects/{projectId}/web-pages/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
@@ -47,7 +52,7 @@ class WebPage implements ProjectScopedResource, TranslatableResource
      * @var Collection<int, WebPageTranslation>
      */
     #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: WebPageTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['read', 'write:translations'])]
     private Collection $translations;
 
     /**

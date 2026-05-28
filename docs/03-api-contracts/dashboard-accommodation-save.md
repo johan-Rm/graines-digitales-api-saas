@@ -1,22 +1,20 @@
 # Sauvegarde dashboard Accommodation
 
-Le dashboard sauvegarde un bien immobilier existant par son identifiant metier :
+Deux routes complementaires couvrent la sauvegarde d'un bien immobilier.
+
+## Sauvegarde mono-locale (champs globaux + une locale)
 
 ```txt
-PUT /api/projects/{projectId}/accommodations/{identifier}?locale={locale}
+PUT /api/projects/{projectId}/accommodations/{id}?locale={locale}
 ```
 
-L'`identifier` est commun a toutes les locales. La route accepte deux usages.
-
-## Sauvegarde mono-locale
-
-Le dashboard envoie les champs localises directement a la racine du payload. La locale
-mise a jour est celle du parametre `locale`.
+Le dashboard envoie les champs globaux et les champs localises pour une seule locale.
+La locale cible est celle du parametre `locale` (ou `Accept-Language`).
+La route n'accepte pas de tableau `translations`.
 
 ```json
 {
-  "name": "Superbe local commercial a Erraounak",
-  "body": "<p>Local commercial renove.</p>",
+  "isActive": true,
   "offer": {
     "price": "660000",
     "priceCurrency": "MAD",
@@ -24,20 +22,25 @@ mise a jour est celle du parametre `locale`.
     "availability": "InStock"
   },
   "areaSize": "27",
-  "areaTerrace": "12",
   "floorSize": "27",
-  "landArea": "550/580",
+  "name": "Superbe local commercial a Erraounak",
+  "body": "<p>Local commercial renove.</p>",
   "metaTitle": "Local commercial a vendre a Essaouira",
   "metaDescription": "Local commercial renove a Erraounak."
 }
 ```
 
-Si seules les valeurs de la locale source sont envoyees, l'API peut creer les
-traductions manquantes pour les autres locales activees du projet.
+La reponse renvoie les champs de la locale resolue (aplatis a la racine).
 
-## Sauvegarde multilingue
+## Sauvegarde multilingue (toutes les locales)
 
-Le dashboard peut fournir plusieurs traductions dans `translations`.
+```txt
+PUT /api/projects/{projectId}/accommodations/{id}/translations
+```
+
+Le dashboard peut remplacer l'ensemble des traductions en une seule requete.
+Cette route accepte uniquement un tableau `translations` ; les champs globaux
+de l'accommodation ne sont pas touches.
 
 ```json
 {
@@ -50,16 +53,19 @@ Le dashboard peut fournir plusieurs traductions dans `translations`.
     {
       "locale": "en",
       "name": "Custom English title",
-      "body": ""
+      "body": "<p>English body.</p>"
     },
     {
       "locale": "es",
-      "name": "",
-      "body": ""
+      "name": "Local comercial en Erraounak",
+      "body": "<p>Texto en espanol.</p>"
     }
   ]
 }
 ```
+
+Les traductions existantes non incluses dans le payload sont supprimees (orphan removal).
+La reponse embarque la collection `translations` complete aux cotes des champs racine.
 
 Regles de sauvegarde :
 
@@ -72,8 +78,6 @@ Regles de sauvegarde :
 - Le prix et la disponibilite sont portes par l'objet global `offer`.
 - Les surfaces `floorSize`, `areaSize`, `areaTerrace` et `landArea` sont exposees et
   sauvegardees comme des chaines pour conserver les valeurs composees ou formatees.
-- Pour limiter les effets de bord, le dashboard doit envoyer uniquement les champs que
-  l'utilisateur vient de modifier, plus les traductions a completer.
 
 Champs localises geres :
 

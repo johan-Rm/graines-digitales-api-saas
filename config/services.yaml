@@ -54,6 +54,14 @@ services:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'
 
+    App\State\ProjectScopedAccommodationBulkTranslationProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.persist_processor'
+
+    App\State\ProjectScopedBulkTranslationProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.persist_processor'
+
     App\State\ProjectScopedRemoveProcessor:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.remove_processor'

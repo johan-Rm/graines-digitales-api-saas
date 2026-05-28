@@ -21,6 +21,42 @@ Translations also store `project_id`. The root relation remains authoritative fo
 - Client reads may request a locale with `?locale=fr` or `Accept-Language`.
 - If the requested translation is missing, reads fall back to the project source locale and expose `requestedLocale`, `locale`, `fallbackLocale` and `fallback`.
 - Standard API reads expose resolved localized fields directly on the root resource and hide the technical `translations` collection.
+- **Write operations** (PUT/POST/PATCH) never apply the fallback: the locale from `?locale` or `Accept-Language` is used directly as the write target, creating the translation if it does not exist.
+
+## Single-locale root PUT
+
+The root PUT route for translatable resources (`Accommodation`, `WebPage`, `CategoryCode`) accepts localized fields as flat properties for a single locale.
+The target locale is resolved from `?locale` or `Accept-Language` (defaults to project source locale).
+The `translations` array is not accepted on this route.
+
+```txt
+PUT /api/projects/{projectId}/accommodations/{id}?locale=fr
+```
+
+## Bulk translation update
+
+A dedicated route allows replacing all locale translations in one request.
+The response embeds the full `translations` collection alongside the root fields.
+
+```txt
+PUT /api/projects/{projectId}/accommodations/{id}/translations
+```
+
+Payload:
+
+```json
+{
+  "translations": [
+    { "locale": "fr", "name": "...", "body": "..." },
+    { "locale": "en", "name": "...", "body": "..." },
+    { "locale": "es", "name": "...", "body": "..." }
+  ]
+}
+```
+
+This route replaces all existing translations with the provided set (orphan removal).
+
+## Backoffice per-locale routes
 
 Backoffice translation routes do not hide missing translations:
 

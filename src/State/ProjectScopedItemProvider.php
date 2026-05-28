@@ -3,6 +3,9 @@
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\ProjectScopedResource;
 use App\Entity\TranslatableResource;
@@ -45,7 +48,8 @@ final readonly class ProjectScopedItemProvider implements ProviderInterface
             }
 
             if ($resource instanceof TranslatableResource) {
-                $this->resolveTranslationLocale($resource);
+                $isWrite = $operation instanceof Put || $operation instanceof Post || $operation instanceof Patch;
+                $this->resolveTranslationLocale($resource, $isWrite);
             }
 
             return $resource;
@@ -54,7 +58,7 @@ final readonly class ProjectScopedItemProvider implements ProviderInterface
         return $this->decorated->provide($operation, $uriVariables, $context);
     }
 
-    private function resolveTranslationLocale(TranslatableResource $resource): void
+    private function resolveTranslationLocale(TranslatableResource $resource, bool $isWrite = false): void
     {
         $project = $resource->getProject();
         if (null === $project) {
@@ -62,6 +66,13 @@ final readonly class ProjectScopedItemProvider implements ProviderInterface
         }
 
         $requestedLocale = $this->localeResolver->resolve($project);
+
+        if ($isWrite) {
+            $resource->setResolvedLocale($requestedLocale, $requestedLocale, null);
+
+            return;
+        }
+
         $currentLocale = null !== $resource->getTranslation($requestedLocale)
             ? $requestedLocale
             : $project->getSourceLocale();
