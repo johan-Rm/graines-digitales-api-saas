@@ -46,6 +46,4 @@ l'alimentation des biens immobiliers qui portent beaucoup de visuels.
 
 ## Notes de validation
 
-- `doctrine:schema:validate` est bloque par un diff preexistant hors TASK-009 :
-  `accommodation_translation.location_description` existe dans le mapping mais pas dans
-  le schema de la base courante.
+- `doctrine:schema:validate` ne doit pas signaler de diff hors TASK-009.

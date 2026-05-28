@@ -68,7 +68,6 @@ Champs localises concernes :
 - `review`
 - `metaTitle`
 - `metaDescription`
-- `locationDescription`
 
 Note dashboard frontend :
 

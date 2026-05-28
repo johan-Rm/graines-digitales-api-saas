@@ -260,9 +260,6 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[Groups(['read', 'write'])]
     public function getMetaDescription(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getMetaDescription() : null; }
     public function setMetaDescription(?string $metaDescription): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setMetaDescription($metaDescription); return $this; }
-    #[Groups(['read', 'write'])]
-    public function getLocationDescription(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getLocationDescription() : null; }
-    public function setLocationDescription(?string $locationDescription): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setLocationDescription($locationDescription); return $this; }
     public function getStatus(): ContentStatus { return $this->status; }
     public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
     public function getYearBuilt(): ?int { return $this->yearBuilt; }

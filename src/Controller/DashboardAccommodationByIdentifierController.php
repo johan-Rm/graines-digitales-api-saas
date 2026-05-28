@@ -98,7 +98,7 @@ final readonly class DashboardAccommodationByIdentifierController
             $accommodation->setSlug($payload['slug']);
         }
 
-        foreach (['name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription', 'locationDescription'] as $field) {
+        foreach (['name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription'] as $field) {
             if (array_key_exists($field, $payload)) {
                 $setter = 'set'.ucfirst($field);
                 $accommodation->{$setter}(is_string($payload[$field]) ? $payload[$field] : null);

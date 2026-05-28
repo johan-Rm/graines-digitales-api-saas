@@ -89,7 +89,6 @@ Champs localises geres :
 - `review`
 - `metaTitle`
 - `metaDescription`
-- `locationDescription`
 
 ## Traduction automatique
 

@@ -20,7 +20,6 @@ final readonly class AccommodationAutoTranslator
         'review',
         'metaTitle',
         'metaDescription',
-        'locationDescription',
     ];
 
     public function __construct(private GoogleTranslateClient $translateClient)
