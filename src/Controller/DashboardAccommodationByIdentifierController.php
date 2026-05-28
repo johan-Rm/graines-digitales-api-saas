@@ -15,7 +15,6 @@ use ValueError;
 use Symfony\Component\Uid\Uuid;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
-use App\Translation\AccommodationAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +29,6 @@ final readonly class DashboardAccommodationByIdentifierController
         private EntityManagerInterface $entityManager,
         private CurrentUserProvider $currentUserProvider,
         private ProjectAccessGuard $projectAccessGuard,
-        private AccommodationAutoTranslator $autoTranslator,
     ) {
     }
 
@@ -55,7 +53,6 @@ final readonly class DashboardAccommodationByIdentifierController
         $locale = (string) $request->query->get('locale', $project->getSourceLocale());
         $accommodation->setCurrentLocale($locale);
         $this->applyPayload($accommodation, $project, $payload);
-        $this->autoTranslator->synchronize($accommodation, $project, $locale, $payload);
         $accommodation->touch($this->currentUserProvider->getUser());
 
         foreach ($accommodation->getTranslations() as $translation) {

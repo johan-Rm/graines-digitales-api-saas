@@ -4,11 +4,13 @@ namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Entity\Accommodation;
 use App\Entity\AccommodationTranslation;
 use App\Entity\ProjectScopedResource;
 use App\Entity\TranslatableResource;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\AccommodationAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -22,6 +24,7 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
         private DenormalizerInterface $denormalizer,
+        private AccommodationAutoTranslator $autoTranslator,
     ) {
     }
 
@@ -78,6 +81,10 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
 
             $translation->touch($actor);
             $this->entityManager->persist($translation);
+        }
+
+        if ($resource instanceof Accommodation) {
+            $this->autoTranslator->synchronize($resource, $project);
         }
 
         $resource->touch($actor);

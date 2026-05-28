@@ -11,4 +11,6 @@ interface ResourceTranslation
     public function getTranslatable(): ?TranslatableResource;
 
     public function setTranslatable(TranslatableResource $translatable): self;
+
+    public function touch(?User $actor = null): void;
 }

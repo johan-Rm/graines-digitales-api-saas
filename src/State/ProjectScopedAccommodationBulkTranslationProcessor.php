@@ -8,6 +8,7 @@ use App\Entity\Accommodation;
 use App\Entity\AccommodationTranslation;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\AccommodationAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class ProjectScopedAccommodationBulkTranslationProcessor implements ProcessorInterface
@@ -17,6 +18,7 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
         private ProjectAccessGuard $projectAccessGuard,
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
+        private AccommodationAutoTranslator $autoTranslator,
     ) {
     }
 
@@ -27,8 +29,10 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
         }
 
         $projectId = (string) ($uriVariables['projectId'] ?? '');
-        $this->projectAccessGuard->getWritableProject($projectId);
+        $project = $this->projectAccessGuard->getWritableProject($projectId);
         $actor = $this->currentUserProvider->getUser();
+
+        $this->autoTranslator->synchronize($data, $project);
 
         $data->touch($actor);
         $this->entityManager->persist($data);
