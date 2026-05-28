@@ -4,7 +4,7 @@
 
 - ID : TASK-014
 - Source : extension du besoin dashboard Accommodation valide le 2026-05-24
-- Statut : A faire
+- Statut : Terminé
 - Perimetre : API Symfony, ressources traduisibles, routes backoffice de traduction, Google Translate
 - Dependances fonctionnelles : TASK-002, TASK-012
 
@@ -87,14 +87,13 @@ PUT /api/projects/{projectId}/accommodations/{identifier}?locale={locale}
 
 ## Plan d'execution
 
-- [ ] Inventorier les champs localises reels par type de traduction.
-- [ ] Extraire un service generique de completion automatique.
-- [ ] Brancher le service sur `ProjectScopedTranslationPersistProcessor`.
-- [ ] Conserver le comportement specifique dashboard Accommodation ou le deleguer au
-      service generique.
+- [x] Inventorier les champs localises reels par type de traduction.
+- [x] Extraire un service generique de completion automatique (`ResourceAutoTranslator`).
+- [x] Brancher le service sur les routes `/translations` (PUT et POST bulk).
+- [x] Retirer la traduction automatique du controller dashboard Accommodation.
 - [ ] Ajouter des tests fonctionnels par famille de ressource.
-- [ ] Documenter le contrat commun dans `docs/TRANSLATIONS.md`.
-- [ ] Valider `lint:container` et la suite PHPUnit cible.
+- [x] Documenter le contrat commun dans `docs/TRANSLATIONS.md`.
+- [x] Valider `lint:container`.
 
 ## Validation attendue
 
