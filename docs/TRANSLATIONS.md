@@ -122,3 +122,25 @@ sufficient to include it in the auto-translation pass — no further configurati
 
 The `GoogleTranslateClient` can operate in stub mode while production credentials are not
 available; it returns the source string unchanged.
+
+## Auto-fill
+
+After auto-translation, a second pass fills fields that are still empty by deriving their
+value from another field on the same translation. This covers slug, metaTitle and
+metaDescription without any manual input.
+
+Fields are declared with `#[AutoFill(from: 'fieldName', maxLength: ?int)]`:
+
+| Entity                     | Field            | Derived from  | Max length |
+|----------------------------|------------------|---------------|------------|
+| `AccommodationTranslation` | `metaTitle`      | `name`        | —          |
+| `AccommodationTranslation` | `metaDescription`| `highlight`   | 160        |
+| `WebPageTranslation`       | `slug`           | `headline`    | —          |
+| `WebPageTranslation`       | `metaTitle`      | `headline`    | —          |
+| `WebPageTranslation`       | `metaDescription`| `body`        | 160        |
+| `ArticleTranslation`       | `slug`           | `headline`    | —          |
+
+Execution order per request: user data → auto-translation → auto-fill → recomputeSlug (Accommodation).
+
+A non-empty existing value is never overwritten. Adding `#[AutoFill]` to a field on any
+`*Translation` entity is sufficient — no further configuration required.
