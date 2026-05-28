@@ -7,8 +7,10 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Entity\AccommodationTranslation;
 use App\Entity\ProjectScopedResource;
 use App\Entity\TranslatableResource;
+use App\Entity\User;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -24,6 +26,7 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
         private EntityManagerInterface $entityManager,
         private DenormalizerInterface $denormalizer,
         private ResourceAutoTranslator $autoTranslator,
+        private ResourceAutoFiller $autoFiller,
     ) {
     }
 
@@ -59,6 +62,19 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             throw new NotFoundHttpException('Resource not found.');
         }
 
+        $this->applyUserTranslations($resource, $data, $actor);
+        $this->autoTranslator->synchronize($resource, $project);
+        $this->finalizeTranslations($resource, $actor);
+
+        $resource->touch($actor);
+        $this->entityManager->persist($resource);
+        $this->entityManager->flush();
+
+        return $resource;
+    }
+
+    private function applyUserTranslations(TranslatableResource $resource, BulkTranslationInput $data, ?User $actor): void
+    {
         foreach ($data->translations as $translationData) {
             $locale = is_array($translationData) ? ($translationData['locale'] ?? '') : '';
             if (!is_string($locale) || '' === $locale) {
@@ -73,21 +89,21 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             ]);
 
             $translation->setTranslatable($resource);
-
-            if ($translation instanceof AccommodationTranslation) {
-                $translation->recomputeSlug();
-            }
-
             $translation->touch($actor);
             $this->entityManager->persist($translation);
         }
+    }
 
-        $this->autoTranslator->synchronize($resource, $project);
-
-        $resource->touch($actor);
-        $this->entityManager->persist($resource);
-        $this->entityManager->flush();
-
-        return $resource;
+    private function finalizeTranslations(TranslatableResource $resource, ?User $actor): void
+    {
+        foreach ($resource->getTranslations() as $translation) {
+            $translation->setTranslatable($resource);
+            $this->autoFiller->fill($translation);
+            if ($translation instanceof AccommodationTranslation) {
+                $translation->recomputeSlug();
+            }
+            $translation->touch($actor);
+            $this->entityManager->persist($translation);
+        }
     }
 }

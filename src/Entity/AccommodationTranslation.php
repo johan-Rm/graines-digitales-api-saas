@@ -4,12 +4,12 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedTranslationCollectionProvider;
+use App\Translation\AutoFill;
 use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -74,11 +74,13 @@ class AccommodationTranslation implements ResourceTranslation
     private ?string $review = null;
 
     #[ORM\Column(length: 220, nullable: true)]
+    #[AutoFill(from: 'name')]
     #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $metaTitle = null;
 
     #[ORM\Column(length: 320, nullable: true)]
+    #[AutoFill(from: 'highlight', maxLength: 160)]
     #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $metaDescription = null;

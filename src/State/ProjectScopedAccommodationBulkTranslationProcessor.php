@@ -8,6 +8,7 @@ use App\Entity\Accommodation;
 use App\Entity\AccommodationTranslation;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -19,6 +20,7 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
         private ResourceAutoTranslator $autoTranslator,
+        private ResourceAutoFiller $autoFiller,
     ) {
     }
 
@@ -40,6 +42,7 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
         foreach ($data->getTranslations() as $translation) {
             if ($translation instanceof AccommodationTranslation) {
                 $translation->setTranslatable($data);
+                $this->autoFiller->fill($translation);
                 $translation->recomputeSlug();
                 $translation->touch($actor);
                 $this->entityManager->persist($translation);

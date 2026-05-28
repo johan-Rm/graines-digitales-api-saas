@@ -9,6 +9,8 @@ use App\Entity\ResourceTranslation;
 use App\Entity\TranslatableResource;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\ResourceAutoFiller;
+use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class ProjectScopedBulkTranslationProcessor implements ProcessorInterface
@@ -18,6 +20,8 @@ final readonly class ProjectScopedBulkTranslationProcessor implements ProcessorI
         private ProjectAccessGuard $projectAccessGuard,
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
+        private ResourceAutoTranslator $autoTranslator,
+        private ResourceAutoFiller $autoFiller,
     ) {
     }
 
@@ -28,8 +32,10 @@ final readonly class ProjectScopedBulkTranslationProcessor implements ProcessorI
         }
 
         $projectId = (string) ($uriVariables['projectId'] ?? '');
-        $this->projectAccessGuard->getWritableProject($projectId);
+        $project = $this->projectAccessGuard->getWritableProject($projectId);
         $actor = $this->currentUserProvider->getUser();
+
+        $this->autoTranslator->synchronize($data, $project);
 
         $data->touch($actor);
         $this->entityManager->persist($data);
@@ -37,6 +43,7 @@ final readonly class ProjectScopedBulkTranslationProcessor implements ProcessorI
         foreach ($data->getTranslations() as $translation) {
             if ($translation instanceof ResourceTranslation) {
                 $translation->setTranslatable($data);
+                $this->autoFiller->fill($translation);
                 $translation->touch($actor);
                 $this->entityManager->persist($translation);
             }

@@ -9,6 +9,7 @@ use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
 use App\State\ProjectScopedTranslationCollectionProvider;
+use App\Translation\AutoFill;
 use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -43,6 +44,7 @@ class ArticleTranslation implements ResourceTranslation
     private ?Project $project = null;
 
     #[ORM\Column(length: 180)]
+    #[AutoFill(from: 'headline')]
     #[Assert\NotBlank]
     #[Groups(['read'])]
     private string $slug = '';
