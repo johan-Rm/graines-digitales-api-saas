@@ -55,9 +55,11 @@ final readonly class BulkMediaUploadController
 
         $created = [];
         $errors = [];
-        $caption = $this->optionalString($request, 'caption');
+        $captionOverride = $this->optionalString($request, 'caption');
 
         foreach ($files as $index => $file) {
+            $caption = $captionOverride ?? (pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) ?: null);
+
             $mediaObject = new MediaObject();
             $mediaObject->setProject($project);
             $mediaObject->markCreatedBy($actor);

@@ -17,6 +17,7 @@ use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -72,6 +73,10 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
 
             if ($data instanceof MediaObject && null !== $data->getFile()) {
                 $data->setChecksumSha256(hash_file('sha256', $data->getFile()->getPathname()) ?: null);
+
+                if (null === $data->getCaption() && $data->getFile() instanceof UploadedFile) {
+                    $data->setCaption(pathinfo($data->getFile()->getClientOriginalName(), PATHINFO_FILENAME) ?: null);
+                }
             }
         }
 
