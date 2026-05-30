@@ -13,6 +13,7 @@ use App\Security\ProjectAccessGuard;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -49,8 +50,12 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             return null;
         }
 
+        if ('' === $data->resourceId) {
+            throw new BadRequestHttpException('resourceId is required.');
+        }
+
         if (!Uuid::isValid($data->resourceId)) {
-            throw new NotFoundHttpException('Resource not found.');
+            throw new BadRequestHttpException(sprintf('resourceId "%s" is not a valid UUID.', $data->resourceId));
         }
 
         $resource = $this->entityManager->getRepository($resourceClass)->findOneBy([

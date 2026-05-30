@@ -40,7 +40,7 @@ final readonly class AccommodationTranslationsByIdentifierController
     #[Route(
         '/api/projects/{projectId}/accommodations/{identifier}/translations',
         name: 'api_project_accommodation_put_translations_by_identifier',
-        requirements: ['identifier' => '(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)[A-Za-z0-9][A-Za-z0-9_-]*'],
+        requirements: ['identifier' => '(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[A-Za-z0-9][A-Za-z0-9_-]*'],
         methods: ['PUT'],
         priority: 10
     )]

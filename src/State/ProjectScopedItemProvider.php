@@ -27,35 +27,36 @@ final readonly class ProjectScopedItemProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): ?object
     {
+        $class = $operation->getClass();
+
+        if (!is_a($class, ProjectScopedResource::class, true)) {
+            return $this->decorated->provide($operation, $uriVariables, $context);
+        }
+
         $projectId = (string) ($uriVariables['projectId'] ?? '');
         $id = (string) ($uriVariables['id'] ?? '');
         $project = $this->projectAccessGuard->getReadableProject($projectId);
-        $class = $operation->getClass();
 
-        if (is_a($class, ProjectScopedResource::class, true)) {
-            if (!Uuid::isValid($id)) {
-                throw new NotFoundHttpException('Resource not found.');
-            }
-
-            $resource = $this->entityManager->getRepository($class)->findOneBy([
-                'id' => Uuid::fromString($id),
-                'project' => $project,
-                'deletedAt' => null,
-            ]);
-
-            if (!$resource instanceof ProjectScopedResource) {
-                throw new NotFoundHttpException('Resource not found.');
-            }
-
-            if ($resource instanceof TranslatableResource) {
-                $isWrite = $operation instanceof Put || $operation instanceof Post || $operation instanceof Patch;
-                $this->resolveTranslationLocale($resource, $isWrite);
-            }
-
-            return $resource;
+        if (!Uuid::isValid($id)) {
+            throw new NotFoundHttpException('Resource not found.');
         }
 
-        return $this->decorated->provide($operation, $uriVariables, $context);
+        $resource = $this->entityManager->getRepository($class)->findOneBy([
+            'id' => Uuid::fromString($id),
+            'project' => $project,
+            'deletedAt' => null,
+        ]);
+
+        if (!$resource instanceof ProjectScopedResource) {
+            throw new NotFoundHttpException('Resource not found.');
+        }
+
+        if ($resource instanceof TranslatableResource) {
+            $isWrite = $operation instanceof Put || $operation instanceof Post || $operation instanceof Patch;
+            $this->resolveTranslationLocale($resource, $isWrite);
+        }
+
+        return $resource;
     }
 
     private function resolveTranslationLocale(TranslatableResource $resource, bool $isWrite = false): void

@@ -3,11 +3,9 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Traits\AuditTrail;
+use App\Entity\Traits\HiddenAuditTrail;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
-use App\State\ProjectScopedTranslationCollectionProvider;
 use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -17,15 +15,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\UniqueConstraint(name: 'uniq_media_object_translation_locale', columns: ['media_object_id', 'locale'])]
 #[ORM\Index(columns: ['project_id', 'locale'], name: 'idx_media_object_translation_project_locale')]
 #[ApiResource(
-    operations: [
-        new GetCollection(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations', provider: ProjectScopedTranslationCollectionProvider::class),
-    ],
+    operations: [],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
 class MediaObjectTranslation implements ResourceTranslation
 {
-    use AuditTrail;
+    use HiddenAuditTrail;
     use ResourceTranslationFields;
     use UuidIdentity;
 

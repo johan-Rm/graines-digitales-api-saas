@@ -2,14 +2,17 @@
 
 namespace App\Serializer;
 
+use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
 use App\Entity\Organization;
 use App\Entity\Project;
 use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
 use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Uid\Uuid;
 use Vich\UploaderBundle\Storage\StorageInterface;
 
 final class ApiResourceNormalizer implements NormalizerInterface
@@ -21,7 +24,6 @@ final class ApiResourceNormalizer implements NormalizerInterface
      * are still compacted to UUIDs.
      */
     private const EMBEDDED_TYPES = [
-        'AccommodationMedia',
         'PropertyValue',
         'WebPageMedia',
     ];
@@ -30,6 +32,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
         #[Autowire(service: 'api_platform.jsonld.normalizer.item')]
         private readonly NormalizerInterface $normalizer,
         private readonly StorageInterface $storage,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -103,6 +106,9 @@ final class ApiResourceNormalizer implements NormalizerInterface
         }
 
         foreach ($data as $key => $value) {
+            if (str_starts_with((string) $key, '@')) {
+                continue;
+            }
             $data[$key] = $this->compactValue($value, $withTranslations);
         }
 
@@ -112,13 +118,22 @@ final class ApiResourceNormalizer implements NormalizerInterface
     private function compactValue(mixed $value, bool $withTranslations = false): mixed
     {
         if (!is_array($value)) {
-            return $value;
+            return is_string($value) && str_starts_with($value, '/api/') ? $this->compactIri($value) : $value;
         }
 
         if ($this->isResourceObject($value)) {
             return $this->compactResourceObject($value);
         }
 
+        return $this->compactArrayValue($value, $withTranslations);
+    }
+
+    /**
+     * @param array<mixed> $value
+     * @return array<mixed>|list<mixed>
+     */
+    private function compactArrayValue(array $value, bool $withTranslations): array
+    {
         if (array_is_list($value)) {
             return array_map(fn (mixed $item): mixed => $this->compactListItem($item, $withTranslations), $value);
         }
@@ -133,7 +148,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
     private function compactListItem(mixed $item, bool $withTranslations = false): mixed
     {
         if (!is_array($item)) {
-            return $item;
+            return is_string($item) && str_starts_with($item, '/api/') ? $this->compactIri($item) : $item;
         }
 
         if ($this->isResourceObject($item) && !$this->isEmbeddedType($item) && (!$withTranslations || !$this->isTranslationType($item))) {
@@ -144,11 +159,40 @@ final class ApiResourceNormalizer implements NormalizerInterface
             unset($item['translations']);
         }
 
+        $isEmbedded = $this->isResourceObject($item) && $this->isEmbeddedType($item);
+
         foreach ($item as $key => $value) {
+            if (str_starts_with((string) $key, '@') || ($isEmbedded && 'id' === $key)) {
+                unset($item[$key]);
+                continue;
+            }
             $item[$key] = $this->compactValue($value, $withTranslations);
         }
 
         return $item;
+    }
+
+    /**
+     * Compacts an IRI string to its canonical compact form:
+     * - CategoryCode IRI → codeValue (resolved from identity map, no extra query)
+     * - Any other resource IRI → UUID (last path segment)
+     */
+    private function compactIri(string $iri): ?string
+    {
+        $lastSegment = basename($iri);
+
+        if (!Uuid::isValid($lastSegment)) {
+            return $lastSegment;
+        }
+
+        if (str_contains($iri, '/category-codes/')) {
+            $entity = $this->entityManager->find(CategoryCode::class, Uuid::fromString($lastSegment));
+            if ($entity instanceof CategoryCode) {
+                return $entity->getCode();
+            }
+        }
+
+        return $lastSegment;
     }
 
     /**
@@ -157,27 +201,52 @@ final class ApiResourceNormalizer implements NormalizerInterface
     private function isTranslationType(array $value): bool
     {
         $type = $value['@type'] ?? null;
+        if (is_string($type)) {
+            return str_ends_with($type, 'Translation');
+        }
 
-        return is_string($type) && str_ends_with($type, 'Translation');
+        // Shape-based detection when @type is absent (non-JSON-LD serialization context):
+        // translation objects have locale + id but no inCodeSet or position
+        return array_key_exists('locale', $value)
+            && array_key_exists('id', $value)
+            && !array_key_exists('inCodeSet', $value)
+            && !array_key_exists('position', $value);
     }
 
     /**
+     * Detects a resource object either via JSON-LD annotations (@id / @type) or
+     * by the presence of a UUID id field when those annotations are absent (nested objects
+     * in a non-JSON-LD serialization context).
+     *
      * @param array<string, mixed> $value
      */
     private function isResourceObject(array $value): bool
     {
-        return is_string($value['id'] ?? null)
-            && (is_string($value['@id'] ?? null) || is_string($value['@type'] ?? null));
+        if (!is_string($value['id'] ?? null)) {
+            return false;
+        }
+
+        return is_string($value['@id'] ?? null)
+            || is_string($value['@type'] ?? null)
+            || Uuid::isValid($value['id']);
     }
 
     /**
+     * Detects embedded types either via @type or by object shape when @type is absent.
+     *
      * @param array<string, mixed> $value
      */
     private function isEmbeddedType(array $value): bool
     {
         $type = $value['@type'] ?? null;
+        if (is_string($type)) {
+            return in_array($type, self::EMBEDDED_TYPES, true);
+        }
 
-        return is_string($type) && in_array($type, self::EMBEDDED_TYPES, true);
+        // Shape-based detection for nested objects without JSON-LD @type
+        return array_key_exists('name', $value)
+            && array_key_exists('value', $value)
+            && !array_key_exists('inCodeSet', $value); // PropertyValue
     }
 
     /**
@@ -185,7 +254,15 @@ final class ApiResourceNormalizer implements NormalizerInterface
      */
     private function compactResourceObject(array $value): ?string
     {
+        // With JSON-LD @type annotation
         if ('CategoryCode' === ($value['@type'] ?? null)) {
+            $code = $value['codeValue'] ?? null;
+
+            return is_string($code) ? $code : null;
+        }
+
+        // Without @type: detect CategoryCode by shape (has inCodeSet + codeValue)
+        if (array_key_exists('inCodeSet', $value) && array_key_exists('codeValue', $value)) {
             $code = $value['codeValue'] ?? null;
 
             return is_string($code) ? $code : null;

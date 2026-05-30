@@ -30,6 +30,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(uriTemplate: '/projects/{projectId}/articles', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
         new Post(uriTemplate: '/projects/{projectId}/articles', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/articles/{id}', provider: ProjectScopedItemProvider::class),
+        new Get(uriTemplate: '/projects/{projectId}/articles/{id}/translations', name: 'get_article_translations', provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Put(uriTemplate: '/projects/{projectId}/articles/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
         new Delete(uriTemplate: '/projects/{projectId}/articles/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],

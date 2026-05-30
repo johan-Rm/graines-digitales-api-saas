@@ -10,7 +10,6 @@ trait ProjectOwned
 {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['read'])]
     private ?Project $project = null;
 
     public function getProject(): ?Project

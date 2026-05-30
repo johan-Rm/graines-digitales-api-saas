@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Entity\Attribute\InCodeSet;
 use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\TranslatableResourceBehavior;
@@ -17,11 +18,10 @@ use App\Enum\AccommodationQuality;
 use App\Enum\ContentStatus;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
-use App\State\BulkTranslationInput;
 use App\State\ProjectScopedAccommodationBulkTranslationProcessor;
-use App\State\ProjectScopedBulkTranslationCreateProcessor;
+use App\State\ProjectScopedAccommodationCreateWithTranslationsProcessor;
+use App\State\ProjectScopedAccommodationRemoveProcessor;
 use App\State\ProjectScopedPersistProcessor;
-use App\State\ProjectScopedRemoveProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -38,10 +38,11 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
         new GetCollection(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
         new Post(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class),
-        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
-        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'put_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Post(uriTemplate: '/projects/{projectId}/accommodations/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_accommodation_translations', input: BulkTranslationInput::class, read: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Delete(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
+        new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'get_translations', provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class, denormalizationContext: ['groups' => ['write'], 'api_assign_object_to_populate' => true]),
+        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'put_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations'], 'api_assign_object_to_populate' => true], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/accommodations/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_accommodation_translations', read: false, processor: ProjectScopedAccommodationCreateWithTranslationsProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Delete(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
@@ -67,18 +68,21 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
     #[Assert\NotNull]
     #[Groups(['read', 'write'])]
+    #[InCodeSet(self::CATEGORY_CODE_SET)]
     private CategoryCode $category;
 
     #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
     #[Assert\NotNull]
     #[Groups(['read', 'write'])]
+    #[InCodeSet(self::REAL_ESTATE_LISTING_CODE_SET)]
     private CategoryCode $realEstateListing;
 
     #[ORM\ManyToOne(targetEntity: CategoryCode::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
     #[Assert\NotNull]
     #[Groups(['read', 'write'])]
+    #[InCodeSet(self::PLACE_CODE_SET)]
     private CategoryCode $place;
 
     /**
@@ -87,6 +91,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[ORM\ManyToMany(targetEntity: CategoryCode::class)]
     #[ORM\JoinTable(name: 'accommodation_amenity_feature')]
     #[Groups(['read', 'write'])]
+    #[InCodeSet(self::AMENITY_FEATURE_CODE_SET)]
     private Collection $amenityFeature;
 
     /**
@@ -95,6 +100,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     #[ORM\ManyToMany(targetEntity: CategoryCode::class)]
     #[ORM\JoinTable(name: 'accommodation_tag')]
     #[Groups(['read', 'write'])]
+    #[InCodeSet(self::TAG_CODE_SET)]
     private Collection $tags;
 
     /**
@@ -117,7 +123,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
      * @var Collection<int, AccommodationTranslation>
      */
     #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: AccommodationTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[Groups(['read', 'write:translations'])]
+    #[Groups(['read'])]
     private Collection $translations;
 
     #[ORM\Column(enumType: ContentStatus::class)]
@@ -203,15 +209,18 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function setPlace(CategoryCode $place): self { $this->place = $place; return $this; }
     public function getAmenityFeature(): Collection { return $this->amenityFeature; }
     public function addAmenityFeature(CategoryCode $amenityFeature): self { if (!$this->amenityFeature->contains($amenityFeature)) { $this->amenityFeature->add($amenityFeature); } return $this; }
+    public function removeAmenityFeature(CategoryCode $amenityFeature): self { $this->amenityFeature->removeElement($amenityFeature); return $this; }
     public function clearAmenityFeature(): self { $this->amenityFeature->clear(); return $this; }
     public function getTags(): Collection { return $this->tags; }
     public function addTag(CategoryCode $tag): self { if (!$this->tags->contains($tag)) { $this->tags->add($tag); } return $this; }
+    public function removeTag(CategoryCode $tag): self { $this->tags->removeElement($tag); return $this; }
     public function clearTags(): self { $this->tags->clear(); return $this; }
     public function getAssociatedMedia(): Collection { return $this->associatedMedia; }
     public function addAssociatedMedia(AccommodationMedia $media): self { if (!$this->associatedMedia->contains($media)) { $this->associatedMedia->add($media); $media->setAccommodation($this); } return $this; }
     public function clearAssociatedMedia(): self { $this->associatedMedia->clear(); return $this; }
     public function getQualities(): Collection { return $this->qualities; }
     public function addQuality(PropertyValue $quality): self { if (!$this->qualities->contains($quality)) { $quality->setPosition($this->qualities->count() + 1); $this->qualities->add($quality); $quality->setAccommodation($this); } return $this; }
+    public function removeQuality(PropertyValue $quality): self { $this->qualities->removeElement($quality); return $this; }
     public function clearQualities(): self { $this->qualities->clear(); return $this; }
     public function ensureDefaultQualities(): self
     {

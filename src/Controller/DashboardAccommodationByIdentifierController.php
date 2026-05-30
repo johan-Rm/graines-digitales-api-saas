@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 final readonly class DashboardAccommodationByIdentifierController
 {
@@ -29,13 +30,14 @@ final readonly class DashboardAccommodationByIdentifierController
         private EntityManagerInterface $entityManager,
         private CurrentUserProvider $currentUserProvider,
         private ProjectAccessGuard $projectAccessGuard,
+        private SerializerInterface $serializer,
     ) {
     }
 
     #[Route(
         '/api/projects/{projectId}/accommodations/{identifier}',
         name: 'api_project_accommodation_put_by_identifier',
-        requirements: ['identifier' => '(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)[A-Za-z0-9][A-Za-z0-9_-]*'],
+        requirements: ['identifier' => '(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[A-Za-z0-9][A-Za-z0-9_-]*'],
         methods: ['PUT'],
         priority: 10
     )]
@@ -70,20 +72,12 @@ final readonly class DashboardAccommodationByIdentifierController
         $this->entityManager->persist($accommodation);
         $this->entityManager->flush();
 
-        return new JsonResponse([
-            '@id' => sprintf('/api/projects/%s/accommodations/%s', $project->getId(), $accommodation->getId()),
-            'id' => (string) $accommodation->getId(),
-            'identifier' => $accommodation->getIdentifier(),
-            'slug' => $accommodation->getSlug(),
-            'name' => $accommodation->getName(),
-            'locale' => $locale,
-            'isActive' => $accommodation->isActive(),
-            'areaSize' => $accommodation->getAreaSize(),
-            'areaTerrace' => $accommodation->getAreaTerrace(),
-            'floorSize' => $accommodation->getFloorSize(),
-            'landArea' => $accommodation->getLandArea(),
-            'offer' => $accommodation->getOffer(),
-        ]);
+        return new JsonResponse(
+            $this->serializer->serialize($accommodation, 'json', ['groups' => ['read']]),
+            Response::HTTP_OK,
+            ['Content-Type' => 'application/json'],
+            true
+        );
     }
 
     /**

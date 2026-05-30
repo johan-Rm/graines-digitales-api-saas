@@ -3,11 +3,9 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Traits\AuditTrail;
+use App\Entity\Traits\HiddenAuditTrail;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
-use App\State\ProjectScopedTranslationCollectionProvider;
 use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -18,15 +16,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'uniq_category_code_translation_locale', columns: ['category_code_id', 'locale'])]
 #[ORM\Index(columns: ['project_id', 'locale'], name: 'idx_category_code_translation_project_locale')]
 #[ApiResource(
-    operations: [
-        new GetCollection(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', provider: ProjectScopedTranslationCollectionProvider::class),
-    ],
+    operations: [],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
 class CategoryCodeTranslation implements ResourceTranslation
 {
-    use AuditTrail;
+    use HiddenAuditTrail;
     use ResourceTranslationFields;
     use UuidIdentity;
 

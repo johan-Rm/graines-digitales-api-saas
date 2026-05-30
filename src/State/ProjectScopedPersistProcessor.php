@@ -15,6 +15,7 @@ use App\Entity\TranslatableResource;
 use App\Message\WatermarkMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\LocaleResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -30,6 +31,7 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
         private AccommodationIdentifierGenerator $accommodationIdentifierGenerator,
+        private LocaleResolver $localeResolver,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -42,9 +44,18 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             $project = $this->projectAccessGuard->getWritableProject($projectId);
             $actor = $this->currentUserProvider->getUser();
 
-            if (null === $data->getProject()) {
+            $isCreate = null === $data->getProject();
+
+            if ($isCreate) {
                 $data->setProject($project);
                 $data->markCreatedBy($actor);
+            }
+
+            // For creates, the provider is not called (read: false), so locale is not resolved.
+            // Resolve it here from ?locale query param, falling back to the project source locale.
+            if ($isCreate && $data instanceof TranslatableResource) {
+                $locale = $this->localeResolver->resolve($project);
+                $data->setResolvedLocale($locale, $locale, null);
             }
 
             if ($data instanceof Accommodation) {
@@ -54,6 +65,16 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
                     $data->setIdentifier($this->accommodationIdentifierGenerator->generate($data));
                 }
                 $data->ensureDefaultQualities();
+            }
+
+            // Must run before the TranslatableResource block so that the auto-filled caption
+            // creates the translation before we look it up and explicitly persist it below.
+            if ($data instanceof MediaObject && null !== ($file = $data->getFile())) {
+                $data->setChecksumSha256(hash_file('sha256', $file->getPathname()) ?: null);
+
+                if (null === $data->getCaption() && $file instanceof UploadedFile) {
+                    $data->setCaption(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) ?: null);
+                }
             }
 
             $data->touch($actor);
@@ -68,14 +89,6 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
                     }
                     $translation->touch($actor);
                     $this->entityManager->persist($translation);
-                }
-            }
-
-            if ($data instanceof MediaObject && null !== $data->getFile()) {
-                $data->setChecksumSha256(hash_file('sha256', $data->getFile()->getPathname()) ?: null);
-
-                if (null === $data->getCaption() && $data->getFile() instanceof UploadedFile) {
-                    $data->setCaption(pathinfo($data->getFile()->getClientOriginalName(), PATHINFO_FILENAME) ?: null);
                 }
             }
         }

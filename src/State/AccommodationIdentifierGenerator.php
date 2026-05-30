@@ -3,7 +3,6 @@
 namespace App\State;
 
 use App\Entity\Accommodation;
-use App\Entity\CategoryCode;
 use App\Entity\Project;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -25,7 +24,7 @@ final readonly class AccommodationIdentifierGenerator
         $category = $accommodation->getCategory();
 
         $prefix = self::initials($realEstateListing->getCode()).self::initials($category->getCode());
-        $identifiers = $this->existingPairIdentifiers($project, $realEstateListing, $category, $excludedAccommodation);
+        $identifiers = $this->existingPrefixIdentifiers($project, $prefix, $excludedAccommodation);
         $maxSuffix = 0;
 
         foreach ($identifiers as $identifier) {
@@ -54,20 +53,21 @@ final readonly class AccommodationIdentifierGenerator
     }
 
     /**
+     * Returns all identifiers in the project matching the given prefix,
+     * including soft-deleted ones — the unique constraint on (project_id, identifier)
+     * applies regardless of deleted_at, so we must never reuse a deleted identifier.
+     *
      * @return list<string>
      */
-    private function existingPairIdentifiers(Project $project, CategoryCode $realEstateListing, CategoryCode $category, ?Accommodation $excludedAccommodation): array
+    private function existingPrefixIdentifiers(Project $project, string $prefix, ?Accommodation $excludedAccommodation): array
     {
         $queryBuilder = $this->entityManager->createQueryBuilder()
             ->select('accommodation.identifier')
             ->from(Accommodation::class, 'accommodation')
             ->andWhere('accommodation.project = :project')
-            ->andWhere('accommodation.realEstateListing = :realEstateListing')
-            ->andWhere('accommodation.category = :category')
-            ->andWhere('accommodation.deletedAt IS NULL')
+            ->andWhere('accommodation.identifier LIKE :prefix')
             ->setParameter('project', $project)
-            ->setParameter('realEstateListing', $realEstateListing)
-            ->setParameter('category', $category);
+            ->setParameter('prefix', $prefix.'%');
 
         if (null !== $excludedAccommodation?->getId()) {
             $queryBuilder

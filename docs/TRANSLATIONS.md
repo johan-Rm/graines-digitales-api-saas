@@ -42,6 +42,7 @@ The response embeds the full `translations` collection alongside the root fields
 
 ```txt
 PUT /api/projects/{projectId}/accommodations/{id}/translations
+PUT /api/projects/{projectId}/accommodations/{identifier}/translations  ← by business identifier (non-UUID)
 PUT /api/projects/{projectId}/web-pages/{id}/translations
 PUT /api/projects/{projectId}/category-codes/{id}/translations
 PUT /api/projects/{projectId}/media-objects/{id}/translations

@@ -58,6 +58,10 @@ services:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'
 
+    App\State\ProjectScopedMediaObjectBulkTranslationProcessor:
+        arguments:
+            $decorated: '@api_platform.doctrine.orm.state.persist_processor'
+
     App\State\ProjectScopedBulkTranslationProcessor:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'

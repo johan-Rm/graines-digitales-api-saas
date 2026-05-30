@@ -3,12 +3,10 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Traits\AuditTrail;
 use App\Entity\Traits\AutoSlug;
+use App\Entity\Traits\HiddenAuditTrail;
 use App\Entity\Traits\ResourceTranslationFields;
 use App\Entity\Traits\UuidIdentity;
-use App\State\ProjectScopedTranslationCollectionProvider;
 use App\Translation\AutoFill;
 use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,15 +20,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['project_id', 'locale'], name: 'idx_accommodation_translation_project_locale')]
 #[ORM\Index(columns: ['slug'], name: 'idx_accommodation_translation_slug')]
 #[ApiResource(
-    operations: [
-        new GetCollection(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', provider: ProjectScopedTranslationCollectionProvider::class),
-    ],
+    operations: [],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
 class AccommodationTranslation implements ResourceTranslation
 {
-    use AuditTrail;
+    use HiddenAuditTrail;
     use AutoSlug;
     use ResourceTranslationFields;
     use UuidIdentity;
@@ -93,7 +89,6 @@ class AccommodationTranslation implements ResourceTranslation
 
     public function getTranslatable(): ?TranslatableResource { return $this->translatable; }
     public function setTranslatable(TranslatableResource $translatable): self { $this->translatable = $translatable; $this->project = $translatable->getProject(); return $this; }
-    #[Groups(['read'])]
     public function getAccommodation(): ?string { return $this->translatable instanceof Accommodation ? (string) $this->translatable->getId() : null; }
     public function getProject(): ?Project { return $this->project; }
     public function getSlug(): string { return $this->slug; }
