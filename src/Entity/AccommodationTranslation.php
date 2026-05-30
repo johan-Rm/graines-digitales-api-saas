@@ -103,11 +103,11 @@ class AccommodationTranslation implements ResourceTranslation
 
         $primary = ('' !== trim((string) $this->name))
             ? (string) $this->name
-            : ($this->translatable->hasCategory() ? $this->translatable->getCategory()->getCode() : '');
+            : ($this->translatable->hasCategory() ? $this->translatable->getCategory()->getCodeValue() : '');
 
         $this->slug = self::buildSlug(
             $primary,
-            $this->translatable->hasPlace() ? $this->translatable->getPlace()->getCode() : '',
+            $this->translatable->hasPlace() ? $this->translatable->getPlace()->getCodeValue() : '',
             $this->translatable->getIdentifier(),
         );
     }

@@ -107,7 +107,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         self::assertSame('27', $accommodation->getFloorSize());
         self::assertSame('27/30', $accommodation->getLandArea());
         self::assertSame('660000', $accommodation->getOffer()['price'] ?? null);
-        self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());
+        self::assertSame('local-commercial', $accommodation->getCategory()?->getCodeValue());
         self::assertCount(1, $accommodation->getAmenityFeature());
         self::assertSame(
             [
@@ -151,9 +151,9 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         self::assertSame('670000', $payload['offer']['price'] ?? null);
 
         $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
-        self::assertSame('local-commercial', $accommodation->getCategory()?->getCode());
-        self::assertSame('bien-a-vendre', $accommodation->getRealEstateListing()?->getCode());
-        self::assertSame('nouvelle-ville', $accommodation->getPlace()?->getCode());
+        self::assertSame('local-commercial', $accommodation->getCategory()?->getCodeValue());
+        self::assertSame('bien-a-vendre', $accommodation->getRealEstateListing()?->getCodeValue());
+        self::assertSame('nouvelle-ville', $accommodation->getPlace()?->getCodeValue());
         self::assertCount(1, $accommodation->getAmenityFeature());
     }
 

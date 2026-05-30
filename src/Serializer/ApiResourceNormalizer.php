@@ -188,7 +188,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
         if (str_contains($iri, '/category-codes/')) {
             $entity = $this->entityManager->find(CategoryCode::class, Uuid::fromString($lastSegment));
             if ($entity instanceof CategoryCode) {
-                return $entity->getCode();
+                return $entity->getCodeValue();
             }
         }
 

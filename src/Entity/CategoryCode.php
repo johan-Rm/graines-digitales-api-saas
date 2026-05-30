@@ -10,10 +10,10 @@ use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\AuditTrail;
+use App\Entity\Traits\AutoSlug;
 use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
-use App\State\BulkTranslationInput;
 use App\State\CategoryCodePersistProcessor;
 use App\State\CategoryCodeRemoveProcessor;
 use App\State\ProjectScopedBulkTranslationCreateProcessor;
@@ -29,7 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Index(columns: ['project_id'], name: 'idx_category_code_project')]
-#[ORM\UniqueConstraint(name: 'uniq_category_code_project_set_code', columns: ['project_id', 'in_code_set', 'code'])]
+#[ORM\UniqueConstraint(name: 'uniq_category_code_project_set_code_value', columns: ['project_id', 'in_code_set', 'code_value'])]
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
@@ -38,7 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', name: 'get_category_code_translations', provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
         new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', name: 'put_category_code_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Post(uriTemplate: '/projects/{projectId}/category-codes/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_category_code_translations', input: BulkTranslationInput::class, read: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/category-codes/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_category_code_translations', read: false, deserialize: false, status: 201, processor: ProjectScopedBulkTranslationCreateProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Delete(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: CategoryCodeRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
@@ -47,15 +47,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 class CategoryCode implements ProjectScopedResource, TranslatableResource
 {
     use AuditTrail;
+    use AutoSlug;
     use ProjectOwned;
     use TranslatableResourceBehavior;
     use UuidIdentity;
 
     #[ORM\Column(length: 120)]
-    #[Assert\NotBlank]
     #[Assert\Length(max: 120)]
     #[Assert\Regex(pattern: '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', message: 'This value must be kebab-case.')]
-    private string $code = '';
+    private string $codeValue = '';
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank]
@@ -81,28 +81,29 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
         $this->translations = new ArrayCollection();
     }
 
-    public function getCode(): string
+    #[Groups(['read'])]
+    public function getCodeValue(): string
     {
-        return $this->code;
+        return $this->codeValue;
     }
 
-    public function setCode(string $code): self
+    public function setCodeValue(string $codeValue): self
     {
-        $this->code = $code;
+        $this->codeValue = $codeValue;
 
         return $this;
     }
 
-    #[Groups(['read', 'write'])]
-    public function getCodeValue(): string
+    public function generateCodeFromLabel(string $sourceLocale): void
     {
-        return $this->code;
-    }
+        if ('' !== $this->codeValue) {
+            return;
+        }
 
-    #[Groups(['write'])]
-    public function setCodeValue(string $codeValue): self
-    {
-        return $this->setCode($codeValue);
+        $translation = $this->getTranslation($sourceLocale);
+        if ($translation instanceof CategoryCodeTranslation && '' !== $translation->getLabel()) {
+            $this->codeValue = self::buildSlug($translation->getLabel());
+        }
     }
 
     public function getInCodeSet(): string
@@ -130,7 +131,7 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
     public function isFallback(): bool { return $this->fallback; }
     #[Groups(['read', 'write'])]
     public function getLabel(): string { $translation = $this->getTranslation(); return $translation instanceof CategoryCodeTranslation ? $translation->getLabel() : ''; }
-    public function setLabel(string $label): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setLabel($label); return $this; }
+    public function setLabel(string $label): self { $translation = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($translation instanceof CategoryCodeTranslation) { $translation->setLabel($label); } return $this; }
 
     public function getMetadata(): ?array
     {

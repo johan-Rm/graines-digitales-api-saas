@@ -12,6 +12,7 @@ use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 final readonly class CategoryCodePersistProcessor implements ProcessorInterface
 {
@@ -31,12 +32,20 @@ final readonly class CategoryCodePersistProcessor implements ProcessorInterface
 
         $project = $this->projectAccessGuard->getWritableProject((string) ($uriVariables['projectId'] ?? ''));
 
+        $data->setProject($project);
+        $data->generateCodeFromLabel($project->getSourceLocale());
+
+        if ('' === $data->getCodeValue()) {
+            throw new BadRequestHttpException(
+                sprintf('A label for the source locale "%s" is required to generate the code.', $project->getSourceLocale())
+            );
+        }
+
         if ($this->categoryCodeExists($data, $project)) {
             throw new CategoryCodeAlreadyExistsException();
         }
 
         $actor = $this->currentUserProvider->getUser();
-        $data->setProject($project);
         $data->markCreatedBy($actor);
         $data->touch($actor);
         $this->entityManager->persist($data);
@@ -60,7 +69,7 @@ final readonly class CategoryCodePersistProcessor implements ProcessorInterface
         return null !== $this->entityManager->getRepository(CategoryCode::class)->findOneBy([
             'project' => $project,
             'inCodeSet' => $categoryCode->getInCodeSet(),
-            'code' => $categoryCode->getCode(),
+            'codeValue' => $categoryCode->getCodeValue(),
         ]);
     }
 }

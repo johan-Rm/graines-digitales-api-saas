@@ -5,20 +5,33 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\AccommodationTranslation;
+use App\Entity\CategoryCode;
+use App\Entity\CategoryCodeTranslation;
+use App\Entity\MediaObject;
 use App\Entity\ProjectScopedResource;
 use App\Entity\TranslatableResource;
-use App\Entity\User;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * Handles POST translations routes in two modes depending on the body:
+ *
+ * CREATE mode (no "resourceId" in body):
+ *   Builds a new entity from body fields (write group), applies translations,
+ *   then auto-generates any computed fields (e.g. CategoryCode.code from label).
+ *
+ * APPLY mode ("resourceId" present):
+ *   Finds the existing entity by UUID and project, applies translations to it.
+ */
 final readonly class ProjectScopedBulkTranslationCreateProcessor implements ProcessorInterface
 {
     public function __construct(
@@ -28,15 +41,12 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
         private DenormalizerInterface $denormalizer,
         private ResourceAutoTranslator $autoTranslator,
         private ResourceAutoFiller $autoFiller,
+        private RequestStack $requestStack,
     ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        if (!$data instanceof BulkTranslationInput) {
-            return null;
-        }
-
         $projectId = (string) ($uriVariables['projectId'] ?? '');
         $project = $this->projectAccessGuard->getWritableProject($projectId);
         $actor = $this->currentUserProvider->getUser();
@@ -50,16 +60,46 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             return null;
         }
 
-        if ('' === $data->resourceId) {
-            throw new BadRequestHttpException('resourceId is required.');
+        $body = $this->parseBody();
+        $resourceId = (string) ($body['resourceId'] ?? '');
+
+        if ('' === $resourceId) {
+            // CREATE mode: build a new entity from body fields
+            $resource = $this->buildFromBody($body, $resourceClass);
+            $resource->setProject($project);
+            $resource->markCreatedBy($actor);
+            $resource->touch($actor);
+            $this->entityManager->persist($resource);
+
+            foreach ($this->extractTranslations($body) as $translationData) {
+                $this->applyTranslation($resource, $translationData, $actor);
+            }
+
+            // Auto-generate computed fields that depend on translations
+            if ($resource instanceof CategoryCode) {
+                $resource->generateCodeFromLabel($project->getSourceLocale());
+                if ('' === $resource->getCodeValue()) {
+                    throw new BadRequestHttpException(sprintf(
+                        'A translation for the source locale "%s" with a non-empty label is required to generate the code.',
+                        $project->getSourceLocale()
+                    ));
+                }
+            }
+
+            $this->autoTranslator->synchronize($resource, $project);
+            $this->finalizeTranslations($resource, $actor);
+            $this->entityManager->flush();
+
+            return $resource;
         }
 
-        if (!Uuid::isValid($data->resourceId)) {
-            throw new BadRequestHttpException(sprintf('resourceId "%s" is not a valid UUID.', $data->resourceId));
+        // APPLY mode: apply translations to an existing entity
+        if (!Uuid::isValid($resourceId)) {
+            throw new BadRequestHttpException(sprintf('resourceId "%s" is not a valid UUID.', $resourceId));
         }
 
         $resource = $this->entityManager->getRepository($resourceClass)->findOneBy([
-            'id' => Uuid::fromString($data->resourceId),
+            'id' => Uuid::fromString($resourceId),
             'project' => $project,
         ]);
 
@@ -67,10 +107,12 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             throw new NotFoundHttpException('Resource not found.');
         }
 
-        $this->applyUserTranslations($resource, $data, $actor);
+        foreach ($this->extractTranslations($body) as $translationData) {
+            $this->applyTranslation($resource, $translationData, $actor);
+        }
+
         $this->autoTranslator->synchronize($resource, $project);
         $this->finalizeTranslations($resource, $actor);
-
         $resource->touch($actor);
         $this->entityManager->persist($resource);
         $this->entityManager->flush();
@@ -78,28 +120,48 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
         return $resource;
     }
 
-    private function applyUserTranslations(TranslatableResource $resource, BulkTranslationInput $data, ?User $actor): void
+    /**
+     * @param array<string, mixed> $body
+     */
+    private function buildFromBody(array $body, string $resourceClass): TranslatableResource&ProjectScopedResource
     {
-        foreach ($data->translations as $translationData) {
-            $locale = is_array($translationData) ? ($translationData['locale'] ?? '') : '';
-            if (!is_string($locale) || '' === $locale) {
-                continue;
+        $payload = array_diff_key($body, ['translations' => true, 'resourceId' => true]);
+
+        /** @var TranslatableResource&ProjectScopedResource $resource */
+        $resource = $this->denormalizer->denormalize($payload, $resourceClass, 'json', [
+            AbstractNormalizer::GROUPS => ['write'],
+        ]);
+
+        if ($resource instanceof MediaObject) {
+            $file = $this->requestStack->getCurrentRequest()?->files->get('file');
+            if (null !== $file) {
+                $resource->setFile($file);
             }
-
-            $translation = $resource->getOrCreateTranslation($locale);
-
-            $this->denormalizer->denormalize($translationData, $translation::class, 'json', [
-                AbstractNormalizer::OBJECT_TO_POPULATE => $translation,
-                AbstractNormalizer::GROUPS => ['write'],
-            ]);
-
-            $translation->setTranslatable($resource);
-            $translation->touch($actor);
-            $this->entityManager->persist($translation);
         }
+
+        return $resource;
     }
 
-    private function finalizeTranslations(TranslatableResource $resource, ?User $actor): void
+    private function applyTranslation(TranslatableResource $resource, mixed $translationData, mixed $actor): void
+    {
+        $locale = is_array($translationData) ? ($translationData['locale'] ?? '') : '';
+        if (!is_string($locale) || '' === $locale) {
+            return;
+        }
+
+        $translation = $resource->getOrCreateTranslation($locale);
+
+        $this->denormalizer->denormalize($translationData, $translation::class, 'json', [
+            AbstractNormalizer::OBJECT_TO_POPULATE => $translation,
+            AbstractNormalizer::GROUPS => ['write'],
+        ]);
+
+        $translation->setTranslatable($resource);
+        $translation->touch($actor);
+        $this->entityManager->persist($translation);
+    }
+
+    private function finalizeTranslations(TranslatableResource $resource, mixed $actor): void
     {
         foreach ($resource->getTranslations() as $translation) {
             $translation->setTranslatable($resource);
@@ -110,5 +172,54 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             $translation->touch($actor);
             $this->entityManager->persist($translation);
         }
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @return array<int, array<string, mixed>>
+     */
+    private function extractTranslations(array $body): array
+    {
+        if (!is_array($body['translations'] ?? null)) {
+            return [];
+        }
+
+        return array_values(array_filter($body['translations'], 'is_array'));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function parseBody(): array
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        if (null === $request) {
+            return [];
+        }
+
+        $contentType = $request->headers->get('Content-Type', '');
+        if (str_contains($contentType, 'multipart/form-data')) {
+            return array_map(
+                static function (mixed $value): mixed {
+                    if (!is_string($value)) {
+                        return $value;
+                    }
+                    try {
+                        return json_decode($value, true, flags: \JSON_THROW_ON_ERROR);
+                    } catch (\JsonException) {
+                        return $value;
+                    }
+                },
+                $request->request->all()
+            );
+        }
+
+        try {
+            $body = $request->toArray();
+        } catch (\JsonException) {
+            $body = [];
+        }
+
+        return $body;
     }
 }

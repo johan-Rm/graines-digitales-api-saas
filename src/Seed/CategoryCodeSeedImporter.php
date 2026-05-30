@@ -30,13 +30,13 @@ final readonly class CategoryCodeSeedImporter implements ProjectSeedImporterInte
             $categoryCode = $this->entityManager->getRepository(CategoryCode::class)->findOneBy([
                 'project' => $project,
                 'inCodeSet' => $source['inCodeSet'],
-                'code' => $source['codeValue'],
+                'codeValue' => $source['codeValue'],
             ]);
 
             if (!$categoryCode instanceof CategoryCode) {
                 $categoryCode = (new CategoryCode())
                     ->setProject($project)
-                    ->setCode($source['codeValue'])
+                    ->setCodeValue($source['codeValue'])
                     ->setInCodeSet($source['inCodeSet']);
             }
 

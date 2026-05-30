@@ -281,7 +281,7 @@ final class LoadTestFixturesCommand extends Command
         $cc = new CategoryCode();
         $cc->setProject($project);
         $cc->setInCodeSet($inCodeSet);
-        $cc->setCode($code);
+        $cc->setCodeValue($code);
         $cc->setCurrentLocale('fr');
         $cc->setLabel($label);
         $cc->markCreatedBy($actor);

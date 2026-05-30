@@ -23,7 +23,7 @@ final readonly class AccommodationIdentifierGenerator
         $realEstateListing = $accommodation->getRealEstateListing();
         $category = $accommodation->getCategory();
 
-        $prefix = self::initials($realEstateListing->getCode()).self::initials($category->getCode());
+        $prefix = self::initials($realEstateListing->getCodeValue()).self::initials($category->getCodeValue());
         $identifiers = $this->existingPrefixIdentifiers($project, $prefix, $excludedAccommodation);
         $maxSuffix = 0;
 
