@@ -31,7 +31,9 @@ du projet propriétaire.
 - `docs/06-security/` — auth JWT, autorisation projet, validation, rate limiting
 - `docs/07-integrations/` — jobs async, services externes
 - `docs/09-quality/` — stratégie de tests, checklist de revue
-- `docs/TRANSLATIONS.md` — modèle de traduction Sylius-style
+- `docs/04-domain-model/translations.md` — modèle de traduction Sylius-style, locale resolution, auto-translation, auto-fill
+- `docs/03-api-contracts/translations.md` — routes de traduction (PUT/POST/GET)
+- `docs/04-domain-model/accommodations.md` — règles métier accommodation (identifiant, slug)
 
 ## Frontières de modules
 
@@ -103,7 +105,7 @@ ResourceTranslationFields   → locale, root resource, audit
 - Traductions MVP : `WebPage`, `Article`, `CategoryCode`, `Accommodation`
 - Contrainte unique : `(resource_id, locale)` par table de traduction
 - Slugs localisés uniques par `(project_id, slug, locale)` pour `WebPage` et `Article`
-- Locale par défaut projet : `fr` / Locales actives MVP : `fr`, `en`, `es`, `ar`
+- Locale source et locales actives définies par projet, stockées en base (`project.sourceLocale`, `project.enabledLocales`)
 - Fallback : si traduction manquante, retour locale source avec `fallback: true`
 
 Routes backoffice (pas de fallback côté backoffice) :

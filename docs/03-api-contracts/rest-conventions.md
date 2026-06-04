@@ -11,7 +11,9 @@
 
 Cas specifique :
 
-- `CategoryCode` est immutable apres creation : pas de `PUT` / `PATCH`.
+- L'identite metier d'un `CategoryCode` est immutable apres creation : pas de `PUT` /
+  `PATCH` racine pour modifier `codeValue`. Les labels localises restent modifiables
+  via la route dediee `/translations`.
 - `DELETE /api/projects/{projectId}/category-codes/{uuid}` archive un code libre et
   retourne `409` si le code est reference par un bien du meme projet.
 

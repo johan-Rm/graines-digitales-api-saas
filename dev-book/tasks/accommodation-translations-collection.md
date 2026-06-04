@@ -1,25 +1,16 @@
 # Accommodation translations collection
 
-## Objectif
-
-Exposer une lecture backoffice permettant de recuperer toutes les traductions des
-`Accommodation` d'un projet en un seul appel, sans alourdir la route localisee
-standard.
-
 ## Contrat
 
 ```txt
-GET /api/projects/{projectId}/accommodation-translations
 GET /api/projects/{projectId}/accommodations/{id}/translations
+PUT /api/projects/{projectId}/accommodations/{id}/translations
 ```
 
-- La route collection retourne uniquement les traductions des biens du projet
-  demande.
-- Les biens archives restent exclus.
-- Chaque traduction expose l'identifiant UUID du bien parent via `accommodation`.
-- Les routes existantes `GET /accommodations` et `GET /accommodations/{id}` restent
-  localisees par `?locale=...` et ne retournent pas la collection technique
-  `translations`.
+- `GET /{id}/translations` retourne toutes les locales disponibles pour un bien.
+- `PUT /{id}/translations` applique un bulk de traductions sur un bien existant.
+- Les routes `GET /accommodations` et `GET /accommodations/{id}` restent localisees
+  par `?locale=...` et n'exposent pas la collection `translations`.
 
 ## Vigilance
 

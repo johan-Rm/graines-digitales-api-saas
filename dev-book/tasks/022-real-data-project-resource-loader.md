@@ -350,6 +350,8 @@ Validation locale du 2026-05-27 :
 - `metadata,media` s'importe correctement pour `blue-bay-mogador`.
 - Les images seed sont copiees dans `WEBAPPS_DIR/{project.mediaPath}` et dans
   `WEBAPPS_DIR/{project.mediaPath}/originals`.
+- L'option `--sync-images` purge `WEBAPPS_DIR/{project.mediaPath}` puis copie tous les
+  fichiers de `resources/images` dans le dossier media projet et dans `originals`.
 - Une seconde execution de `metadata,media` ne duplique pas les `CategoryCode` et
   `MediaObject`.
 - L'import complet reste bloque par le preflight, comme attendu, car le seed contient encore

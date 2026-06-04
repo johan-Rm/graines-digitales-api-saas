@@ -43,7 +43,8 @@ Frontières :
 
 Sylius-style : ressource racine (identité, ownership) + `*Translation` (champs localisés).
 Ressources traduisibles MVP : `WebPage`, `Article`, `CategoryCode`, `Accommodation`.
-Lire `docs/TRANSLATIONS.md` avant toute modification du modèle de traduction.
+Lire `docs/04-domain-model/translations.md` avant toute modification du modèle de traduction.
+Lire `docs/04-domain-model/accommodations.md` pour les règles d'identifiant et de slug des accommodations.
 
 ## Sécurité
 

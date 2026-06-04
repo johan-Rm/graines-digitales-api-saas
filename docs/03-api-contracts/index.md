@@ -5,6 +5,7 @@ Ce dossier decrit les conventions contractuelles exposees aux consommateurs API.
 ## Pages
 
 - [`rest-conventions.md`](rest-conventions.md)
+- [`translations.md`](translations.md)
 - [`dashboard-accommodation-save.md`](dashboard-accommodation-save.md)
 - [`payloads-and-dtos.md`](payloads-and-dtos.md)
 - [`versioning.md`](versioning.md)
