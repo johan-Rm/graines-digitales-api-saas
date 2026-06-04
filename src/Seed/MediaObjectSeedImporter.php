@@ -6,6 +6,7 @@ use App\Entity\MediaObject;
 use App\Entity\Project;
 use App\Enum\AiReviewStatus;
 use App\Enum\MediaStatus;
+use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -13,6 +14,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private ResourceAutoTranslator $autoTranslator,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -31,6 +33,8 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
     public function import(Project $project, ProjectSeedData $data): int
     {
         $count = 0;
+
+        $imported = [];
 
         foreach ($data->mediaObjects as $source) {
             $mediaObject = $this->entityManager->getRepository(MediaObject::class)->findOneBy([
@@ -61,7 +65,15 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
                 ->setAiReviewStatus(AiReviewStatus::NotRequested);
 
             $this->entityManager->persist($mediaObject);
+            $imported[] = $mediaObject;
             $count++;
+        }
+
+        // Flush source-locale data before creating translations for other locales,
+        // so that lazy-loaded collections are consistent when synchronize runs.
+        $this->entityManager->flush();
+        foreach ($imported as $mediaObject) {
+            $this->autoTranslator->synchronize($mediaObject, $project);
         }
 
         return $count;

@@ -25,16 +25,16 @@ class AccommodationMedia
     #[Groups(['read', 'write'])]
     private int $position = 0;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['read', 'write'])]
-    private ?string $caption = null;
-
     /**
      * @var list<string>
      */
     #[ORM\Column(type: 'json')]
     #[Groups(['read', 'write'])]
     private array $keywords = [];
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?bool $representativeOfPage = null;
 
     public function __construct()
     {
@@ -47,8 +47,6 @@ class AccommodationMedia
     public function setMediaObject(MediaObject $mediaObject): self { $this->mediaObject = $mediaObject; return $this; }
     public function getPosition(): int { return $this->position; }
     public function setPosition(int $position): self { $this->position = $position; return $this; }
-    public function getCaption(): ?string { return $this->caption; }
-    public function setCaption(?string $caption): self { $this->caption = $caption; return $this; }
     /**
      * @return list<string>
      */
@@ -57,4 +55,6 @@ class AccommodationMedia
      * @param list<string> $keywords
      */
     public function setKeywords(array $keywords): self { $this->keywords = $keywords; return $this; }
+    public function isRepresentativeOfPage(): ?bool { return $this->representativeOfPage; }
+    public function setRepresentativeOfPage(?bool $representativeOfPage): self { $this->representativeOfPage = $representativeOfPage; return $this; }
 }

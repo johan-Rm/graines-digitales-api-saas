@@ -26,6 +26,7 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
         private ResourceAutoFiller $autoFiller,
         private DenormalizerInterface $denormalizer,
         private RequestStack $requestStack,
+        private AccommodationStructuralPayloadApplier $structuralApplier,
     ) {
     }
 
@@ -38,6 +39,8 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
         $projectId = (string) ($uriVariables['projectId'] ?? '');
         $project = $this->projectAccessGuard->getWritableProject($projectId);
         $actor = $this->currentUserProvider->getUser();
+
+        $this->structuralApplier->apply($data, $project, $this->extractBody());
 
         foreach ($this->extractTranslations() as $translationData) {
             $locale = is_array($translationData) ? ($translationData['locale'] ?? '') : '';
@@ -79,16 +82,27 @@ final readonly class ProjectScopedAccommodationBulkTranslationProcessor implemen
      */
     private function extractTranslations(): array
     {
+        $body = $this->extractBody();
+
+        if (!is_array($body['translations'] ?? null)) {
+            return [];
+        }
+
+        return array_values(array_filter($body['translations'], 'is_array'));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extractBody(): array
+    {
         $request = $this->requestStack->getCurrentRequest();
         if (null === $request) {
             return [];
         }
 
         $body = json_decode((string) $request->getContent(), true);
-        if (!is_array($body) || !is_array($body['translations'] ?? null)) {
-            return [];
-        }
 
-        return array_values(array_filter($body['translations'], 'is_array'));
+        return is_array($body) ? $body : [];
     }
 }

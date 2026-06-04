@@ -5,31 +5,28 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\ProjectScopedResource;
-use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 final readonly class ProjectScopedRemoveProcessor implements ProcessorInterface
 {
     public function __construct(
         private ProcessorInterface $decorated,
-        private EntityManagerInterface $entityManager,
         private ProjectAccessGuard $projectAccessGuard,
-        private CurrentUserProvider $currentUserProvider,
     ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if ($data instanceof ProjectScopedResource) {
-            $projectId = (string) ($uriVariables['projectId'] ?? '');
-            $this->projectAccessGuard->getWritableProject($projectId);
-            $data->archive($this->currentUserProvider->getUser());
-            $this->entityManager->flush();
-
-            return $data;
+            $this->projectAccessGuard->getWritableProject((string) ($uriVariables['projectId'] ?? ''));
         }
 
-        return $this->decorated->process($data, $operation, $uriVariables, $context);
+        try {
+            return $this->decorated->process($data, $operation, $uriVariables, $context);
+        } catch (ForeignKeyConstraintViolationException $e) {
+            throw new ConflictHttpException('This resource is still referenced by other records and cannot be deleted.', $e);
+        }
     }
 }

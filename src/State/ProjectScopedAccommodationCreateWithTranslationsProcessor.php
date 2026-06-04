@@ -36,6 +36,7 @@ final readonly class ProjectScopedAccommodationCreateWithTranslationsProcessor i
         private ResourceAutoFiller $autoFiller,
         private DenormalizerInterface $denormalizer,
         private RequestStack $requestStack,
+        private AccommodationAssociatedMediaPayloadApplier $associatedMediaApplier,
     ) {
     }
 
@@ -57,6 +58,12 @@ final readonly class ProjectScopedAccommodationCreateWithTranslationsProcessor i
         }
 
         $data->ensureDefaultQualities();
+
+        $body = $this->extractBody();
+        if (array_key_exists('associatedMedia', $body)) {
+            $this->associatedMediaApplier->apply($data, $project, $body);
+        }
+
         $data->touch($actor);
         $this->entityManager->persist($data);
 
@@ -91,6 +98,21 @@ final readonly class ProjectScopedAccommodationCreateWithTranslationsProcessor i
         $this->entityManager->flush();
 
         return $data;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extractBody(): array
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        if (null === $request) {
+            return [];
+        }
+
+        $body = json_decode((string) $request->getContent(), true);
+
+        return is_array($body) ? $body : [];
     }
 
     /**

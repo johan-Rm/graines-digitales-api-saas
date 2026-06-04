@@ -58,7 +58,6 @@ final readonly class TranslatableResourceResolver
         $resource = $this->entityManager->getRepository($rootClass)->findOneBy([
             'id' => Uuid::fromString($resourceId),
             'project' => $project,
-            'deletedAt' => null,
         ]);
 
         if (!$resource instanceof TranslatableResource) {

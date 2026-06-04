@@ -7,7 +7,6 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Accommodation;
 use App\Entity\CategoryCode;
 use App\Exception\CategoryCodeInUseException;
-use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -17,7 +16,6 @@ final readonly class CategoryCodeRemoveProcessor implements ProcessorInterface
         private ProcessorInterface $decorated,
         private EntityManagerInterface $entityManager,
         private ProjectAccessGuard $projectAccessGuard,
-        private CurrentUserProvider $currentUserProvider,
     ) {
     }
 
@@ -34,10 +32,7 @@ final readonly class CategoryCodeRemoveProcessor implements ProcessorInterface
             throw new CategoryCodeInUseException($usageCount);
         }
 
-        $data->archive($this->currentUserProvider->getUser());
-        $this->entityManager->flush();
-
-        return $data;
+        return $this->decorated->process($data, $operation, $uriVariables, $context);
     }
 
     private function countAccommodationsUsing(CategoryCode $categoryCode): int
@@ -54,7 +49,6 @@ final readonly class CategoryCodeRemoveProcessor implements ProcessorInterface
             ->leftJoin('accommodation.amenityFeature', 'amenityFeature')
             ->leftJoin('accommodation.tags', 'tag')
             ->where('accommodation.project = :project')
-            ->andWhere('accommodation.deletedAt IS NULL')
             ->andWhere('accommodation.category = :categoryCode OR accommodation.realEstateListing = :categoryCode OR accommodation.place = :categoryCode OR amenityFeature = :categoryCode OR tag = :categoryCode')
             ->setParameter('project', $project)
             ->setParameter('categoryCode', $categoryCode)

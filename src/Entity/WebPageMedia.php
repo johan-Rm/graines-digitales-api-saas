@@ -36,6 +36,10 @@ class WebPageMedia
     #[Groups(['read', 'write'])]
     private array $keywords = [];
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['read', 'write'])]
+    private ?bool $representativeOfPage = null;
+
     public function __construct()
     {
         $this->initializeUuid();
@@ -57,4 +61,6 @@ class WebPageMedia
      * @param list<string> $keywords
      */
     public function setKeywords(array $keywords): self { $this->keywords = $keywords; return $this; }
+    public function isRepresentativeOfPage(): ?bool { return $this->representativeOfPage; }
+    public function setRepresentativeOfPage(?bool $representativeOfPage): self { $this->representativeOfPage = $representativeOfPage; return $this; }
 }

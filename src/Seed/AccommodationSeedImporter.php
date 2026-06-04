@@ -7,9 +7,13 @@ use App\Entity\AccommodationMedia;
 use App\Entity\AccommodationTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
+use App\Entity\MediaObjectTranslation;
 use App\Entity\Project;
+use App\Entity\ResourceTranslation;
 use App\Enum\ContentStatus;
 use App\State\AccommodationIdentifierGenerator;
+use App\Translation\ResourceAutoFiller;
+use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class AccommodationSeedImporter implements ProjectSeedImporterInterface
@@ -17,8 +21,9 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
     public function __construct(
         private EntityManagerInterface $entityManager,
         private AccommodationIdentifierGenerator $identifierGenerator,
-    )
-    {
+        private ResourceAutoFiller $autoFiller,
+        private ResourceAutoTranslator $autoTranslator,
+    ) {
     }
 
     public function family(): string
@@ -44,6 +49,7 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
     {
         $count = 0;
         $reservedIdentifiers = [];
+        $imported = [];
 
         foreach ($data->accommodations as $source) {
             $accommodation = $this->findAccommodation($project, $source['identifier'], $source['slug'], $source['locale']);
@@ -104,14 +110,40 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
                     (new AccommodationMedia())
                         ->setMediaObject($mediaObject)
                         ->setPosition($index + 1)
-                        ->setCaption($edge['caption'])
-                        ->setKeywords($edge['keywords']),
+                        ->setKeywords($edge['keywords'])
+                        ->setRepresentativeOfPage($edge['representativeOfPage'] ?? null),
                 );
+
+                $caption = is_string($edge['caption'] ?? null) ? $edge['caption'] : null;
+                if (null !== $caption && '' !== $caption) {
+                    $translation = $mediaObject->getOrCreateTranslation($source['locale']);
+                    if ($translation instanceof MediaObjectTranslation) {
+                        $translation->setCaption($caption);
+                        $translation->setTranslatable($mediaObject);
+                        $this->entityManager->persist($translation);
+                    }
+                }
             }
 
             $accommodation->ensureDefaultQualities();
             $this->entityManager->persist($accommodation);
+
+            $translation = $accommodation->getTranslation($source['locale']);
+            if ($translation instanceof ResourceTranslation) {
+                $this->autoFiller->fill($translation);
+            }
+
+            $imported[] = $accommodation;
             $count++;
+        }
+
+        // Flush source-locale data, then refresh each entity so that Doctrine's
+        // collection is fully re-initialized from DB (avoids partial-init from the
+        // JOIN used in findAccommodation, which would cause duplicate-translation inserts).
+        $this->entityManager->flush();
+        foreach ($imported as $accommodation) {
+            $this->entityManager->refresh($accommodation);
+            $this->autoTranslator->synchronize($accommodation, $project);
         }
 
         return $count;
@@ -193,7 +225,7 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
         $categoryCode = $this->entityManager->getRepository(CategoryCode::class)->findOneBy([
             'project' => $project,
             'inCodeSet' => $codeSet,
-            'code' => $code,
+            'codeValue' => $code,
         ]);
 
         if (!$categoryCode instanceof CategoryCode) {

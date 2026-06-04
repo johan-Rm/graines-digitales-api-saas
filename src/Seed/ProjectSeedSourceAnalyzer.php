@@ -94,7 +94,7 @@ final class ProjectSeedSourceAnalyzer
     }
 
     /**
-     * @return list<array{url: string, filename: string, caption: string|null, mainEntity: string|null, sourcePath: string, checksum: string|null, mimeType: string|null, size: int|null}>
+     * @return list<array{url: string, filename: string, caption: string|null, mainEntity: string|null, representativeOfPage: bool|null, sourcePath: string, checksum: string|null, mimeType: string|null, size: int|null}>
      */
     private function loadMediaObjects(string $path, string $imagesPath): array
     {
@@ -102,30 +102,54 @@ final class ProjectSeedSourceAnalyzer
         $mediaObjects = [];
 
         foreach ($items as $index => $item) {
-            $url = $this->stringValue($item, 'url');
-            if ('' === $url) {
-                throw new \UnexpectedValueException(sprintf('Invalid media-object item #%d in %s: missing url.', $index + 1, $path));
+            $entry = $this->buildMediaObjectEntry($item, $index, $path, $imagesPath);
+            if (null !== $entry) {
+                $mediaObjects[] = $entry;
             }
-
-            if (!$this->isLocalMediaUrl($url)) {
-                continue;
-            }
-
-            $filename = $this->normalizeMediaReference($url);
-            $sourcePath = $imagesPath.'/'.$filename;
-            $mediaObjects[] = [
-                'url' => $url,
-                'filename' => $filename,
-                'caption' => $this->nullableStringValue($item, 'caption'),
-                'mainEntity' => $this->nullableStringValue($item, 'mainEntity'),
-                'sourcePath' => $sourcePath,
-                'checksum' => is_file($sourcePath) ? hash_file('sha256', $sourcePath) ?: null : null,
-                'mimeType' => is_file($sourcePath) ? mime_content_type($sourcePath) ?: null : null,
-                'size' => is_file($sourcePath) ? filesize($sourcePath) ?: null : null,
-            ];
         }
 
         return $mediaObjects;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     *
+     * @return array{url: string, filename: string, caption: string|null, mainEntity: string|null, representativeOfPage: bool|null, sourcePath: string, checksum: string|null, mimeType: string|null, size: int|null}|null
+     */
+    private function buildMediaObjectEntry(array $item, int $index, string $path, string $imagesPath): ?array
+    {
+        $url = $this->stringValue($item, 'url');
+        if ('' === $url) {
+            throw new \UnexpectedValueException(sprintf('Invalid media-object item #%d in %s: missing url.', $index + 1, $path));
+        }
+
+        if (!$this->isLocalMediaUrl($url)) {
+            return null;
+        }
+
+        $filename = $this->normalizeMediaReference($url);
+        $sourcePath = $imagesPath.'/'.$filename;
+        $representativeOfPage = isset($item['representativeOfPage']) ? (bool) $item['representativeOfPage'] : null;
+        $checksum = null;
+        $mimeType = null;
+        $size = null;
+        if (is_file($sourcePath)) {
+            $checksum = hash_file('sha256', $sourcePath) ?: null;
+            $mimeType = mime_content_type($sourcePath) ?: null;
+            $size = filesize($sourcePath) ?: null;
+        }
+
+        return [
+            'url' => $url,
+            'filename' => $filename,
+            'caption' => $this->nullableStringValue($item, 'caption'),
+            'mainEntity' => $this->nullableStringValue($item, 'mainEntity'),
+            'representativeOfPage' => $representativeOfPage,
+            'sourcePath' => $sourcePath,
+            'checksum' => $checksum,
+            'mimeType' => $mimeType,
+            'size' => $size,
+        ];
     }
 
     /**
@@ -328,7 +352,7 @@ final class ProjectSeedSourceAnalyzer
     }
 
     /**
-     * @return list<array{image: string, caption: string|null, keywords: list<string>}>
+     * @return list<array{image: string, caption: string|null, keywords: list<string>, representativeOfPage: bool|null}>
      */
     private function mediaEdges(mixed $value): array
     {
@@ -351,6 +375,7 @@ final class ProjectSeedSourceAnalyzer
                 'image' => $image,
                 'caption' => $this->nullableStringValue($item, 'caption'),
                 'keywords' => $this->stringList($item['keywords'] ?? []),
+                'representativeOfPage' => isset($item['representativeOfPage']) ? (bool) $item['representativeOfPage'] : null,
             ];
         }
 

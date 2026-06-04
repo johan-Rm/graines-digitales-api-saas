@@ -17,7 +17,6 @@ trait HiddenAuditTrail
         getCreatedBy as private _traitGetCreatedBy;
         getUpdatedBy as private _traitGetUpdatedBy;
         getPublishedAt as private _traitGetPublishedAt;
-        getDeletedAt as private _traitGetDeletedAt;
     }
 
     #[Ignore] public function getCreatedAt(): \DateTimeImmutable { return $this->_traitGetCreatedAt(); }
@@ -25,5 +24,4 @@ trait HiddenAuditTrail
     #[Ignore] public function getCreatedBy(): ?User { return $this->_traitGetCreatedBy(); }
     #[Ignore] public function getUpdatedBy(): ?User { return $this->_traitGetUpdatedBy(); }
     #[Ignore] public function getPublishedAt(): ?\DateTimeImmutable { return $this->_traitGetPublishedAt(); }
-    #[Ignore] public function getDeletedAt(): ?\DateTimeImmutable { return $this->_traitGetDeletedAt(); }
 }

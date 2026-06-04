@@ -76,107 +76,174 @@ final class LoadTestFixturesCommand extends Command
 
     private function seedRiadsProject(Project $project, User $admin): void
     {
-        $type = $this->createCategoryCode($project, 'accommodation-type', 'riad', 'Riad', $admin);
-        $listing = $this->createCategoryCode($project, 'real-estate-listing', 'bien-a-vendre', 'Bien à vendre', $admin);
-        $place = $this->createCategoryCode($project, 'accommodation-place', 'nouvelle-ville', 'Nouvelle ville', $admin);
-        $amenity1 = $this->createCategoryCode($project, 'amenity-feature', 'piscine', 'Piscine', $admin);
-        $amenity2 = $this->createCategoryCode($project, 'amenity-feature', 'jardin', 'Jardin', $admin);
-        $amenity3 = $this->createCategoryCode($project, 'amenity-feature', 'terrasse', 'Terrasse', $admin);
-        $tag1 = $this->createCategoryCode($project, 'tag', 'calme', 'Calme', $admin);
-        $tag2 = $this->createCategoryCode($project, 'tag', 'vue-mer', 'Vue mer', $admin);
-        $tag3 = $this->createCategoryCode($project, 'tag', 'medina', 'Médina', $admin);
+        $type = $this->createCategoryCode($project, 'accommodation-type', 'riad', 'Riad', $admin, [
+            'en' => 'Riad',
+            'es' => 'Riad',
+        ]);
+        $listing = $this->createCategoryCode($project, 'real-estate-listing', 'bien-a-vendre', 'Bien à vendre', $admin, [
+            'en' => 'Property for sale',
+            'es' => 'Propiedad en venta',
+        ]);
+        $place = $this->createCategoryCode($project, 'accommodation-place', 'nouvelle-ville', 'Nouvelle ville', $admin, [
+            'en' => 'New town',
+            'es' => 'Ciudad nueva',
+        ]);
+        $amenity1 = $this->createCategoryCode($project, 'amenity-feature', 'piscine', 'Piscine', $admin, [
+            'en' => 'Swimming pool',
+            'es' => 'Piscina',
+        ]);
+        $amenity2 = $this->createCategoryCode($project, 'amenity-feature', 'jardin', 'Jardin', $admin, [
+            'en' => 'Garden',
+            'es' => 'Jardín',
+        ]);
+        $amenity3 = $this->createCategoryCode($project, 'amenity-feature', 'terrasse', 'Terrasse', $admin, [
+            'en' => 'Terrace',
+            'es' => 'Terraza',
+        ]);
+        $tag1 = $this->createCategoryCode($project, 'tag', 'calme', 'Calme', $admin, [
+            'en' => 'Quiet',
+            'es' => 'Tranquilo',
+        ]);
+        $tag2 = $this->createCategoryCode($project, 'tag', 'vue-mer', 'Vue mer', $admin, [
+            'en' => 'Sea view',
+            'es' => 'Vista al mar',
+        ]);
+        $tag3 = $this->createCategoryCode($project, 'tag', 'medina', 'Médina', $admin, [
+            'en' => 'Medina',
+            'es' => 'Medina',
+        ]);
 
         $media = $this->createMediaObject($project, 'riad-principal.jpg', $admin);
         $media2 = $this->createMediaObject($project, 'riad-secondaire.jpg', $admin);
-        $this->createWebPage($project, 'accueil', 'Accueil', 'Bienvenue dans les riads de la médina.', $admin);
-        $this->createWebPage($project, 'accueil-suite', 'Accueil Suite', 'Découvrez nos riads.', $admin);
+        $this->createWebPage($project, 'accueil', 'Accueil', 'Bienvenue dans les riads de la médina.', $admin, [
+            'en' => ['headline' => 'Welcome', 'body' => 'Welcome to the riads of the medina.'],
+            'es' => ['headline' => 'Bienvenida', 'body' => 'Bienvenida a los riads de la medina.'],
+        ]);
+        $this->createWebPage($project, 'accueil-suite', 'Accueil Suite', 'Découvrez nos riads.', $admin, [
+            'en' => ['headline' => 'Welcome Suite', 'body' => 'Discover our riads.'],
+            'es' => ['headline' => 'Bienvenida Suite', 'body' => 'Descubra nuestros riads.'],
+        ]);
 
+        $riadSalam = 'Riad Salam';
         $this->createAccommodation(
-            $project,
-            'BAVR001',
-            'Riad Salam',
-            'riad-salam',
-            $type,
-            $listing,
-            $place,
-            [$amenity1, $amenity2, $amenity3],
-            [$tag1, $tag2, $tag3],
-            $media,
-            $admin,
+            $project, 'BAVR001', $riadSalam, 'riad-salam',
+            ['type' => $type, 'listing' => $listing, 'place' => $place, 'amenities' => [$amenity1, $amenity2, $amenity3], 'tags' => [$tag1, $tag2, $tag3], 'media' => $media],
+            $admin, ['en' => $riadSalam, 'es' => $riadSalam],
         );
 
+        $riadLumiere = 'Riad Lumière';
         $this->createAccommodation(
-            $project,
-            'BAVR002',
-            'Riad Lumière',
-            'riad-lumiere',
-            $type,
-            $listing,
-            $place,
-            [$amenity1, $amenity2],
-            [$tag1, $tag3],
-            $media2,
-            $admin,
+            $project, 'BAVR002', $riadLumiere, 'riad-lumiere',
+            ['type' => $type, 'listing' => $listing, 'place' => $place, 'amenities' => [$amenity1, $amenity2], 'tags' => [$tag1, $tag3], 'media' => $media2],
+            $admin, ['en' => $riadLumiere, 'es' => $riadLumiere],
         );
     }
 
     private function seedVillasProject(Project $project, User $admin): void
     {
-        $type = $this->createCategoryCode($project, 'accommodation-type', 'local-commercial', 'Local commercial', $admin);
-        $listing = $this->createCategoryCode($project, 'real-estate-listing', 'bien-a-vendre', 'Bien à vendre', $admin);
-        $place = $this->createCategoryCode($project, 'accommodation-place', 'nouvelle-ville', 'Nouvelle ville', $admin);
-        $amenity1 = $this->createCategoryCode($project, 'amenity-feature', 'vue-degagee', 'Vue dégagée', $admin);
-        $amenity2 = $this->createCategoryCode($project, 'amenity-feature', 'parking', 'Parking', $admin);
-        $amenity3 = $this->createCategoryCode($project, 'amenity-feature', 'vitrine', 'Vitrine', $admin);
-        $tag1 = $this->createCategoryCode($project, 'tag', 'commerce', 'Commerce', $admin);
-        $tag2 = $this->createCategoryCode($project, 'tag', 'artisanat', 'Artisanat', $admin);
-        $tag3 = $this->createCategoryCode($project, 'tag', 'centre-ville', 'Centre-ville', $admin);
+        $type = $this->createCategoryCode($project, 'accommodation-type', 'local-commercial', 'Local commercial', $admin, [
+            'en' => 'Commercial space',
+            'es' => 'Local comercial',
+        ]);
+        $listing = $this->createCategoryCode($project, 'real-estate-listing', 'bien-a-vendre', 'Bien à vendre', $admin, [
+            'en' => 'Property for sale',
+            'es' => 'Propiedad en venta',
+        ]);
+        $place = $this->createCategoryCode($project, 'accommodation-place', 'nouvelle-ville', 'Nouvelle ville', $admin, [
+            'en' => 'New town',
+            'es' => 'Ciudad nueva',
+        ]);
+        $this->createCategoryCode($project, 'accommodation-place', 'ghazoua', 'Ghazoua', $admin, [
+            'en' => 'Ghazoua',
+            'es' => 'Ghazoua',
+        ]);
+        $amenity1 = $this->createCategoryCode($project, 'amenity-feature', 'vue-degagee', 'Vue dégagée', $admin, [
+            'en' => 'Open view',
+            'es' => 'Vista despejada',
+        ]);
+        $amenity2 = $this->createCategoryCode($project, 'amenity-feature', 'parking', 'Parking', $admin, [
+            'en' => 'Parking',
+            'es' => 'Estacionamiento',
+        ]);
+        $amenity3 = $this->createCategoryCode($project, 'amenity-feature', 'vitrine', 'Vitrine', $admin, [
+            'en' => 'Shop window',
+            'es' => 'Escaparate',
+        ]);
+        $tag1 = $this->createCategoryCode($project, 'tag', 'commerce', 'Commerce', $admin, [
+            'en' => 'Commerce',
+            'es' => 'Comercio',
+        ]);
+        $tag2 = $this->createCategoryCode($project, 'tag', 'artisanat', 'Artisanat', $admin, [
+            'en' => 'Crafts',
+            'es' => 'Artesanía',
+        ]);
+        $tag3 = $this->createCategoryCode($project, 'tag', 'centre-ville', 'Centre-ville', $admin, [
+            'en' => 'City centre',
+            'es' => 'Centro ciudad',
+        ]);
 
         $media = $this->createMediaObject($project, 'local-commercial-erraounak.jpg', $admin);
-        $this->createWebPage($project, 'accueil-villas', 'Accueil Villas', 'Villas et locaux à Ghazoua.', $admin);
+        $this->createWebPage($project, 'accueil-villas', 'Accueil Villas', 'Villas et locaux à Ghazoua.', $admin, [
+            'en' => ['headline' => 'Villas Welcome', 'body' => 'Villas and commercial spaces in Ghazoua.'],
+            'es' => ['headline' => 'Bienvenida Villas', 'body' => 'Villas y locales en Ghazoua.'],
+        ]);
 
         $this->createAccommodation(
-            $project,
-            'BAVLC001',
-            'Superbe local commercial a Erraounak',
-            'local-commercial-erraounak',
-            $type,
-            $listing,
-            $place,
-            [$amenity1, $amenity2, $amenity3],
-            [$tag1, $tag2, $tag3],
-            $media,
+            $project, 'BAVLC001', 'Superbe local commercial a Erraounak', 'local-commercial-erraounak',
+            ['type' => $type, 'listing' => $listing, 'place' => $place, 'amenities' => [$amenity1, $amenity2, $amenity3], 'tags' => [$tag1, $tag2, $tag3], 'media' => $media],
             $admin,
         );
     }
 
     private function seedBbmProject(Project $project, User $admin): void
     {
-        $type = $this->createCategoryCode($project, 'accommodation-type', 'villa', 'Villa', $admin);
-        $listing = $this->createCategoryCode($project, 'real-estate-listing', 'location', 'Location', $admin);
-        $place = $this->createCategoryCode($project, 'accommodation-place', 'bord-de-mer', 'Bord de mer', $admin);
-        $amenity1 = $this->createCategoryCode($project, 'amenity-feature', 'piscine', 'Piscine', $admin);
-        $amenity2 = $this->createCategoryCode($project, 'amenity-feature', 'terrasse', 'Terrasse', $admin);
-        $amenity3 = $this->createCategoryCode($project, 'amenity-feature', 'barbecue', 'Barbecue', $admin);
-        $tag1 = $this->createCategoryCode($project, 'tag', 'balnéaire', 'Balnéaire', $admin);
-        $tag2 = $this->createCategoryCode($project, 'tag', 'familial', 'Familial', $admin);
-        $tag3 = $this->createCategoryCode($project, 'tag', 'luxe', 'Luxe', $admin);
+        $type = $this->createCategoryCode($project, 'accommodation-type', 'villa', 'Villa', $admin, [
+            'en' => 'Villa',
+            'es' => 'Villa',
+        ]);
+        $listing = $this->createCategoryCode($project, 'real-estate-listing', 'location', 'Location', $admin, [
+            'en' => 'Rental',
+            'es' => 'Alquiler',
+        ]);
+        $place = $this->createCategoryCode($project, 'accommodation-place', 'bord-de-mer', 'Bord de mer', $admin, [
+            'en' => 'Seafront',
+            'es' => 'Frente al mar',
+        ]);
+        $amenity1 = $this->createCategoryCode($project, 'amenity-feature', 'piscine', 'Piscine', $admin, [
+            'en' => 'Swimming pool',
+            'es' => 'Piscina',
+        ]);
+        $amenity2 = $this->createCategoryCode($project, 'amenity-feature', 'terrasse', 'Terrasse', $admin, [
+            'en' => 'Terrace',
+            'es' => 'Terraza',
+        ]);
+        $amenity3 = $this->createCategoryCode($project, 'amenity-feature', 'barbecue', 'Barbecue', $admin, [
+            'en' => 'Barbecue',
+            'es' => 'Barbacoa',
+        ]);
+        $tag1 = $this->createCategoryCode($project, 'tag', 'balnéaire', 'Balnéaire', $admin, [
+            'en' => 'Seaside',
+            'es' => 'Costero',
+        ]);
+        $tag2 = $this->createCategoryCode($project, 'tag', 'familial', 'Familial', $admin, [
+            'en' => 'Family',
+            'es' => 'Familiar',
+        ]);
+        $tag3 = $this->createCategoryCode($project, 'tag', 'luxe', 'Luxe', $admin, [
+            'en' => 'Luxury',
+            'es' => 'Lujo',
+        ]);
 
         $media = $this->createMediaObject($project, 'villa-blue-bay.jpg', $admin);
-        $this->createWebPage($project, 'accueil-bbm', 'Accueil Blue Bay', 'Bienvenue à Blue Bay Mogador.', $admin);
+        $this->createWebPage($project, 'accueil-bbm', 'Accueil Blue Bay', 'Bienvenue à Blue Bay Mogador.', $admin, [
+            'en' => ['headline' => 'Welcome to Blue Bay', 'body' => 'Welcome to Blue Bay Mogador.'],
+        ]);
 
+        $villaBlueBay = 'Villa Blue Bay';
         $this->createAccommodation(
-            $project,
-            'FBAVVG001',
-            'Villa Blue Bay',
-            'villa-blue-bay',
-            $type,
-            $listing,
-            $place,
-            [$amenity1, $amenity2, $amenity3],
-            [$tag1, $tag2, $tag3],
-            $media,
-            $admin,
+            $project, 'LV001', $villaBlueBay, 'villa-blue-bay',
+            ['type' => $type, 'listing' => $listing, 'place' => $place, 'amenities' => [$amenity1, $amenity2, $amenity3], 'tags' => [$tag1, $tag2, $tag3], 'media' => $media],
+            $admin, ['en' => $villaBlueBay, 'es' => $villaBlueBay],
         );
     }
 
@@ -261,17 +328,21 @@ final class LoadTestFixturesCommand extends Command
         $this->entityManager->persist($member);
     }
 
+    /**
+     * @param array<string, string> $translations locale → label
+     */
     private function createCategoryCode(
         Project $project,
         string $inCodeSet,
         string $code,
         string $label,
         User $actor,
+        array $translations = [],
     ): CategoryCode {
         $existing = $this->entityManager->getRepository(CategoryCode::class)->findOneBy([
             'project' => $project,
             'inCodeSet' => $inCodeSet,
-            'code' => $code,
+            'codeValue' => $code,
         ]);
 
         if ($existing instanceof CategoryCode) {
@@ -286,6 +357,13 @@ final class LoadTestFixturesCommand extends Command
         $cc->setLabel($label);
         $cc->markCreatedBy($actor);
         $cc->touch($actor);
+
+        foreach ($translations as $locale => $translatedLabel) {
+            $cc->setCurrentLocale($locale);
+            $cc->setLabel($translatedLabel);
+        }
+        $cc->setCurrentLocale('fr');
+
         $this->entityManager->persist($cc);
 
         return $cc;
@@ -313,19 +391,22 @@ final class LoadTestFixturesCommand extends Command
         return $media;
     }
 
+    /**
+     * @param array<string, array{headline: string, body: string}> $translations locale → {headline, body}
+     */
     private function createWebPage(
         Project $project,
         string $slug,
         string $headline,
         string $body,
         User $actor,
+        array $translations = [],
     ): WebPage {
         $existing = $this->entityManager->createQueryBuilder()
             ->select('wp')
             ->from(WebPage::class, 'wp')
             ->join('wp.translations', 't')
             ->where('wp.project = :project')
-            ->andWhere('wp.deletedAt IS NULL')
             ->andWhere('t.slug = :slug')
             ->setParameter('project', $project)
             ->setParameter('slug', $slug)
@@ -342,29 +423,37 @@ final class LoadTestFixturesCommand extends Command
         $page->setSlug($slug);
         $page->setHeadline($headline);
         $page->setBody($body);
+        $page->setMetaTitle($headline);
+        $page->setMetaDescription(mb_substr(strip_tags($body), 0, 160));
         $page->markCreatedBy($actor);
         $page->touch($actor);
+
+        foreach ($translations as $locale => $data) {
+            $page->setCurrentLocale($locale);
+            $page->setHeadline($data['headline']);
+            $page->setBody($data['body']);
+            $page->setMetaTitle($data['headline']);
+            $page->setMetaDescription(mb_substr(strip_tags($data['body']), 0, 160));
+        }
+        $page->setCurrentLocale('fr');
+
         $this->entityManager->persist($page);
 
         return $page;
     }
 
     /**
-     * @param CategoryCode[] $amenityFeatures
-     * @param CategoryCode[] $tags
+     * @param array{type: CategoryCode, listing: CategoryCode, place: CategoryCode, amenities: CategoryCode[], tags: CategoryCode[], media: MediaObject} $taxonomy
+     * @param array<string, string> $translations locale → name
      */
     private function createAccommodation(
         Project $project,
         string $identifier,
         string $name,
         string $slug,
-        CategoryCode $category,
-        CategoryCode $realEstateListing,
-        CategoryCode $place,
-        array $amenityFeatures,
-        array $tags,
-        MediaObject $mediaObject,
+        array $taxonomy,
         User $actor,
+        array $translations = [],
     ): Accommodation {
         $existing = $this->entityManager->getRepository(Accommodation::class)->findOneBy([
             'project' => $project,
@@ -378,20 +467,21 @@ final class LoadTestFixturesCommand extends Command
         $accommodation = new Accommodation();
         $accommodation->setProject($project);
         $accommodation->setIdentifier($identifier);
-        $accommodation->setCategory($category);
-        $accommodation->setRealEstateListing($realEstateListing);
-        $accommodation->setPlace($place);
+        $accommodation->setCategory($taxonomy['type']);
+        $accommodation->setRealEstateListing($taxonomy['listing']);
+        $accommodation->setPlace($taxonomy['place']);
         $accommodation->setCurrentLocale('fr');
         $accommodation->setName($name);
         $accommodation->setSlug($slug);
+        $accommodation->setMetaTitle($name);
         $accommodation->markCreatedBy($actor);
         $accommodation->touch($actor);
 
-        foreach ($amenityFeatures as $amenity) {
+        foreach ($taxonomy['amenities'] as $amenity) {
             $accommodation->addAmenityFeature($amenity);
         }
 
-        foreach ($tags as $tag) {
+        foreach ($taxonomy['tags'] as $tag) {
             $accommodation->addTag($tag);
         }
 
@@ -402,10 +492,17 @@ final class LoadTestFixturesCommand extends Command
         }
 
         $media = new AccommodationMedia();
-        $media->setMediaObject($mediaObject);
+        $media->setMediaObject($taxonomy['media']);
         $media->setPosition(1);
         $accommodation->addAssociatedMedia($media);
         $this->entityManager->persist($media);
+
+        foreach ($translations as $locale => $translatedName) {
+            $accommodation->setCurrentLocale($locale);
+            $accommodation->setName($translatedName);
+            $accommodation->setMetaTitle($translatedName);
+        }
+        $accommodation->setCurrentLocale('fr');
 
         $this->entityManager->persist($accommodation);
 

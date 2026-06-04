@@ -18,7 +18,6 @@ use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\AiReviewStatus;
 use App\Enum\MediaStatus;
-use App\State\BulkTranslationInput;
 use App\State\MediaObjectCollectionProvider;
 use App\State\ProjectScopedBulkTranslationCreateProcessor;
 use App\State\ProjectScopedCollectionProvider;
@@ -94,12 +93,12 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
                 )
             )
         ),
-        new Get(uriTemplate: '/projects/{projectId}/media-objects/{id}', provider: ProjectScopedItemProvider::class),
-        new Get(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations', name: 'get_media_object_translations', provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Put(uriTemplate: '/projects/{projectId}/media-objects/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
-        new Put(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations', name: 'put_media_object_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedMediaObjectBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations'], 'api_assign_object_to_populate' => true], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Post(uriTemplate: '/projects/{projectId}/media-objects/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_media_object_translations', input: BulkTranslationInput::class, read: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Delete(uriTemplate: '/projects/{projectId}/media-objects/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
+        new Get(uriTemplate: '/projects/{projectId}/media-objects/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: MediaObject::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class),
+        new Get(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations', name: 'get_media_object_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: MediaObject::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Put(uriTemplate: '/projects/{projectId}/media-objects/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: MediaObject::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Put(uriTemplate: '/projects/{projectId}/media-objects/{id}/translations', name: 'put_media_object_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: MediaObject::class, identifiers: ['id'])], deserialize: false, provider: ProjectScopedItemProvider::class, processor: ProjectScopedMediaObjectBulkTranslationProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/media-objects/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_media_object_translations', read: false, deserialize: false, status: 200, processor: ProjectScopedBulkTranslationCreateProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Delete(uriTemplate: '/projects/{projectId}/media-objects/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: MediaObject::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
@@ -204,7 +203,7 @@ class MediaObject implements ProjectScopedResource, TranslatableResource
     public function isFallback(): bool { return $this->fallback; }
     #[Groups(['read', 'write'])]
     public function getCaption(): ?string { $translation = $this->getTranslation(); return $translation instanceof MediaObjectTranslation ? $translation->getCaption() : null; }
-    public function setCaption(?string $caption): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setCaption($caption); return $this; }
+    public function setCaption(?string $caption): self { $translation = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($translation instanceof MediaObjectTranslation) { $translation->setCaption($caption); } return $this; }
     public function getFile(): ?File { return $this->file; }
     public function setFile(?File $file): self { $this->file = $file; return $this; }
     public function getFilePath(): ?string { return $this->filePath; }

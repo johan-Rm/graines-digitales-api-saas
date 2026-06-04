@@ -33,6 +33,7 @@ final readonly class ResourceAutoTranslator
             }
 
             $targetTranslation = $resource->getOrCreateTranslation($targetLocale);
+            $this->inheritSlug($sourceTranslation, $targetTranslation);
             $this->fillMissingFields($sourceTranslation, $targetTranslation, $fields, $sourceLocale, $targetLocale);
         }
     }
@@ -52,6 +53,23 @@ final readonly class ResourceAutoTranslator
         }
 
         return $fields;
+    }
+
+    /**
+     * Copies the source slug to the target when target slug is empty.
+     * Prevents field setters (setHeadline, setName) from auto-generating slugs
+     * from translated content, which would cause uniqueness conflicts when
+     * multiple resources share the same headline or name.
+     */
+    private function inheritSlug(ResourceTranslation $source, ResourceTranslation $target): void
+    {
+        if (!method_exists($source, 'getSlug') || !method_exists($target, 'getSlug') || !method_exists($target, 'setSlug')) {
+            return;
+        }
+        $sourceSlug = $source->getSlug();
+        if ('' !== $sourceSlug && '' === $target->getSlug()) {
+            $target->setSlug($sourceSlug);
+        }
     }
 
     /**

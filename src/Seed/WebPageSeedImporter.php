@@ -4,15 +4,21 @@ namespace App\Seed;
 
 use App\Entity\MediaObject;
 use App\Entity\Project;
+use App\Entity\ResourceTranslation;
 use App\Entity\WebPage;
 use App\Entity\WebPageMedia;
 use App\Enum\ContentStatus;
+use App\Translation\ResourceAutoFiller;
+use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class WebPageSeedImporter implements ProjectSeedImporterInterface
 {
-    public function __construct(private EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private ResourceAutoFiller $autoFiller,
+        private ResourceAutoTranslator $autoTranslator,
+    ) {
     }
 
     public function family(): string
@@ -34,6 +40,7 @@ final readonly class WebPageSeedImporter implements ProjectSeedImporterInterface
     public function import(Project $project, ProjectSeedData $data): int
     {
         $count = 0;
+        $imported = [];
 
         foreach ($data->webPages as $source) {
             $webPage = $this->findWebPage($project, $source['slug'], $source['locale']);
@@ -65,7 +72,23 @@ final readonly class WebPageSeedImporter implements ProjectSeedImporterInterface
             }
 
             $this->entityManager->persist($webPage);
+
+            $translation = $webPage->getTranslation($source['locale']);
+            if ($translation instanceof ResourceTranslation) {
+                $this->autoFiller->fill($translation);
+            }
+
+            $imported[] = $webPage;
             $count++;
+        }
+
+        // Flush source-locale data, then refresh each entity so that Doctrine's
+        // collection is fully re-initialized from DB (avoids partial-init from the
+        // JOIN used in findWebPage, which would cause duplicate-translation inserts).
+        $this->entityManager->flush();
+        foreach ($imported as $webPage) {
+            $this->entityManager->refresh($webPage);
+            $this->autoTranslator->synchronize($webPage, $project);
         }
 
         return $count;

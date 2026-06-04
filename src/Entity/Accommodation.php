@@ -20,6 +20,7 @@ use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedAccommodationBulkTranslationProcessor;
 use App\State\ProjectScopedAccommodationCreateWithTranslationsProcessor;
+use App\State\ProjectScopedAccommodationPersistProcessor;
 use App\State\ProjectScopedAccommodationRemoveProcessor;
 use App\State\ProjectScopedPersistProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -31,18 +32,18 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity]
 #[ORM\Index(columns: ['project_id'], name: 'idx_accommodation_project')]
-#[ORM\Index(columns: ['project_id', 'status', 'is_active', 'deleted_at'], name: 'idx_accommodation_project_publication')]
+#[ORM\Index(columns: ['project_id', 'status', 'is_active'], name: 'idx_accommodation_project_publication')]
 #[ORM\UniqueConstraint(name: 'uniq_accommodation_project_identifier', columns: ['project_id', 'identifier'])]
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: ProjectScopedPersistProcessor::class),
-        new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class),
-        new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'get_translations', provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class, denormalizationContext: ['groups' => ['write'], 'api_assign_object_to_populate' => true]),
-        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'put_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations'], 'api_assign_object_to_populate' => true], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/accommodations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: ProjectScopedAccommodationPersistProcessor::class),
+        new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Accommodation::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class),
+        new Get(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'get_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Accommodation::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Accommodation::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationPersistProcessor::class, denormalizationContext: ['groups' => ['write'], 'api_assign_object_to_populate' => true]),
+        new Put(uriTemplate: '/projects/{projectId}/accommodations/{id}/translations', name: 'put_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Accommodation::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations'], 'api_assign_object_to_populate' => true], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Post(uriTemplate: '/projects/{projectId}/accommodations/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_accommodation_translations', read: false, processor: ProjectScopedAccommodationCreateWithTranslationsProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Delete(uriTemplate: '/projects/{projectId}/accommodations/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationRemoveProcessor::class),
+        new Delete(uriTemplate: '/projects/{projectId}/accommodations/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Accommodation::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedAccommodationRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
@@ -217,6 +218,9 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function clearTags(): self { $this->tags->clear(); return $this; }
     public function getAssociatedMedia(): Collection { return $this->associatedMedia; }
     public function addAssociatedMedia(AccommodationMedia $media): self { if (!$this->associatedMedia->contains($media)) { $this->associatedMedia->add($media); $media->setAccommodation($this); } return $this; }
+    public function addAssociatedMedium(AccommodationMedia $media): self { return $this->addAssociatedMedia($media); }
+    public function removeAssociatedMedia(AccommodationMedia $media): self { $this->associatedMedia->removeElement($media); return $this; }
+    public function removeAssociatedMedium(AccommodationMedia $media): self { return $this->removeAssociatedMedia($media); }
     public function clearAssociatedMedia(): self { $this->associatedMedia->clear(); return $this; }
     public function getQualities(): Collection { return $this->qualities; }
     public function addQuality(PropertyValue $quality): self { if (!$this->qualities->contains($quality)) { $quality->setPosition($this->qualities->count() + 1); $this->qualities->add($quality); $quality->setAccommodation($this); } return $this; }
@@ -247,28 +251,28 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function isFallback(): bool { return $this->fallback; }
     #[Groups(['read'])]
     public function getSlug(): string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getSlug() : ''; }
-    public function setSlug(string $slug): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSlug($slug); return $this; }
+    public function setSlug(string $slug): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setSlug($slug); } return $this; }
     #[Groups(['read', 'write'])]
     public function getName(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getName() : null; }
-    public function setName(?string $name): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setName($name); return $this; }
+    public function setName(?string $name): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setName($name); } return $this; }
     #[Groups(['read', 'write'])]
     public function getLabel(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getLabel() : null; }
-    public function setLabel(?string $label): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setLabel($label); return $this; }
+    public function setLabel(?string $label): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setLabel($label); } return $this; }
     #[Groups(['read', 'write'])]
     public function getHighlight(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getHighlight() : null; }
-    public function setHighlight(?string $highlight): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setHighlight($highlight); return $this; }
+    public function setHighlight(?string $highlight): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setHighlight($highlight); } return $this; }
     #[Groups(['read', 'write'])]
     public function getBody(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getBody() : null; }
-    public function setBody(?string $body): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setBody($body); return $this; }
+    public function setBody(?string $body): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setBody($body); } return $this; }
     #[Groups(['read', 'write'])]
     public function getReview(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getReview() : null; }
-    public function setReview(?string $review): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setReview($review); return $this; }
+    public function setReview(?string $review): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setReview($review); } return $this; }
     #[Groups(['read', 'write'])]
     public function getMetaTitle(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getMetaTitle() : null; }
-    public function setMetaTitle(?string $metaTitle): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setMetaTitle($metaTitle); return $this; }
+    public function setMetaTitle(?string $metaTitle): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setMetaTitle($metaTitle); } return $this; }
     #[Groups(['read', 'write'])]
     public function getMetaDescription(): ?string { $translation = $this->getTranslation(); return $translation instanceof AccommodationTranslation ? $translation->getMetaDescription() : null; }
-    public function setMetaDescription(?string $metaDescription): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setMetaDescription($metaDescription); return $this; }
+    public function setMetaDescription(?string $metaDescription): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof AccommodationTranslation) { $t->setMetaDescription($metaDescription); } return $this; }
     public function getStatus(): ContentStatus { return $this->status; }
     public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
     public function getYearBuilt(): ?int { return $this->yearBuilt; }

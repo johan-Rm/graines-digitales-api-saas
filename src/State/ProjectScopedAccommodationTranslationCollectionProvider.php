@@ -26,7 +26,6 @@ final readonly class ProjectScopedAccommodationTranslationCollectionProvider imp
             ->from(AccommodationTranslation::class, 'translation')
             ->innerJoin('translation.translatable', 'accommodation')
             ->andWhere('translation.project = :project')
-            ->andWhere('accommodation.deletedAt IS NULL')
             ->setParameter('project', $project)
             ->orderBy('accommodation.identifier', 'ASC')
             ->addOrderBy('translation.locale', 'ASC')

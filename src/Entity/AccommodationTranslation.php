@@ -76,7 +76,7 @@ class AccommodationTranslation implements ResourceTranslation
     private ?string $metaTitle = null;
 
     #[ORM\Column(length: 320, nullable: true)]
-    #[AutoFill(from: 'highlight', maxLength: 160)]
+    #[AutoFill(from: 'body', maxLength: 160, markdownExcerpt: true)]
     #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private ?string $metaDescription = null;
@@ -101,14 +101,13 @@ class AccommodationTranslation implements ResourceTranslation
             return;
         }
 
-        $primary = ('' !== trim((string) $this->name))
-            ? (string) $this->name
-            : ($this->translatable->hasCategory() ? $this->translatable->getCategory()->getCodeValue() : '');
+        $categoryFallback = $this->translatable->hasCategory() ? $this->translatable->getCategory()->getCodeValue() : '';
+        $primary = '' !== trim((string) $this->name) ? (string) $this->name : $categoryFallback;
 
         $this->slug = self::buildSlug(
+            $this->translatable->getIdentifier(),
             $primary,
             $this->translatable->hasPlace() ? $this->translatable->getPlace()->getCodeValue() : '',
-            $this->translatable->getIdentifier(),
         );
     }
     public function getLabel(): ?string { return $this->label; }

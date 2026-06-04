@@ -13,6 +13,18 @@ final readonly class AccommodationIdentifierGenerator
     {
     }
 
+    public function isConsistentWith(Accommodation $accommodation): bool
+    {
+        $identifier = $accommodation->getIdentifier();
+        if ('' === trim($identifier) || !$accommodation->hasRealEstateListing() || !$accommodation->hasCategory()) {
+            return false;
+        }
+
+        $prefix = self::initials($accommodation->getRealEstateListing()->getCodeValue()).self::initials($accommodation->getCategory()->getCodeValue());
+
+        return (bool) preg_match('/^'.preg_quote($prefix, '/').'(\d{3,})$/', $identifier);
+    }
+
     public function generate(Accommodation $accommodation, ?Accommodation $excludedAccommodation = null): string
     {
         $project = $accommodation->getProject();
@@ -53,10 +65,6 @@ final readonly class AccommodationIdentifierGenerator
     }
 
     /**
-     * Returns all identifiers in the project matching the given prefix,
-     * including soft-deleted ones — the unique constraint on (project_id, identifier)
-     * applies regardless of deleted_at, so we must never reuse a deleted identifier.
-     *
      * @return list<string>
      */
     private function existingPrefixIdentifiers(Project $project, string $prefix, ?Accommodation $excludedAccommodation): array

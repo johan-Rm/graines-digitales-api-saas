@@ -34,12 +34,11 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
         new Post(uriTemplate: '/projects/{projectId}/category-codes', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: CategoryCodePersistProcessor::class),
-        new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class),
-        new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', name: 'get_category_code_translations', provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
-        new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', name: 'put_category_code_translations', provider: ProjectScopedItemProvider::class, processor: ProjectScopedBulkTranslationProcessor::class, denormalizationContext: ['groups' => ['write:translations']], normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: CategoryCode::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class),
+        new Get(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', name: 'get_category_code_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: CategoryCode::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Put(uriTemplate: '/projects/{projectId}/category-codes/{id}/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: CategoryCode::class, identifiers: ['id'])], deserialize: false, provider: ProjectScopedItemProvider::class, processor: ProjectScopedBulkTranslationProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Post(uriTemplate: '/projects/{projectId}/category-codes/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_category_code_translations', read: false, deserialize: false, status: 201, processor: ProjectScopedBulkTranslationCreateProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Delete(uriTemplate: '/projects/{projectId}/category-codes/{id}', provider: ProjectScopedItemProvider::class, processor: CategoryCodeRemoveProcessor::class),
+        new Delete(uriTemplate: '/projects/{projectId}/category-codes/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: CategoryCode::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: CategoryCodeRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
@@ -87,6 +86,7 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
         return $this->codeValue;
     }
 
+    #[Groups(['write'])]
     public function setCodeValue(string $codeValue): self
     {
         $this->codeValue = $codeValue;
@@ -132,6 +132,23 @@ class CategoryCode implements ProjectScopedResource, TranslatableResource
     #[Groups(['read', 'write'])]
     public function getLabel(): string { $translation = $this->getTranslation(); return $translation instanceof CategoryCodeTranslation ? $translation->getLabel() : ''; }
     public function setLabel(string $label): self { $translation = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($translation instanceof CategoryCodeTranslation) { $translation->setLabel($label); } return $this; }
+    #[Groups(['read', 'write'])]
+    public function getText(): ?string
+    {
+        $translation = $this->getTranslation();
+
+        return $translation instanceof CategoryCodeTranslation ? $translation->getText() : null;
+    }
+
+    public function setText(?string $text): self
+    {
+        $translation = $this->getOrCreateTranslation($this->getCurrentLocale());
+        if ($translation instanceof CategoryCodeTranslation) {
+            $translation->setText($text);
+        }
+
+        return $this;
+    }
 
     public function getMetadata(): ?array
     {

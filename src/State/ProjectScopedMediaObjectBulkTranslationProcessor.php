@@ -13,8 +13,6 @@ use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 final readonly class ProjectScopedMediaObjectBulkTranslationProcessor implements ProcessorInterface
 {
@@ -25,7 +23,6 @@ final readonly class ProjectScopedMediaObjectBulkTranslationProcessor implements
         private EntityManagerInterface $entityManager,
         private ResourceAutoTranslator $autoTranslator,
         private ResourceAutoFiller $autoFiller,
-        private DenormalizerInterface $denormalizer,
         private RequestStack $requestStack,
     ) {
     }
@@ -41,19 +38,7 @@ final readonly class ProjectScopedMediaObjectBulkTranslationProcessor implements
         $actor = $this->currentUserProvider->getUser();
 
         foreach ($this->extractTranslations() as $translationData) {
-            $locale = is_array($translationData) ? ($translationData['locale'] ?? '') : '';
-            if (!is_string($locale) || '' === $locale) {
-                continue;
-            }
-
-            $translation = $data->getOrCreateTranslation($locale);
-            $this->denormalizer->denormalize($translationData, $translation::class, 'json', [
-                AbstractNormalizer::OBJECT_TO_POPULATE => $translation,
-                AbstractNormalizer::GROUPS => ['write'],
-            ]);
-            $translation->setTranslatable($data);
-            $translation->touch($actor);
-            $this->entityManager->persist($translation);
+            $this->applyTranslation($data, $translationData, $actor);
         }
 
         $this->autoTranslator->synchronize($data, $project);
@@ -69,6 +54,30 @@ final readonly class ProjectScopedMediaObjectBulkTranslationProcessor implements
         $this->entityManager->persist($data);
 
         return $this->decorated->process($data, $operation, $uriVariables, $context);
+    }
+
+    private function applyTranslation(MediaObject $data, mixed $translationData, mixed $actor): void
+    {
+        $locale = is_array($translationData) ? ($translationData['locale'] ?? '') : '';
+        if (!is_string($locale) || '' === $locale) {
+            return;
+        }
+
+        $translation = $data->getOrCreateTranslation($locale);
+
+        foreach ($translationData as $key => $value) {
+            if ('locale' === $key) {
+                continue;
+            }
+            $setter = 'set'.ucfirst((string) $key);
+            if (method_exists($translation, $setter)) {
+                $translation->{$setter}($value);
+            }
+        }
+
+        $translation->setTranslatable($data);
+        $translation->touch($actor);
+        $this->entityManager->persist($translation);
     }
 
     /**

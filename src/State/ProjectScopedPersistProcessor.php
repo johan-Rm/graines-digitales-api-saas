@@ -16,10 +16,12 @@ use App\Message\WatermarkMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\Translation\LocaleResolver;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
@@ -61,8 +63,10 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             if ($data instanceof Accommodation) {
                 $this->validateAccommodationCategoryCodes($data, $project);
 
-                if ('' === trim($data->getIdentifier())) {
-                    $data->setIdentifier($this->accommodationIdentifierGenerator->generate($data));
+                $currentIdentifier = $data->getIdentifier();
+                if ('' === trim($currentIdentifier) || !$this->accommodationIdentifierGenerator->isConsistentWith($data)) {
+                    $excludedFromCount = '' !== trim($currentIdentifier) ? $data : null;
+                    $data->setIdentifier($this->accommodationIdentifierGenerator->generate($data, $excludedFromCount));
                 }
                 $data->ensureDefaultQualities();
             }
@@ -93,7 +97,11 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             }
         }
 
-        $result = $this->decorated->process($data, $operation, $uriVariables, $context);
+        try {
+            $result = $this->decorated->process($data, $operation, $uriVariables, $context);
+        } catch (UniqueConstraintViolationException $e) {
+            throw new ConflictHttpException('A resource with the same unique identifier already exists.', $e);
+        }
 
         if ($data instanceof MediaObject && null !== $data->getFilePath()) {
             $this->copyToOriginals($data);

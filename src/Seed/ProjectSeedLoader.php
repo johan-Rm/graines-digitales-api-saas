@@ -125,14 +125,14 @@ final readonly class ProjectSeedLoader
     private function existingCategoryCodes(Project $project): array
     {
         $rows = $this->entityManager->createQueryBuilder()
-            ->select('categoryCode.inCodeSet', 'categoryCode.code')
+            ->select('categoryCode.inCodeSet', 'categoryCode.codeValue')
             ->from(CategoryCode::class, 'categoryCode')
             ->where('categoryCode.project = :project')
             ->setParameter('project', $project)
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(static fn (array $row): string => $row['inCodeSet'].'/'.$row['code'], $rows);
+        return array_map(static fn (array $row): string => $row['inCodeSet'].'/'.$row['codeValue'], $rows);
     }
 
     /**

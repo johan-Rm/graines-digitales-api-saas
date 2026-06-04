@@ -14,9 +14,11 @@ use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -88,7 +90,11 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
 
             $this->autoTranslator->synchronize($resource, $project);
             $this->finalizeTranslations($resource, $actor);
-            $this->entityManager->flush();
+            try {
+                $this->entityManager->flush();
+            } catch (UniqueConstraintViolationException $e) {
+                throw new ConflictHttpException('A resource with the same unique identifier already exists.', $e);
+            }
 
             return $resource;
         }
@@ -115,7 +121,11 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
         $this->finalizeTranslations($resource, $actor);
         $resource->touch($actor);
         $this->entityManager->persist($resource);
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->flush();
+        } catch (UniqueConstraintViolationException $e) {
+            throw new ConflictHttpException('A resource with the same unique identifier already exists.', $e);
+        }
 
         return $resource;
     }
@@ -151,10 +161,15 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
 
         $translation = $resource->getOrCreateTranslation($locale);
 
-        $this->denormalizer->denormalize($translationData, $translation::class, 'json', [
-            AbstractNormalizer::OBJECT_TO_POPULATE => $translation,
-            AbstractNormalizer::GROUPS => ['write'],
-        ]);
+        foreach ($translationData as $key => $value) {
+            if ('locale' === $key) {
+                continue;
+            }
+            $setter = 'set'.ucfirst((string) $key);
+            if (method_exists($translation, $setter)) {
+                $translation->{$setter}($value);
+            }
+        }
 
         $translation->setTranslatable($resource);
         $translation->touch($actor);

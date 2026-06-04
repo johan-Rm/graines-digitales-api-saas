@@ -8,6 +8,7 @@ final class AutoFill
     public function __construct(
         public readonly string $from,
         public readonly ?int $maxLength = null,
+        public readonly bool $markdownExcerpt = false,
     ) {
     }
 }

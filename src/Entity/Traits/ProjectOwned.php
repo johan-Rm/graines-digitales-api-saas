@@ -12,6 +12,7 @@ trait ProjectOwned
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Project $project = null;
 
+    #[Groups(['read'])]
     public function getProject(): ?Project
     {
         return $this->project;

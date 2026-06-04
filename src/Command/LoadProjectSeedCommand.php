@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\Project;
 use App\Seed\ProjectSeedFamily;
+use App\Seed\ProjectSeedImageSynchronizer;
 use App\Seed\ProjectSeedLoader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -24,6 +25,7 @@ final class LoadProjectSeedCommand extends Command
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ProjectSeedLoader $projectSeedLoader,
+        private readonly ProjectSeedImageSynchronizer $imageSynchronizer,
         #[Autowire('%env(default:seed_project_path:SEED_PROJECT_PATH)%')]
         private readonly string $seedProjectPath,
     ) {
@@ -35,6 +37,7 @@ final class LoadProjectSeedCommand extends Command
         $this
             ->addArgument('projectSlug', InputArgument::REQUIRED, 'Existing project slug to import.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Confirm import in non-interactive mode.')
+            ->addOption('sync-images', null, InputOption::VALUE_NONE, 'Clear the project media directory, then copy every file from resources/images.')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated families to import: metadata,media,web-pages,accommodations.');
     }
 
@@ -90,8 +93,15 @@ final class LoadProjectSeedCommand extends Command
         }
 
         $plan = $this->projectSeedLoader->plan($report->data, $selectedFamilies);
+        $syncImages = true === $input->getOption('sync-images');
         $io->section('Import plan');
         $io->listing($plan->families);
+        if ($syncImages) {
+            $io->warning(sprintf(
+                'Image sync is enabled: %s will be cleared before copying every file from resources/images.',
+                $project->getMediaPath() ?? 'the project media directory',
+            ));
+        }
 
         if (!$input->isInteractive() && true !== $input->getOption('force')) {
             $io->error('Use --force to confirm import in non-interactive mode.');
@@ -106,15 +116,24 @@ final class LoadProjectSeedCommand extends Command
         }
 
         $result = $this->projectSeedLoader->import($project, $report->data, $plan);
+        $syncedImages = null;
+        if ($syncImages) {
+            $syncedImages = $this->imageSynchronizer->sync($project, $report->data);
+        }
 
         $io->success('Seed import completed.');
+        $rows = array_map(
+            static fn (string $family, int $count): array => [$family, (string) $count],
+            array_keys($result->imported),
+            $result->imported,
+        );
+        if (null !== $syncedImages) {
+            $rows[] = ['synced-images', (string) $syncedImages];
+        }
+
         $io->table(
             ['Family', 'Processed'],
-            array_map(
-                static fn (string $family, int $count): array => [$family, (string) $count],
-                array_keys($result->imported),
-                $result->imported,
-            ),
+            $rows,
         );
 
         return Command::SUCCESS;

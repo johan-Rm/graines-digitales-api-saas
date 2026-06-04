@@ -70,6 +70,7 @@ final class ProjectScopedRelationDenormalizer implements DenormalizerInterface, 
             if ($existing instanceof Accommodation) {
                 $existing->clearAmenityFeature();
                 $existing->clearTags();
+                $existing->clearAssociatedMedia();
                 $existing->clearQualities();
             }
         }
@@ -167,7 +168,7 @@ final class ProjectScopedRelationDenormalizer implements DenormalizerInterface, 
     private function resolveCategoryCode(string $value, Project $project, ?string $inCodeSet = null): ?CategoryCode
     {
         $criteria = ['project' => $project];
-        $criteria[Uuid::isValid($value) ? 'id' : 'code'] = Uuid::isValid($value)
+        $criteria[Uuid::isValid($value) ? 'id' : 'codeValue'] = Uuid::isValid($value)
             ? Uuid::fromString($value)
             : $value;
 

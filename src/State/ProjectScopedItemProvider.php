@@ -44,7 +44,6 @@ final readonly class ProjectScopedItemProvider implements ProviderInterface
         $resource = $this->entityManager->getRepository($class)->findOneBy([
             'id' => Uuid::fromString($id),
             'project' => $project,
-            'deletedAt' => null,
         ]);
 
         if (!$resource instanceof ProjectScopedResource) {

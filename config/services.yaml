@@ -54,6 +54,10 @@ services:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'
 
+    App\State\ProjectScopedAccommodationPersistProcessor:
+        arguments:
+            $decorated: '@App\State\ProjectScopedPersistProcessor'
+
     App\State\ProjectScopedAccommodationBulkTranslationProcessor:
         arguments:
             $decorated: '@api_platform.doctrine.orm.state.persist_processor'

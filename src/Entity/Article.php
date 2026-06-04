@@ -28,11 +28,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/articles', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/articles', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
-        new Get(uriTemplate: '/projects/{projectId}/articles/{id}', provider: ProjectScopedItemProvider::class),
-        new Get(uriTemplate: '/projects/{projectId}/articles/{id}/translations', name: 'get_article_translations', provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
-        new Put(uriTemplate: '/projects/{projectId}/articles/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
-        new Delete(uriTemplate: '/projects/{projectId}/articles/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
+        new Post(uriTemplate: '/projects/{projectId}/articles', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: ProjectScopedPersistProcessor::class),
+        new Get(uriTemplate: '/projects/{projectId}/articles/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class),
+        new Get(uriTemplate: '/projects/{projectId}/articles/{id}/translations', name: 'get_article_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Put(uriTemplate: '/projects/{projectId}/articles/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Delete(uriTemplate: '/projects/{projectId}/articles/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
@@ -75,16 +75,16 @@ class Article implements ProjectScopedResource, TranslatableResource
     public function isFallback(): bool { return $this->fallback; }
     #[Groups(['read', 'write'])]
     public function getSlug(): string { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getSlug() : ''; }
-    public function setSlug(string $slug): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSlug($slug); return $this; }
+    public function setSlug(string $slug): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof ArticleTranslation) { $t->setSlug($slug); } return $this; }
     #[Groups(['read', 'write'])]
     public function getHeadline(): string { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getHeadline() : ''; }
-    public function setHeadline(string $headline): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setHeadline($headline); return $this; }
+    public function setHeadline(string $headline): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof ArticleTranslation) { $t->setHeadline($headline); } return $this; }
     #[Groups(['read', 'write'])]
     public function getBody(): ?string { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getBody() : null; }
-    public function setBody(?string $body): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setBody($body); return $this; }
+    public function setBody(?string $body): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof ArticleTranslation) { $t->setBody($body); } return $this; }
     public function getStatus(): ContentStatus { return $this->status; }
     public function setStatus(ContentStatus $status): self { $this->status = $status; return $this; }
     #[Groups(['read', 'write'])]
     public function getSchemaData(): ?array { $translation = $this->getTranslation(); return $translation instanceof ArticleTranslation ? $translation->getSchemaData() : null; }
-    public function setSchemaData(?array $schemaData): self { $this->getOrCreateTranslation($this->getCurrentLocale())->setSchemaData($schemaData); return $this; }
+    public function setSchemaData(?array $schemaData): self { $t = $this->getOrCreateTranslation($this->getCurrentLocale()); if ($t instanceof ArticleTranslation) { $t->setSchemaData($schemaData); } return $this; }
 }

@@ -9,7 +9,6 @@ use App\Entity\Traits\UuidIdentity;
 use App\Translation\AutoTranslate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'category_code_translation')]
@@ -35,10 +34,14 @@ class CategoryCodeTranslation implements ResourceTranslation
     private ?Project $project = null;
 
     #[ORM\Column(length: 180)]
-    #[Assert\NotBlank]
     #[AutoTranslate]
     #[Groups(['read', 'write'])]
     private string $label = '';
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[AutoTranslate]
+    #[Groups(['read', 'write'])]
+    private ?string $text = null;
 
     public function __construct()
     {
@@ -51,4 +54,6 @@ class CategoryCodeTranslation implements ResourceTranslation
     public function getProject(): ?Project { return $this->project; }
     public function getLabel(): string { return $this->label; }
     public function setLabel(string $label): self { $this->label = $label; return $this; }
+    public function getText(): ?string { return $this->text; }
+    public function setText(?string $text): self { $this->text = $text; return $this; }
 }

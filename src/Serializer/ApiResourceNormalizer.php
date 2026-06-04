@@ -24,6 +24,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
      * are still compacted to UUIDs.
      */
     private const EMBEDDED_TYPES = [
+        'AccommodationMedia',
         'PropertyValue',
         'WebPageMedia',
     ];
@@ -68,6 +69,9 @@ final class ApiResourceNormalizer implements NormalizerInterface
         }
 
         $withTranslations = in_array('read:with-translations', $context['groups'] ?? [], true);
+        if ($object instanceof CategoryCode) {
+            $data = $this->addCategoryCodeTextFields($object, $data, $withTranslations);
+        }
 
         return $this->compactRoot($data, $withTranslations);
     }
@@ -157,6 +161,43 @@ final class ApiResourceNormalizer implements NormalizerInterface
         foreach (array_keys($localizedKeys) as $key) {
             unset($data[$key]);
         }
+
+        return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    private function addCategoryCodeTextFields(CategoryCode $categoryCode, array $data, bool $withTranslations): array
+    {
+        $data['text'] = $categoryCode->getText();
+
+        if (!$withTranslations || !is_array($data['translations'] ?? null)) {
+            return $data;
+        }
+
+        $textsByLocale = [];
+        foreach ($categoryCode->getTranslations() as $translation) {
+            if (method_exists($translation, 'getText')) {
+                $textsByLocale[$translation->getLocale()] = $translation->getText();
+            }
+        }
+
+        $data['translations'] = array_map(
+            static function (mixed $translation) use ($textsByLocale): mixed {
+                if (!is_array($translation)) {
+                    return $translation;
+                }
+
+                $locale = $translation['locale'] ?? null;
+                $translation['text'] = is_string($locale) ? ($textsByLocale[$locale] ?? null) : null;
+
+                return $translation;
+            },
+            $data['translations']
+        );
 
         return $data;
     }
@@ -289,10 +330,13 @@ final class ApiResourceNormalizer implements NormalizerInterface
             return in_array($type, self::EMBEDDED_TYPES, true);
         }
 
-        // Shape-based detection for nested objects without JSON-LD @type
-        return array_key_exists('name', $value)
-            && array_key_exists('value', $value)
-            && !array_key_exists('inCodeSet', $value); // PropertyValue
+        // PropertyValue: name + value fields, no inCodeSet
+        if (array_key_exists('name', $value) && array_key_exists('value', $value) && !array_key_exists('inCodeSet', $value)) {
+            return true;
+        }
+
+        // AccommodationMedia: mediaObject + position, no standalone @type
+        return array_key_exists('mediaObject', $value) && array_key_exists('position', $value);
     }
 
     /**

@@ -30,10 +30,6 @@ trait AuditTrail
     #[Groups(['read'])]
     private ?\DateTimeImmutable $publishedAt = null;
 
-    #[ORM\Column(nullable: true)]
-    #[Groups(['read'])]
-    private ?\DateTimeImmutable $deletedAt = null;
-
     public function initializeAuditTrail(): void
     {
         $now = new \DateTimeImmutable();
@@ -51,12 +47,6 @@ trait AuditTrail
     {
         $this->createdBy = $actor;
         $this->updatedBy = $actor;
-    }
-
-    public function archive(?User $actor = null): void
-    {
-        $this->deletedAt = new \DateTimeImmutable();
-        $this->touch($actor);
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -91,13 +81,4 @@ trait AuditTrail
         return $this;
     }
 
-    public function getDeletedAt(): ?\DateTimeImmutable
-    {
-        return $this->deletedAt;
-    }
-
-    public function isDeleted(): bool
-    {
-        return null !== $this->deletedAt;
-    }
 }

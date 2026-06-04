@@ -29,7 +29,6 @@ final readonly class ProjectScopedCollectionProvider implements ProviderInterfac
         if (is_a($class, ProjectScopedResource::class, true)) {
             $resources = $this->entityManager->getRepository($class)->findBy([
                 'project' => $project,
-                'deletedAt' => null,
             ]);
 
             foreach ($resources as $resource) {

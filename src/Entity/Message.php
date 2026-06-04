@@ -24,7 +24,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/projects/{projectId}/messages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], provider: ProjectScopedCollectionProvider::class),
-        new Post(uriTemplate: '/projects/{projectId}/messages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], processor: ProjectScopedPersistProcessor::class),
+        new Post(uriTemplate: '/projects/{projectId}/messages', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], read: false, processor: ProjectScopedPersistProcessor::class),
         new Get(uriTemplate: '/projects/{projectId}/messages/{id}', provider: ProjectScopedItemProvider::class),
         new Delete(uriTemplate: '/projects/{projectId}/messages/{id}', provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
