@@ -1,0 +1,655 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 2
+			path: src/Command/BootstrapManualCommand.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/Command/CreateOrganizationCommand.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/Command/CreateSuperAdminCommand.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Command/CreateSuperAdminCommand.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: src/Command/CreateSuperAdminCommand.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/Command/LoadProjectSeedCommand.php
+
+		-
+			message: '#^Dead catch \- JsonException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/Controller/AccommodationTranslationsByIdentifierController.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Controller/BulkMediaUploadController.php
+
+		-
+			message: '#^Instanceof between array\<mixed\> and Symfony\\Component\\HttpFoundation\\File\\UploadedFile will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: src/Controller/BulkMediaUploadController.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 2
+			path: src/Controller/BulkMediaUploadController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Controller/BulkMediaUploadController.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/Controller/CheckProjectMemberController.php
+
+		-
+			message: '#^Only booleans are allowed in a negated boolean, string given\.$#'
+			identifier: booleanNot.exprNotBoolean
+			count: 1
+			path: src/Controller/CheckProjectMemberController.php
+
+		-
+			message: '#^Dead catch \- JsonException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/Controller/CreateLocalUserController.php
+
+		-
+			message: '#^Dead catch \- JsonException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/Controller/CreateOrganizationMemberController.php
+
+		-
+			message: '#^Dead catch \- JsonException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/Controller/CreateProjectMemberUserController.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Controller/DashboardAccommodationByIdentifierController.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/Controller/DashboardAccommodationByIdentifierController.php
+
+		-
+			message: '#^Dead catch \- JsonException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/Controller/DashboardAccommodationByIdentifierController.php
+
+		-
+			message: '#^Variable method call on App\\Entity\\ResourceTranslation\.$#'
+			identifier: method.dynamicName
+			count: 1
+			path: src/Controller/DashboardAccommodationByIdentifierController.php
+
+		-
+			message: '#^Return type \(Symfony\\Component\\HttpFoundation\\File\\File\) of method App\\Encoder\\UploadedFileDenormalizer\:\:denormalize\(\) should be covariant with return type \(\(\$type is class\-string\<object\> \? object \: mixed\)\) of method Symfony\\Component\\Serializer\\Normalizer\\DenormalizerInterface\:\:denormalize\(\)$#'
+			identifier: method.childReturnType
+			count: 1
+			path: src/Encoder/UploadedFileDenormalizer.php
+
+		-
+			message: '#^Method App\\Entity\\Accommodation\:\:getTranslations\(\) should return Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\ResourceTranslation\> but returns Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\AccommodationTranslation\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/Accommodation.php
+
+		-
+			message: '#^Parameter \#1 \$element of method Doctrine\\Common\\Collections\\Collection\<int,App\\Entity\\AccommodationTranslation\>\:\:add\(\) expects App\\Entity\\AccommodationTranslation, App\\Entity\\ResourceTranslation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/Accommodation.php
+
+		-
+			message: '#^Property App\\Entity\\Accommodation\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Accommodation.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationMedia\:\:\$accommodation type mapping mismatch\: property can contain App\\Entity\\Accommodation\|null but database expects App\\Entity\\Accommodation\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/AccommodationMedia.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationMedia\:\:\$mediaObject type mapping mismatch\: property can contain App\\Entity\\MediaObject\|null but database expects App\\Entity\\MediaObject\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/AccommodationMedia.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationTranslation\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/AccommodationTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationTranslation\:\:\$translatable \(App\\Entity\\Accommodation\|null\) does not accept App\\Entity\\TranslatableResource\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Entity/AccommodationTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationTranslation\:\:\$translatable type mapping mismatch\: property can contain App\\Entity\\Accommodation\|null but database expects App\\Entity\\Accommodation\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/AccommodationTranslation.php
+
+		-
+			message: '#^Method App\\Entity\\Article\:\:getTranslations\(\) should return Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\ResourceTranslation\> but returns Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\ArticleTranslation\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/Article.php
+
+		-
+			message: '#^Parameter \#1 \$element of method Doctrine\\Common\\Collections\\Collection\<int,App\\Entity\\ArticleTranslation\>\:\:add\(\) expects App\\Entity\\ArticleTranslation, App\\Entity\\ResourceTranslation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/Article.php
+
+		-
+			message: '#^Property App\\Entity\\Article\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Article.php
+
+		-
+			message: '#^Property App\\Entity\\ArticleTranslation\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/ArticleTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\ArticleTranslation\:\:\$translatable \(App\\Entity\\Article\|null\) does not accept App\\Entity\\TranslatableResource\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Entity/ArticleTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\ArticleTranslation\:\:\$translatable type mapping mismatch\: property can contain App\\Entity\\Article\|null but database expects App\\Entity\\Article\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/ArticleTranslation.php
+
+		-
+			message: '#^Method App\\Entity\\CategoryCode\:\:getTranslations\(\) should return Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\ResourceTranslation\> but returns Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\CategoryCodeTranslation\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/CategoryCode.php
+
+		-
+			message: '#^Parameter \#1 \$element of method Doctrine\\Common\\Collections\\Collection\<int,App\\Entity\\CategoryCodeTranslation\>\:\:add\(\) expects App\\Entity\\CategoryCodeTranslation, App\\Entity\\ResourceTranslation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/CategoryCode.php
+
+		-
+			message: '#^Property App\\Entity\\CategoryCode\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/CategoryCode.php
+
+		-
+			message: '#^Property App\\Entity\\CategoryCodeTranslation\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/CategoryCodeTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\CategoryCodeTranslation\:\:\$translatable \(App\\Entity\\CategoryCode\|null\) does not accept App\\Entity\\TranslatableResource\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Entity/CategoryCodeTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\CategoryCodeTranslation\:\:\$translatable type mapping mismatch\: property can contain App\\Entity\\CategoryCode\|null but database expects App\\Entity\\CategoryCode\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/CategoryCodeTranslation.php
+
+		-
+			message: '#^Method App\\Entity\\MediaObject\:\:getTranslations\(\) should return Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\ResourceTranslation\> but returns Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\MediaObjectTranslation\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/MediaObject.php
+
+		-
+			message: '#^Parameter \#1 \$element of method Doctrine\\Common\\Collections\\Collection\<int,App\\Entity\\MediaObjectTranslation\>\:\:add\(\) expects App\\Entity\\MediaObjectTranslation, App\\Entity\\ResourceTranslation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/MediaObject.php
+
+		-
+			message: '#^Property App\\Entity\\MediaObject\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/MediaObject.php
+
+		-
+			message: '#^Property App\\Entity\\MediaObjectTranslation\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/MediaObjectTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\MediaObjectTranslation\:\:\$translatable \(App\\Entity\\MediaObject\|null\) does not accept App\\Entity\\TranslatableResource\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Entity/MediaObjectTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\MediaObjectTranslation\:\:\$translatable type mapping mismatch\: property can contain App\\Entity\\MediaObject\|null but database expects App\\Entity\\MediaObject\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/MediaObjectTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\Message\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Message.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 2
+			path: src/Entity/Organization.php
+
+		-
+			message: '#^Property App\\Entity\\OrganizationMember\:\:\$organization type mapping mismatch\: property can contain App\\Entity\\Organization\|null but database expects App\\Entity\\Organization\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/OrganizationMember.php
+
+		-
+			message: '#^Property App\\Entity\\OrganizationMember\:\:\$user type mapping mismatch\: property can contain App\\Entity\\User\|null but database expects App\\Entity\\User\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/OrganizationMember.php
+
+		-
+			message: '#^Property App\\Entity\\Project\:\:\$organization type mapping mismatch\: property can contain App\\Entity\\Organization\|null but database expects App\\Entity\\Organization\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Project.php
+
+		-
+			message: '#^Property App\\Entity\\ProjectMember\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/ProjectMember.php
+
+		-
+			message: '#^Property App\\Entity\\ProjectMember\:\:\$user type mapping mismatch\: property can contain App\\Entity\\User\|null but database expects App\\Entity\\User\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/ProjectMember.php
+
+		-
+			message: '#^Property App\\Entity\\PropertyValue\:\:\$accommodation type mapping mismatch\: property can contain App\\Entity\\Accommodation\|null but database expects App\\Entity\\Accommodation\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/PropertyValue.php
+
+		-
+			message: '#^Method App\\Entity\\WebPage\:\:getTranslations\(\) should return Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\ResourceTranslation\> but returns Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\WebPageTranslation\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/WebPage.php
+
+		-
+			message: '#^Parameter \#1 \$element of method Doctrine\\Common\\Collections\\Collection\<int,App\\Entity\\WebPageTranslation\>\:\:add\(\) expects App\\Entity\\WebPageTranslation, App\\Entity\\ResourceTranslation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/WebPage.php
+
+		-
+			message: '#^Property App\\Entity\\WebPage\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/WebPage.php
+
+		-
+			message: '#^Property App\\Entity\\WebPageMedia\:\:\$mediaObject type mapping mismatch\: property can contain App\\Entity\\MediaObject\|null but database expects App\\Entity\\MediaObject\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/WebPageMedia.php
+
+		-
+			message: '#^Property App\\Entity\\WebPageMedia\:\:\$webPage type mapping mismatch\: property can contain App\\Entity\\WebPage\|null but database expects App\\Entity\\WebPage\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/WebPageMedia.php
+
+		-
+			message: '#^Property App\\Entity\\WebPageTranslation\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/WebPageTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\WebPageTranslation\:\:\$translatable \(App\\Entity\\WebPage\|null\) does not accept App\\Entity\\TranslatableResource\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Entity/WebPageTranslation.php
+
+		-
+			message: '#^Property App\\Entity\\WebPageTranslation\:\:\$translatable type mapping mismatch\: property can contain App\\Entity\\WebPage\|null but database expects App\\Entity\\WebPage\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/WebPageTranslation.php
+
+		-
+			message: '#^Method App\\Exception\\CategoryCodeAlreadyExistsException\:\:getDetail\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Exception/CategoryCodeAlreadyExistsException.php
+
+		-
+			message: '#^Method App\\Exception\\CategoryCodeAlreadyExistsException\:\:getStatus\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Exception/CategoryCodeAlreadyExistsException.php
+
+		-
+			message: '#^Method App\\Exception\\CategoryCodeAlreadyExistsException\:\:getTitle\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Exception/CategoryCodeAlreadyExistsException.php
+
+		-
+			message: '#^Method App\\Exception\\CategoryCodeInUseException\:\:getDetail\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Exception/CategoryCodeInUseException.php
+
+		-
+			message: '#^Method App\\Exception\\CategoryCodeInUseException\:\:getStatus\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Exception/CategoryCodeInUseException.php
+
+		-
+			message: '#^Method App\\Exception\\CategoryCodeInUseException\:\:getTitle\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Exception/CategoryCodeInUseException.php
+
+		-
+			message: '#^Call to an undefined method Imagick\:\:autoOrientImage\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/MessageHandler/WatermarkMediaObjectHandler.php
+
+		-
+			message: '#^Call to function array_filter\(\) requires parameter \#2 to be passed to avoid loose comparison semantics\.$#'
+			identifier: arrayFilter.strict
+			count: 1
+			path: src/Security/PlatformSuperAdminResolver.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between false and string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Seed/ProjectSeedImageSynchronizer.php
+
+		-
+			message: '#^Parameter \#6 \$accommodations of class App\\Seed\\ProjectSeedData constructor expects list\<array\{identifier\: string\|null, slug\: string, locale\: string, name\: string\|null, category\: string, place\: string, realEstateListing\: string, amenityFeature\: list\<string\>, \.\.\.\}\>, list\<array\{identifier\: string\|null, slug\: string, locale\: string, name\: string\|null, category\: string, place\: string, realEstateListing\: string, amenityFeature\: list\<string\>, \.\.\.\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Seed/ProjectSeedSourceAnalyzer.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 3
+			path: src/Seed/ProjectSeedSourceAnalyzer.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/Serializer/ApiResourceNormalizer.php
+
+		-
+			message: '#^Method App\\Serializer\\ApiResourceNormalizer\:\:compactIri\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Serializer/ApiResourceNormalizer.php
+
+		-
+			message: '#^Only booleans are allowed in &&, string\|null given on the left side\.$#'
+			identifier: booleanAnd.leftNotBoolean
+			count: 1
+			path: src/Serializer/ApiResourceNormalizer.php
+
+		-
+			message: '#^Only booleans are allowed in &&, string\|null given on the right side\.$#'
+			identifier: booleanAnd.rightNotBoolean
+			count: 1
+			path: src/Serializer/ApiResourceNormalizer.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 1
+			path: src/State/AccommodationAssociatedMediaPayloadApplier.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and non\-empty\-string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/State/AccommodationIdentifierGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$level of method App\\Entity\\Accommodation\:\:setLevel\(\) expects int\|null, bool\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/State/AccommodationStructuralPayloadApplier.php
+
+		-
+			message: '#^Variable method call on App\\Entity\\Accommodation\.$#'
+			identifier: method.dynamicName
+			count: 3
+			path: src/State/AccommodationStructuralPayloadApplier.php
+
+		-
+			message: '#^Method App\\State\\OrganizationByOwnerEmailProvider\:\:provide\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/State/OrganizationByOwnerEmailProvider.php
+
+		-
+			message: '#^Method App\\State\\ProjectByOwnerEmailProvider\:\:provide\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/State/ProjectByOwnerEmailProvider.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/State/ProjectScopedAccommodationBulkTranslationProcessor.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/State/ProjectScopedAccommodationBulkTranslationProcessor.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/State/ProjectScopedAccommodationCreateWithTranslationsProcessor.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 2
+			path: src/State/ProjectScopedAccommodationCreateWithTranslationsProcessor.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/State/ProjectScopedAccommodationPersistProcessor.php
+
+		-
+			message: '#^Dead catch \- JsonException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/State/ProjectScopedBulkTranslationCreateProcessor.php
+
+		-
+			message: '#^Instanceof between App\\Entity\\TranslatableResource and App\\Entity\\ProjectScopedResource will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/State/ProjectScopedBulkTranslationCreateProcessor.php
+
+		-
+			message: '#^Variable method call on App\\Entity\\ResourceTranslation\.$#'
+			identifier: method.dynamicName
+			count: 1
+			path: src/State/ProjectScopedBulkTranslationCreateProcessor.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/State/ProjectScopedBulkTranslationProcessor.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/State/ProjectScopedBulkTranslationProcessor.php
+
+		-
+			message: '#^Instanceof between App\\Entity\\ResourceTranslation and App\\Entity\\ResourceTranslation will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/State/ProjectScopedBulkTranslationProcessor.php
+
+		-
+			message: '#^Casting to string something that''s already string\.$#'
+			identifier: cast.useless
+			count: 1
+			path: src/State/ProjectScopedMediaObjectBulkTranslationProcessor.php
+
+		-
+			message: '#^Variable method call on App\\Entity\\ResourceTranslation\.$#'
+			identifier: method.dynamicName
+			count: 1
+			path: src/State/ProjectScopedMediaObjectBulkTranslationProcessor.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 2
+			path: src/State/ProjectScopedPersistProcessor.php
+
+		-
+			message: '#^Method App\\State\\ProjectScopedTranslationItemProvider\:\:provide\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/State/ProjectScopedTranslationItemProvider.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 1
+			path: src/Translation/LocaleResolver.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 1
+			path: src/Translation/ResourceAutoFiller.php
+
+		-
+			message: '#^Variable method call on App\\Entity\\ResourceTranslation\.$#'
+			identifier: method.dynamicName
+			count: 3
+			path: src/Translation/ResourceAutoFiller.php
+
+		-
+			message: '#^Variable method call on App\\Entity\\ResourceTranslation\.$#'
+			identifier: method.dynamicName
+			count: 3
+			path: src/Translation/ResourceAutoTranslator.php
+
+		-
+			message: '#^Offset ''amenityFeature'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: tests/Functional/AccommodationCrudTest.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Entity\\CategoryCode\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: tests/Functional/DashboardAccommodationSaveTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Functional/OrganizationMemberProvisioningTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertInstanceOf\(\) with ''App\\\\Entity\\\\CategoryCode'' and App\\Entity\\CategoryCode will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 3
+			path: tests/Functional/ProjectIsolationTest.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Entity\\CategoryCode\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: tests/Functional/ProjectIsolationTest.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 6
+			path: tests/bootstrap.php

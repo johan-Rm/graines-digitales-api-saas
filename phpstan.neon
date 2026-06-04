@@ -1,0 +1,22 @@
+includes:
+  - phpstan-baseline.neon
+  - vendor/phpstan/phpstan-doctrine/extension.neon
+  - vendor/phpstan/phpstan-doctrine/rules.neon
+  - vendor/phpstan/phpstan-phpunit/extension.neon
+  - vendor/phpstan/phpstan-strict-rules/rules.neon
+  - vendor/phpstan/phpstan-symfony/extension.neon
+
+parameters:
+  level: 5
+  paths:
+    - src
+    - tests
+  tmpDir: var/phpstan
+  reportUnmatchedIgnoredErrors: false
+  symfony:
+    containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    consoleApplicationLoader: tests/phpstan/console-application.php
+  excludePaths:
+    analyse:
+      - var/*
+      - vendor/*

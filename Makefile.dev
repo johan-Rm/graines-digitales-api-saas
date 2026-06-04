@@ -1,0 +1,30 @@
+.PHONY: dev-setup dev-reset-cache dev-bootstrap-manual dev-fixtures-test dev-seed-load dev-create-super-admin dev-create-organization dev-db-test-create
+
+dev-setup: up install jwt-keypair migrate ## Bootstrap the local Docker development environment.
+
+dev-reset-cache: ## Remove Symfony var/cache from inside the API container.
+	$(EXEC) rm -rf var/cache
+
+dev-bootstrap-manual: ## Run the manual bootstrap command.
+	$(EXEC) php bin/console app:bootstrap:manual
+
+dev-fixtures-test: ## Load test fixtures through the project command.
+	$(EXEC) php bin/console app:fixtures:load-test
+
+dev-seed-load: ## Load project seed data. Usage: make dev-seed-load PROJECT=blue-bay-mogador
+	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make dev-seed-load PROJECT=blue-bay-mogador' && exit 1)
+	$(EXEC) php bin/console app:seed:load-project $(PROJECT)
+
+dev-create-super-admin: ## Create or update a super admin. Usage: make dev-create-super-admin EMAIL=user@example.test PASSWORD=password1234
+	@test -n "$(EMAIL)" || (echo 'Missing EMAIL. Usage: make dev-create-super-admin EMAIL=user@example.test PASSWORD=password1234' && exit 1)
+	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make dev-create-super-admin EMAIL=user@example.test PASSWORD=password1234' && exit 1)
+	$(EXEC) php bin/console app:user:create-super-admin $(EMAIL) --password=$(PASSWORD)
+
+dev-create-organization: ## Create an organization. Usage: make dev-create-organization NAME="Org" OWNER_EMAIL=user@example.test OWNER_PASSWORD=password1234
+	@test -n "$(NAME)" || (echo 'Missing NAME. Usage: make dev-create-organization NAME="Org" OWNER_EMAIL=user@example.test OWNER_PASSWORD=password1234' && exit 1)
+	@test -n "$(OWNER_EMAIL)" || (echo 'Missing OWNER_EMAIL. Usage: make dev-create-organization NAME="Org" OWNER_EMAIL=user@example.test OWNER_PASSWORD=password1234' && exit 1)
+	@test -n "$(OWNER_PASSWORD)" || (echo 'Missing OWNER_PASSWORD. Usage: make dev-create-organization NAME="Org" OWNER_EMAIL=user@example.test OWNER_PASSWORD=password1234' && exit 1)
+	$(EXEC) php bin/console app:organization:create "$(NAME)" --owner-email=$(OWNER_EMAIL) --owner-password=$(OWNER_PASSWORD)
+
+dev-db-test-create: ## Create the test database if it does not exist.
+	$(EXEC) php bin/console doctrine:database:create --if-not-exists --env=test

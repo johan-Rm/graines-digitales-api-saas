@@ -1,0 +1,142 @@
+imports:
+  - deptrac-baseline.yaml
+
+deptrac:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*Kernel\.php#'
+  layers:
+    - name: ApiResource
+      collectors:
+        - type: directory
+          value: src/ApiResource/.*
+    - name: Command
+      collectors:
+        - type: directory
+          value: src/Command/.*
+    - name: Controller
+      collectors:
+        - type: directory
+          value: src/Controller/.*
+    - name: Domain
+      collectors:
+        - type: directory
+          value: src/Entity/.*
+        - type: directory
+          value: src/Enum/.*
+        - type: directory
+          value: src/Exception/.*
+    - name: Message
+      collectors:
+        - type: directory
+          value: src/Message/.*
+    - name: MessageHandler
+      collectors:
+        - type: directory
+          value: src/MessageHandler/.*
+    - name: Repository
+      collectors:
+        - type: directory
+          value: src/Repository/.*
+    - name: Security
+      collectors:
+        - type: directory
+          value: src/Security/.*
+    - name: Serialization
+      collectors:
+        - type: directory
+          value: src/Encoder/.*
+        - type: directory
+          value: src/Serializer/.*
+    - name: State
+      collectors:
+        - type: directory
+          value: src/State/.*
+    - name: Translation
+      collectors:
+        - type: directory
+          value: src/Translation/.*
+    - name: Uploader
+      collectors:
+        - type: directory
+          value: src/Uploader/.*
+    - name: Seed
+      collectors:
+        - type: directory
+          value: src/Seed/.*
+    - name: Vendor
+      collectors:
+        - type: bool
+          must:
+            - type: classNameRegex
+              value: '#.*#'
+          must_not:
+            - type: classNameRegex
+              value: '#^App\\.*#'
+
+  ruleset:
+    ApiResource:
+      - Domain
+      - State
+      - Vendor
+    Command:
+      - Domain
+      - Repository
+      - Security
+      - Seed
+      - State
+      - Translation
+      - Vendor
+    Controller:
+      - Domain
+      - Security
+      - State
+      - Uploader
+      - Vendor
+    Domain:
+      - Vendor
+    Message:
+      - Domain
+      - Vendor
+    MessageHandler:
+      - Domain
+      - Message
+      - Repository
+      - State
+      - Translation
+      - Uploader
+      - Vendor
+    Repository:
+      - Domain
+      - Vendor
+    Security:
+      - Domain
+      - Repository
+      - Vendor
+    Serialization:
+      - Domain
+      - Vendor
+    State:
+      - Domain
+      - Repository
+      - Security
+      - Serialization
+      - Translation
+      - Uploader
+      - Vendor
+    Translation:
+      - Domain
+      - Message
+      - Repository
+      - Security
+      - Vendor
+    Uploader:
+      - Domain
+      - Repository
+      - Security
+      - Vendor
+    Seed:
+      - Domain
+      - Repository
+      - Vendor

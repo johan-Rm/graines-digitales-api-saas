@@ -1,4 +1,6 @@
 {
+  "name": "graines-digitales/symfony-8-api-platform",
+  "description": "Symfony 8 API Platform backend for the Graines Digitales multi-tenant content management API.",
   "type": "project",
   "license": "proprietary",
   "minimum-stability": "stable",
@@ -35,7 +37,16 @@
   },
   "require-dev": {
     "api-platform/symfony": "^4.3",
+    "deptrac/deptrac": "^2.0",
+    "friendsofphp/php-cs-fixer": "^3.95",
+    "infection/infection": "^0.33",
+    "phpstan/phpstan": "^2.2",
+    "phpstan/phpstan-doctrine": "^2.0",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "phpstan/phpstan-strict-rules": "^2.0",
+    "phpstan/phpstan-symfony": "^2.0",
     "phpunit/phpunit": "^12.0",
+    "rector/rector": "^2.4",
     "symfony/browser-kit": "^8.0",
     "symfony/css-selector": "^8.0",
     "symfony/http-client": "^8.0",
@@ -46,7 +57,8 @@
     "allow-plugins": {
       "php-http/discovery": true,
       "symfony/flex": true,
-      "symfony/runtime": true
+      "symfony/runtime": true,
+      "infection/extension-installer": true
     },
     "sort-packages": true
   },
@@ -71,6 +83,26 @@
     "post-update-cmd": [
       "@auto-scripts"
     ],
+    "analyse": "phpstan analyse --memory-limit=1G",
+    "cs:check": "php-cs-fixer fix --dry-run --diff --verbose",
+    "cs:fix": "php-cs-fixer fix --verbose",
+    "deptrac": "deptrac analyse --config-file=deptrac.yaml",
+    "infection": "infection --threads=max",
+    "quality": [
+      "@lint:container",
+      "@analyse",
+      "@cs:check",
+      "@deptrac",
+      "@test"
+    ],
+    "quality:fast": [
+      "@lint:container",
+      "@analyse",
+      "@cs:check",
+      "@deptrac"
+    ],
+    "rector:check": "rector process --dry-run",
+    "rector:fix": "rector process",
     "test": "php bin/phpunit",
     "lint:container": "php bin/console lint:container",
     "migrations:migrate": "php bin/console doctrine:migrations:migrate --no-interaction"

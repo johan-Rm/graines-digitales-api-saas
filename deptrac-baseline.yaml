@@ -1,0 +1,85 @@
+deptrac:
+  skip_violations:
+    App\Controller\AccommodationTranslationsByIdentifierController:
+      - App\Translation\ResourceAutoFiller
+      - App\Translation\ResourceAutoTranslator
+    App\Controller\BulkMediaUploadController:
+      - App\Message\AnalyzeMediaObject
+    App\Controller\DashboardAccommodationByIdentifierController:
+      - App\Translation\ResourceAutoFiller
+      - App\Translation\ResourceAutoTranslator
+    App\Entity\Accommodation:
+      - App\State\ProjectScopedAccommodationBulkTranslationProcessor
+      - App\State\ProjectScopedAccommodationCreateWithTranslationsProcessor
+      - App\State\ProjectScopedAccommodationPersistProcessor
+      - App\State\ProjectScopedAccommodationRemoveProcessor
+      - App\State\ProjectScopedCollectionProvider
+      - App\State\ProjectScopedItemProvider
+    App\Entity\AccommodationTranslation:
+      - App\Translation\AutoFill
+      - App\Translation\AutoTranslate
+    App\Entity\Article:
+      - App\State\ProjectScopedCollectionProvider
+      - App\State\ProjectScopedItemProvider
+      - App\State\ProjectScopedPersistProcessor
+      - App\State\ProjectScopedRemoveProcessor
+    App\Entity\ArticleTranslation:
+      - App\Translation\AutoFill
+      - App\Translation\AutoTranslate
+    App\Entity\CategoryCode:
+      - App\State\CategoryCodePersistProcessor
+      - App\State\CategoryCodeRemoveProcessor
+      - App\State\ProjectScopedBulkTranslationCreateProcessor
+      - App\State\ProjectScopedBulkTranslationProcessor
+      - App\State\ProjectScopedCollectionProvider
+      - App\State\ProjectScopedItemProvider
+    App\Entity\CategoryCodeTranslation:
+      - App\Translation\AutoTranslate
+    App\Entity\MediaObject:
+      - App\Controller\BulkMediaUploadController
+      - App\State\MediaObjectCollectionProvider
+      - App\State\ProjectScopedBulkTranslationCreateProcessor
+      - App\State\ProjectScopedCollectionProvider
+      - App\State\ProjectScopedItemProvider
+      - App\State\ProjectScopedMediaObjectBulkTranslationProcessor
+      - App\State\ProjectScopedPersistProcessor
+      - App\State\ProjectScopedRemoveProcessor
+    App\Entity\MediaObjectTranslation:
+      - App\Translation\AutoTranslate
+    App\Entity\Message:
+      - App\State\ProjectScopedCollectionProvider
+      - App\State\ProjectScopedItemProvider
+      - App\State\ProjectScopedPersistProcessor
+      - App\State\ProjectScopedRemoveProcessor
+    App\Entity\Organization:
+      - App\State\OrganizationByOwnerEmailProvider
+      - App\State\OrganizationCollectionProvider
+    App\Entity\Project:
+      - App\State\ProjectByOwnerEmailProvider
+      - App\State\ProjectCollectionProvider
+      - App\State\ProjectPersistProcessor
+    App\Entity\ProjectMember:
+      - App\State\ProjectScopedCollectionProvider
+    App\Entity\WebPage:
+      - App\State\ProjectScopedBulkTranslationCreateProcessor
+      - App\State\ProjectScopedBulkTranslationProcessor
+      - App\State\ProjectScopedCollectionProvider
+      - App\State\ProjectScopedItemProvider
+      - App\State\ProjectScopedPersistProcessor
+      - App\State\ProjectScopedRemoveProcessor
+    App\Entity\WebPageTranslation:
+      - App\Translation\AutoFill
+      - App\Translation\AutoTranslate
+    App\Seed\AccommodationSeedImporter:
+      - App\State\AccommodationIdentifierGenerator
+      - App\Translation\ResourceAutoFiller
+      - App\Translation\ResourceAutoTranslator
+    App\Seed\CategoryCodeSeedImporter:
+      - App\Translation\ResourceAutoTranslator
+    App\Seed\MediaObjectSeedImporter:
+      - App\Translation\ResourceAutoTranslator
+    App\Seed\WebPageSeedImporter:
+      - App\Translation\ResourceAutoFiller
+      - App\Translation\ResourceAutoTranslator
+    App\State\ProjectScopedPersistProcessor:
+      - App\Message\WatermarkMediaObject
