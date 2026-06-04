@@ -27,5 +27,6 @@
 
 ###> phpunit/phpunit ###
 /phpunit.xml
+/phpunit_debug.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
