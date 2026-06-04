@@ -28,6 +28,12 @@ final class ApiResourceNormalizer implements NormalizerInterface
         'WebPageMedia',
     ];
 
+    /**
+     * Locale-resolution metadata flattened at the root of a single-locale view.
+     * Meaningless on a "with translations" view that already lists every locale.
+     */
+    private const LOCALE_RESOLUTION_FIELDS = ['locale', 'requestedLocale', 'fallback', 'fallbackLocale'];
+
     public function __construct(
         #[Autowire(service: 'api_platform.jsonld.normalizer.item')]
         private readonly NormalizerInterface $normalizer,
@@ -103,6 +109,8 @@ final class ApiResourceNormalizer implements NormalizerInterface
     {
         if (!$withTranslations) {
             unset($data['translations']);
+        } else {
+            $data = $this->stripLocalizedRootFields($data);
         }
 
         foreach ($data as $key => $value) {
@@ -110,6 +118,44 @@ final class ApiResourceNormalizer implements NormalizerInterface
                 continue;
             }
             $data[$key] = $this->compactValue($value, $withTranslations);
+        }
+
+        return $data;
+    }
+
+    /**
+     * On a "with translations" view the full per-locale collection is returned, so the
+     * single-locale fields flattened at the root (slug, name, body, ...) and the locale
+     * resolution metadata become redundant and misleading. Drop every root key that is
+     * per-locale — i.e. present inside the translation items — plus the resolution metadata.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    private function stripLocalizedRootFields(array $data): array
+    {
+        $localizedKeys = array_fill_keys(self::LOCALE_RESOLUTION_FIELDS, true);
+
+        $translations = $data['translations'] ?? null;
+        if (is_array($translations)) {
+            foreach ($translations as $translation) {
+                if (!is_array($translation)) {
+                    continue;
+                }
+
+                foreach (array_keys($translation) as $key) {
+                    $key = (string) $key;
+                    if ('id' === $key || str_starts_with($key, '@')) {
+                        continue;
+                    }
+                    $localizedKeys[$key] = true;
+                }
+            }
+        }
+
+        foreach (array_keys($localizedKeys) as $key) {
+            unset($data[$key]);
         }
 
         return $data;
