@@ -5,6 +5,7 @@ namespace App\Tests\Functional;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\Accommodation;
 use App\Entity\Article;
+use App\Entity\MediaObject;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Entity\WebPage;
@@ -73,7 +74,6 @@ abstract class FunctionalTestCase extends ApiTestCase
     {
         $page = $this->entityManager()->getRepository(WebPage::class)->findOneBy([
             'project' => $project,
-            'deletedAt' => null,
         ]);
 
         self::assertInstanceOf(WebPage::class, $page);
@@ -85,7 +85,6 @@ abstract class FunctionalTestCase extends ApiTestCase
     {
         $article = $this->entityManager()->getRepository(Article::class)->findOneBy([
             'project' => $project,
-            'deletedAt' => null,
         ]);
 
         self::assertInstanceOf(Article::class, $article);
@@ -93,11 +92,21 @@ abstract class FunctionalTestCase extends ApiTestCase
         return $article;
     }
 
+    protected function findMediaObjectByProject(Project $project): MediaObject
+    {
+        $mediaObject = $this->entityManager()->getRepository(MediaObject::class)->findOneBy([
+            'project' => $project,
+        ]);
+
+        self::assertInstanceOf(MediaObject::class, $mediaObject);
+
+        return $mediaObject;
+    }
+
     protected function findAccommodationByIdentifier(string $identifier, ?Project $project = null): Accommodation
     {
         $criteria = [
             'identifier' => $identifier,
-            'deletedAt' => null,
         ];
 
         if ($project instanceof Project) {
@@ -114,6 +123,27 @@ abstract class FunctionalTestCase extends ApiTestCase
     protected function entityManager(): EntityManagerInterface
     {
         return self::getContainer()->get(EntityManagerInterface::class);
+    }
+
+    /**
+     * Asserts a "with translations" payload exposes the full translations collection but
+     * never flattens a single locale at the root: per-locale content fields and the
+     * locale-resolution metadata must live inside `translations`, not at the root.
+     *
+     * @param array<string, mixed> $payload
+     */
+    protected function assertNoLocalizedRootFields(array $payload): void
+    {
+        self::assertArrayHasKey('translations', $payload, '/translations responses must expose the translations collection');
+
+        $forbiddenRootKeys = [
+            'slug', 'name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription',
+            'text', 'headline', 'caption', 'locale', 'requestedLocale', 'fallback', 'fallbackLocale',
+        ];
+
+        foreach ($forbiddenRootKeys as $key) {
+            self::assertArrayNotHasKey($key, $payload, sprintf('/translations must not flatten "%s" at the root', $key));
+        }
     }
 
     protected function recreateSchema(): void

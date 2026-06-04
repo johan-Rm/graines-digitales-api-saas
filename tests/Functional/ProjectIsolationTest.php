@@ -26,20 +26,18 @@ final class ProjectIsolationTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    public function testSoftDeletedContentIsHiddenFromCollections(): void
+    public function testDeletedContentIsHiddenFromCollections(): void
     {
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('riads-medina-essaouira');
         $page = $this->findWebPageByProject($project);
         $pageId = (string) $page->getId();
-        $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
-            'email' => 'admin@grainesdigitales.local',
-        ]);
 
-        self::assertInstanceOf(User::class, $admin);
-        $page->archive($admin);
-        $this->entityManager()->flush();
+        $client->request('DELETE', sprintf('/api/projects/%s/web-pages/%s', $project->getId(), $pageId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+        self::assertResponseStatusCodeSame(204);
 
         $response = $client->request('GET', sprintf('/api/projects/%s/web-pages', $project->getId()), [
             'headers' => ['Authorization' => 'Bearer '.$token],
@@ -190,7 +188,7 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
         $riadProject = $this->findProjectBySlug('riads-medina-essaouira');
         $coastalProject = $this->findProjectBySlug('blue-bay-mogador');
-        $coastalAccommodation = $this->findAccommodationByIdentifier('FBAVVG001', $coastalProject);
+        $coastalAccommodation = $this->findAccommodationByIdentifier('LV001', $coastalProject);
 
         $client->request('GET', sprintf(
             '/api/projects/%s/accommodations/%s',
@@ -203,20 +201,18 @@ final class ProjectIsolationTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    public function testSoftDeletedAccommodationIsHiddenFromCollections(): void
+    public function testDeletedAccommodationIsHiddenFromCollections(): void
     {
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('riads-medina-essaouira');
         $accommodation = $this->findAccommodationByIdentifier('BAVR001', $project);
         $accommodationId = (string) $accommodation->getId();
-        $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
-            'email' => 'admin@grainesdigitales.local',
-        ]);
 
-        self::assertInstanceOf(User::class, $admin);
-        $accommodation->archive($admin);
-        $this->entityManager()->flush();
+        $client->request('DELETE', sprintf('/api/projects/%s/accommodations/%s', $project->getId(), $accommodationId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+        self::assertResponseStatusCodeSame(204);
 
         $response = $client->request('GET', sprintf('/api/projects/%s/accommodations', $project->getId()), [
             'headers' => ['Authorization' => 'Bearer '.$token],
@@ -229,69 +225,6 @@ final class ProjectIsolationTest extends FunctionalTestCase
         self::assertIsArray($items);
         self::assertNotContains($accommodationId, array_map(
             static fn (array $item): ?string => $item['id'] ?? null,
-            $items,
-        ));
-    }
-
-    public function testAccommodationTranslationsCollectionReturnsProjectTranslations(): void
-    {
-        $client = static::createClient();
-        $token = $this->login($client, 'admin@grainesdigitales.local');
-        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
-        $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
-
-        $accommodation->setCurrentLocale('es');
-        $accommodation
-            ->setSlug('local-comercial-erraounak')
-            ->setName('Local comercial en Erraounak')
-            ->setBody('Descripcion espanola del local comercial.');
-        $this->entityManager()->flush();
-
-        $response = $client->request('GET', sprintf('/api/projects/%s/accommodation-translations', $project->getId()), [
-            'headers' => ['Authorization' => 'Bearer '.$token],
-        ]);
-
-        self::assertResponseIsSuccessful();
-        $payload = $response->toArray(false);
-        $items = $payload['member'] ?? $payload;
-
-        self::assertIsArray($items);
-
-        $spanishTranslations = array_values(array_filter(
-            $items,
-            static fn (array $item): bool => ($item['accommodation'] ?? null) === (string) $accommodation->getId()
-                && ($item['locale'] ?? null) === 'es',
-        ));
-
-        self::assertCount(1, $spanishTranslations);
-        self::assertSame('Local comercial en Erraounak', $spanishTranslations[0]['name'] ?? null);
-    }
-
-    public function testSoftDeletedAccommodationIsHiddenFromTranslationsCollection(): void
-    {
-        $client = static::createClient();
-        $token = $this->login($client, 'admin@grainesdigitales.local');
-        $project = $this->findProjectBySlug('riads-medina-essaouira');
-        $accommodation = $this->findAccommodationByIdentifier('BAVR002', $project);
-        $admin = $this->entityManager()->getRepository(User::class)->findOneBy([
-            'email' => 'admin@grainesdigitales.local',
-        ]);
-
-        self::assertInstanceOf(User::class, $admin);
-        $accommodation->archive($admin);
-        $this->entityManager()->flush();
-
-        $response = $client->request('GET', sprintf('/api/projects/%s/accommodation-translations', $project->getId()), [
-            'headers' => ['Authorization' => 'Bearer '.$token],
-        ]);
-
-        self::assertResponseIsSuccessful();
-        $payload = $response->toArray(false);
-        $items = $payload['member'] ?? $payload;
-
-        self::assertIsArray($items);
-        self::assertNotContains((string) $accommodation->getId(), array_map(
-            static fn (array $item): ?string => $item['accommodation'] ?? null,
             $items,
         ));
     }
@@ -327,7 +260,7 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $categoryCode = $this->entityManager()->getRepository(CategoryCode::class)->findOneBy([
             'project' => $project,
             'inCodeSet' => $inCodeSet,
-            'code' => $code,
+            'codeValue' => $code,
         ]);
 
         self::assertInstanceOf(CategoryCode::class, $categoryCode);

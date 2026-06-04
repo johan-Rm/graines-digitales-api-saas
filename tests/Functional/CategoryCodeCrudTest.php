@@ -131,8 +131,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(204);
 
         $deletedCategoryCode = $this->entityManager()->getRepository(CategoryCode::class)->find($categoryCodeId);
-        self::assertInstanceOf(CategoryCode::class, $deletedCategoryCode);
-        self::assertNotNull($deletedCategoryCode->getDeletedAt());
+        self::assertNull($deletedCategoryCode);
     }
 
     public function testUsedCategoryCodeDeletionIsRejectedWithAccommodationCount(): void
@@ -190,7 +189,7 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
         $categoryCode = $this->entityManager()->getRepository(CategoryCode::class)->findOneBy([
             'project' => $project,
             'inCodeSet' => $inCodeSet,
-            'code' => $code,
+            'codeValue' => $code,
         ]);
 
         self::assertInstanceOf(CategoryCode::class, $categoryCode);
@@ -208,5 +207,168 @@ final class CategoryCodeCrudTest extends FunctionalTestCase
             'Accept' => 'application/ld+json',
             'Content-Type' => 'application/ld+json',
         ];
+    }
+
+    public function testCategoryCodeGetResponsesAreCorrect(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $post = $client->request('POST', sprintf('/api/projects/%s/category-codes/translations', $project->getId()), [
+            'headers' => $this->jsonLdHeaders($token),
+            'json' => [
+                'inCodeSet' => 'accommodation-type',
+                'translations' => [
+                    ['locale' => 'fr', 'label' => 'Atelier artisanal', 'text' => 'Texte long atelier'],
+                    ['locale' => 'en', 'label' => 'Artisan workshop', 'text' => 'Workshop long text'],
+                ],
+            ],
+        ]);
+        self::assertResponseStatusCodeSame(201);
+        $id = $post->toArray(false)['id'];
+
+        $std = $client->request('GET', sprintf('/api/projects/%s/category-codes/%s?locale=fr', $project->getId(), $id), [
+            'headers' => ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/ld+json'],
+        ])->toArray(false);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame('atelier-artisanal', $std['codeValue'] ?? null);
+        self::assertSame('Atelier artisanal', $std['label'] ?? null);
+        self::assertSame('Texte long atelier', $std['text'] ?? null);
+        self::assertSame('fr', $std['locale'] ?? null);
+        self::assertArrayNotHasKey('translations', $std, 'translations must be hidden on standard GET');
+
+        $trans = $client->request('GET', sprintf('/api/projects/%s/category-codes/%s/translations?locale=fr', $project->getId(), $id), [
+            'headers' => ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/ld+json'],
+        ])->toArray(false);
+
+        self::assertResponseIsSuccessful();
+        $this->assertNoLocalizedRootFields($trans);
+        $locales = array_column($trans['translations'], 'locale');
+        self::assertContains('fr', $locales);
+        self::assertContains('en', $locales);
+        self::assertContains('es', $locales);
+        $byLocale = array_column($trans['translations'], null, 'locale');
+        self::assertSame('Texte long atelier', $byLocale['fr']['text'] ?? null);
+    }
+
+    public function testGetNonExistentIdReturns404(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $client->request('GET', sprintf(
+            '/api/projects/%s/category-codes/019e78f4-b66e-7649-8628-3f2f1338da3e',
+            $project->getId()
+        ), [
+            'headers' => ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/ld+json'],
+        ]);
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testCategoryCodeCollectionReturnsProjectItems(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $response = $client->request('GET', sprintf('/api/projects/%s/category-codes', $project->getId()), [
+            'headers' => ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/ld+json'],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+
+        $items = $payload['hydra:member'] ?? $payload['member'] ?? $payload;
+        self::assertIsArray($items);
+        self::assertNotEmpty($items);
+
+        $first = is_array($items[0] ?? null) ? $items[0] : reset($items);
+        self::assertNotEmpty($first['codeValue'] ?? null);
+        self::assertNotEmpty($first['inCodeSet'] ?? null);
+        self::assertArrayHasKey('text', $first);
+        self::assertArrayNotHasKey('translations', $first, 'translations must be hidden on collection GET');
+    }
+
+    public function testPutCategoryCodeTranslationsUpdatesTextOnly(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $created = $client->request('POST', sprintf('/api/projects/%s/category-codes/translations', $project->getId()), [
+            'headers' => $this->jsonLdHeaders($token),
+            'json' => [
+                'inCodeSet' => 'tag',
+                'translations' => [
+                    ['locale' => 'fr', 'label' => 'Étiquette initiale', 'text' => 'Texte initial'],
+                    ['locale' => 'en', 'label' => 'Initial tag', 'text' => 'Initial text'],
+                ],
+            ],
+        ]);
+        self::assertResponseStatusCodeSame(201);
+        $id = $created->toArray(false)['id'];
+
+        $response = $client->request('PUT', sprintf('/api/projects/%s/category-codes/%s/translations?locale=fr', $project->getId(), $id), [
+            'headers' => $this->jsonLdHeaders($token),
+            'json' => [
+                'translations' => [
+                    ['locale' => 'fr', 'text' => 'Texte public mis à jour'],
+                    ['locale' => 'en', 'text' => 'Updated public text'],
+                ],
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+
+        $this->assertNoLocalizedRootFields($payload);
+        $byLocale = array_column($payload['translations'], null, 'locale');
+        self::assertSame('Étiquette initiale', $byLocale['fr']['label'] ?? null);
+        self::assertSame('Initial tag', $byLocale['en']['label'] ?? null);
+        self::assertSame('Texte public mis à jour', $byLocale['fr']['text'] ?? null);
+        self::assertSame('Updated public text', $byLocale['en']['text'] ?? null);
+        self::assertArrayNotHasKey('text', $payload, '/translations must not flatten a single locale at the root');
+    }
+
+    public function testCategoryCodeLabelCannotBeUpdatedThroughTranslations(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $response = $client->request('POST', sprintf('/api/projects/%s/category-codes/translations', $project->getId()), [
+            'headers' => $this->jsonLdHeaders($token),
+            'json' => [
+                'inCodeSet' => 'tag',
+                'translations' => [
+                    ['locale' => 'fr', 'label' => 'Libellé stable', 'text' => 'Texte public'],
+                    ['locale' => 'en', 'label' => 'Stable label', 'text' => 'Public text'],
+                ],
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        $payload = $response->toArray(false);
+        $id = $payload['id'];
+
+        self::assertSame('libelle-stable', $payload['codeValue'] ?? null);
+        $byLocale = array_column($payload['translations'], null, 'locale');
+        self::assertSame('Libellé stable', $byLocale['fr']['label'] ?? null);
+        self::assertSame('Texte public', $byLocale['fr']['text'] ?? null);
+
+        $client->request('PUT', sprintf('/api/projects/%s/category-codes/%s/translations?locale=fr', $project->getId(), $id), [
+            'headers' => $this->jsonLdHeaders($token),
+            'json' => [
+                'translations' => [
+                    ['locale' => 'fr', 'label' => 'Libellé interdit', 'text' => 'Texte public modifié'],
+                ],
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
     }
 }

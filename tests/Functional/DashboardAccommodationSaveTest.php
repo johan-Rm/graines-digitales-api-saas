@@ -2,6 +2,7 @@
 
 namespace App\Tests\Functional;
 
+use App\Entity\AccommodationTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\Project;
 
@@ -184,7 +185,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         $accommodation = $this->findAccommodationByIdentifier('BAVLC001', $project);
         $englishTranslation = $accommodation->getTranslation('en');
 
-        self::assertNotNull($englishTranslation);
+        self::assertInstanceOf(AccommodationTranslation::class, $englishTranslation);
         self::assertSame('Local source pour traduction automatique', $englishTranslation->getName());
         self::assertSame('<p>Texte source pour traduction automatique.</p>', $englishTranslation->getBody());
         self::assertSame('Titre source automatique', $englishTranslation->getMetaTitle());
@@ -197,7 +198,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('blue-bay-mogador');
 
-        $client->request('PUT', sprintf('/api/projects/%s/accommodations/FBAVVG001?locale=fr', $project->getId()), [
+        $client->request('PUT', sprintf('/api/projects/%s/accommodations/LV001?locale=fr', $project->getId()), [
             'headers' => [
                 'Authorization' => 'Bearer '.$token,
                 'Accept' => 'application/ld+json',
@@ -229,12 +230,12 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
 
         $this->entityManager()->clear();
         $project = $this->findProjectBySlug('blue-bay-mogador');
-        $accommodation = $this->findAccommodationByIdentifier('FBAVVG001', $project);
+        $accommodation = $this->findAccommodationByIdentifier('LV001', $project);
         $englishTranslation = $accommodation->getTranslation('en');
         $spanishTranslation = $accommodation->getTranslation('es');
 
-        self::assertNotNull($englishTranslation);
-        self::assertNotNull($spanishTranslation);
+        self::assertInstanceOf(AccommodationTranslation::class, $englishTranslation);
+        self::assertInstanceOf(AccommodationTranslation::class, $spanishTranslation);
         self::assertSame('Custom English name', $englishTranslation->getName());
         self::assertSame('<p>Corps source personnalise.</p>', $englishTranslation->getBody());
         self::assertSame('Local source personnalise', $spanishTranslation->getName());
@@ -286,7 +287,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         $categoryCode = $this->entityManager()->getRepository(CategoryCode::class)->findOneBy([
             'project' => $project,
             'inCodeSet' => $inCodeSet,
-            'code' => $code,
+            'codeValue' => $code,
         ]);
 
         self::assertInstanceOf(CategoryCode::class, $categoryCode);
