@@ -34,7 +34,12 @@ scope du changement.
 - `composer deptrac` controle les dependances entre couches applicatives.
 - `composer rector:check` liste les modernisations Rector possibles en dry-run.
 - `composer infection` lance le mutation testing. Cette commande est couteuse et reste separee
-  du script `quality:fast`.
+  du script `quality:fast`. Les seuils MSI sont initialises a `0` tant qu'aucune baseline
+  mutationnelle stable n'a ete etablie ; les augmenter progressivement avec les tests dedies.
+
+Le conteneur `api` embarque PCOV pour permettre a PHPUnit et Infection de produire la
+couverture de code. Composer n'applique pas de timeout global aux scripts afin de ne pas
+interrompre la suite PHPUnit longue pendant `composer quality`.
 
 PHPStan et Deptrac utilisent des baselines (`phpstan-baseline.neon`,
 `deptrac-baseline.yaml`) pour documenter la dette existante. Toute nouvelle erreur non

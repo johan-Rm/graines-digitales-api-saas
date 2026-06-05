@@ -4,6 +4,7 @@ RUN apk add --no-cache \
         acl \
         autoconf \
         bash \
+        composer \
         g++ \
         git \
         icu-dev \
@@ -16,14 +17,14 @@ RUN apk add --no-cache \
         unzip \
         zlib-dev \
     && docker-php-ext-install intl opcache pdo pdo_pgsql \
+    && pecl install pcov \
+    && docker-php-ext-enable pcov \
     && cd /tmp && git clone --depth 1 https://github.com/Imagick/imagick.git \
     && cd /tmp/imagick && phpize && ./configure && make -j"$(nproc)" && make install \
     && docker-php-ext-enable imagick \
     && rm -rf /tmp/imagick
 
 RUN addgroup -g 1000 app && adduser -D -u 1000 -G app app
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /srv/api
 
