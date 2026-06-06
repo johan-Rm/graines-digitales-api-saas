@@ -4,7 +4,7 @@
 
 - ID : TASK-026
 - Source : retour execution locale Infection du 2026-06-05
-- Statut : A faire
+- Statut : En cours
 - Perimetre : tests PHPUnit, Infection, couverture mutationnelle, qualite backend
 - Dependances fonctionnelles : TASK-005, TASK-020
 
@@ -31,6 +31,40 @@ Reference locale mesuree :
 Mutation Code Coverage: 100%
 Covered Code MSI: 94%
 ```
+
+## Baseline V1 apres durcissement
+
+Premier durcissement applique :
+
+- correction de l'independance de `ProjectIsolationTest` en ordre aleatoire
+- ajout de tests unitaires sur les invariants `Article`
+- ajout de tests unitaires sur les chemins dangereux de `ProjectSeedImageSynchronizer`
+- seuil `minCoveredMsi` releve a `90`
+
+Nouvelle reference locale minimale observee :
+
+```text
+2319 mutations generated
+199+ mutants killed by Test Framework
+12 covered mutants not detected
+2-4 timeouts
+2022+ mutants required more time than configured
+Mutation Code Coverage: 100%
+Covered Code MSI: 94-95%
+```
+
+Les 12 mutants echappes restants sont concentres sur `ProjectSeedImageSynchronizer`.
+Ils concernent surtout des normalisations de chemins equivalentes sous Linux
+(`rtrim`, `trim`, doubles slashs) et des details de creation de dossier difficiles a
+observer sans tests fragiles lies aux permissions du systeme de fichiers.
+
+Les timeouts restants sont hors du lot traite et peuvent varier selon la machine :
+
+- `CreateSuperAdminCommand::resolvePassword`
+- `BulkMediaUploadController` sur la normalisation des violations de validation
+
+Le seuil `minCoveredMsi` reste fixe a `90` pour tenir compte de cette variabilite tout en
+rendant `make infection` bloquant en cas de regression significative.
 
 ## Perimetre MVP
 
@@ -63,14 +97,14 @@ Covered Code MSI: 94%
 
 ## Plan d'execution
 
-- [ ] Lire `var/infection/summary.log` et `var/infection/infection.log`.
-- [ ] Lister les mutants echappes par fichier, mutateur et criticite.
+- [x] Lire `var/infection/summary.log` et `var/infection/infection.log`.
+- [x] Lister les mutants echappes par fichier, mutateur et criticite.
 - [ ] Traiter en priorite les mutants lies a la securite multi-tenant et aux contrats API.
-- [ ] Ajouter ou renforcer les tests PHPUnit cibles.
+- [x] Ajouter ou renforcer les tests PHPUnit cibles.
 - [ ] Relancer `make test` apres chaque lot de corrections.
-- [ ] Relancer `make infection` sur le perimetre concerne.
-- [ ] Documenter les faux positifs acceptes et les exclusions eventuelles.
-- [ ] Remonter `minCoveredMsi` a un premier seuil realiste.
+- [x] Relancer `make infection` sur le perimetre concerne.
+- [x] Documenter les faux positifs acceptes et les exclusions eventuelles.
+- [x] Remonter `minCoveredMsi` a un premier seuil realiste.
 - [ ] Decider si une commande `make infection-critical` est utile pour la CI.
 
 ## Validations attendues

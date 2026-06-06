@@ -25,6 +25,7 @@ RUN apk add --no-cache \
     && rm -rf /tmp/imagick
 
 RUN addgroup -g 1000 app && adduser -D -u 1000 -G app app
+RUN git config --system --add safe.directory /srv/api
 
 WORKDIR /srv/api
 

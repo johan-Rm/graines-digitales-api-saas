@@ -17,6 +17,6 @@
   },
   "testFramework": "phpunit",
   "minMsi": 0,
-  "minCoveredMsi": 0,
+  "minCoveredMsi": 90,
   "timeout": 10
 }

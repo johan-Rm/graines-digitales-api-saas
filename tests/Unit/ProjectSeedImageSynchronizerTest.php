@@ -50,6 +50,57 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
         self::assertFileDoesNotExist($targetDirectory.'/old/stale.jpg');
     }
 
+    public function testSyncRejectsBlankProjectMediaPath(): void
+    {
+        $seedRoot = $this->tempDirectory.'/seed/blue-bay-mogador';
+        mkdir($seedRoot.'/resources/images', 0775, true);
+
+        $project = (new Project())
+            ->setSlug('blue-bay-mogador')
+            ->setMediaPath('   ');
+        $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('has no mediaPath configured');
+
+        (new ProjectSeedImageSynchronizer($this->tempDirectory.'/webapps'))->sync($project, $data);
+    }
+
+    public function testSyncRejectsUnsafeProjectMediaPath(): void
+    {
+        $seedRoot = $this->tempDirectory.'/seed/blue-bay-mogador';
+        mkdir($seedRoot.'/resources/images', 0775, true);
+
+        $project = (new Project())
+            ->setSlug('blue-bay-mogador')
+            ->setMediaPath('../shared');
+        $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unsafe project mediaPath configured');
+
+        (new ProjectSeedImageSynchronizer($this->tempDirectory.'/webapps'))->sync($project, $data);
+    }
+
+    public function testSyncAcceptsSlashWrappedProjectMediaPath(): void
+    {
+        $seedRoot = $this->tempDirectory.'/seed/blue-bay-mogador';
+        mkdir($seedRoot.'/resources/images', 0775, true);
+        file_put_contents($seedRoot.'/resources/images/hero.jpg', 'hero');
+
+        $webappsDirectory = $this->tempDirectory.'/webapps';
+        $project = (new Project())
+            ->setSlug('blue-bay-mogador')
+            ->setMediaPath('/blue-bay/');
+        $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
+
+        $count = (new ProjectSeedImageSynchronizer($webappsDirectory))->sync($project, $data);
+
+        self::assertSame(1, $count);
+        self::assertFileExists($webappsDirectory.'/blue-bay/hero.jpg');
+        self::assertFileExists($webappsDirectory.'/blue-bay/originals/hero.jpg');
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {

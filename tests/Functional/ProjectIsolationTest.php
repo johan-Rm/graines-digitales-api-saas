@@ -7,6 +7,11 @@ use App\Entity\User;
 
 final class ProjectIsolationTest extends FunctionalTestCase
 {
+    protected function shouldResetDatabaseBeforeEachTest(): bool
+    {
+        return true;
+    }
+
     public function testProjectScopedResourceFromAnotherProjectIsHidden(): void
     {
         $client = static::createClient();
