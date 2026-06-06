@@ -68,6 +68,41 @@ final class MediaUploadTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
+    public function testImageUploadUsesFlatCaptionInRequestedLocale(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+        $filePath = $this->createPngFile();
+
+        $response = $client->request('POST', sprintf('/api/projects/%s/media-objects?locale=en', $project->getId()), [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Content-Type' => 'multipart/form-data',
+            ],
+            'extra' => [
+                'parameters' => [
+                    'caption' => 'English upload caption',
+                ],
+                'files' => [
+                    'file' => new UploadedFile($filePath, 'english-caption.png', 'image/png', null, true),
+                ],
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+
+        $id = $response->toArray(false)['id'] ?? null;
+        self::assertIsString($id);
+
+        $rows = $this->entityManager()->getConnection()->fetchAllAssociative(
+            'SELECT locale, caption FROM media_object_translation WHERE media_object_id = ?',
+            [$id],
+        );
+
+        self::assertSame([['locale' => 'en', 'caption' => 'English upload caption']], $rows);
+    }
+
     public function testBulkImageUploadCreatesMediaObjects(): void
     {
         $client = static::createClient();

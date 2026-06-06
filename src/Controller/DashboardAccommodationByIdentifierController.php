@@ -11,6 +11,7 @@ use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\State\AccommodationIdentifierGenerator;
 use App\State\AccommodationStructuralPayloadApplier;
+use App\Translation\LocaleResolver;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,6 +34,7 @@ final readonly class DashboardAccommodationByIdentifierController
         private ResourceAutoFiller $autoFiller,
         private AccommodationStructuralPayloadApplier $structuralApplier,
         private AccommodationIdentifierGenerator $identifierGenerator,
+        private LocaleResolver $localeResolver,
     ) {
     }
 
@@ -54,18 +56,16 @@ final readonly class DashboardAccommodationByIdentifierController
             throw new BadRequestHttpException('Invalid JSON payload.');
         }
 
-        $locale = (string) $request->query->get('locale', $project->getSourceLocale());
+        if (array_key_exists('translations', $payload)) {
+            throw new BadRequestHttpException('Use the /translations route to update multiple locales.');
+        }
+
+        $locale = $this->localeResolver->resolve($project);
         $accommodation->setCurrentLocale($locale);
         $this->structuralApplier->apply($accommodation, $project, $payload);
 
         if (!$this->identifierGenerator->isConsistentWith($accommodation)) {
             $accommodation->setIdentifier($this->identifierGenerator->generate($accommodation, $accommodation));
-        }
-
-        if (array_key_exists('translations', $payload) && is_array($payload['translations'])) {
-            foreach ($payload['translations'] as $translationData) {
-                $this->applyTranslationData($accommodation, $translationData);
-            }
         }
 
         $this->autoTranslator->synchronize($accommodation, $project);
@@ -95,37 +95,6 @@ final readonly class DashboardAccommodationByIdentifierController
             ['Content-Type' => 'application/json'],
             true
         );
-    }
-
-    /**
-     * @param array<mixed> $translationData
-     */
-    private function applyTranslationData(Accommodation $accommodation, mixed $translationData): void
-    {
-        if (!is_array($translationData)) {
-            return;
-        }
-
-        $translationLocale = $translationData['locale'] ?? '';
-        if (!is_string($translationLocale) || '' === $translationLocale) {
-            return;
-        }
-
-        $translation = $accommodation->getOrCreateTranslation($translationLocale);
-
-        foreach (['name', 'label', 'highlight', 'body', 'review', 'metaTitle', 'metaDescription', 'slug'] as $field) {
-            if (!array_key_exists($field, $translationData)) {
-                continue;
-            }
-            $setter = 'set'.ucfirst($field);
-            if (method_exists($translation, $setter)) {
-                $translation->{$setter}(is_string($translationData[$field]) ? $translationData[$field] : '');
-            }
-        }
-
-        $translation->setTranslatable($accommodation);
-        $translation->touch($this->currentUserProvider->getUser());
-        $this->entityManager->persist($translation);
     }
 
     private function findProjectAccommodation(Project $project, string $identifier): Accommodation

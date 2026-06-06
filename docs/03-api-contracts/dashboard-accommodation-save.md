@@ -6,11 +6,13 @@ Deux routes complementaires couvrent la sauvegarde d'un bien immobilier.
 
 ```txt
 PUT /api/projects/{projectId}/accommodations/{id}?locale={locale}
+PUT /api/projects/{projectId}/accommodations/{identifier}?locale={locale}
 ```
 
 Le dashboard envoie les champs globaux et les champs localises pour une seule locale.
 La locale cible est celle du parametre `locale` (ou `Accept-Language`).
-La route n'accepte pas de tableau `translations`.
+La route UUID n'accepte pas de tableau `translations`. La variante par `identifier`
+existe pour les ecrans qui ne connaissent pas encore l'UUID technique du bien.
 
 ```json
 {
@@ -36,11 +38,12 @@ La reponse renvoie les champs de la locale resolue (aplatis a la racine).
 
 ```txt
 PUT /api/projects/{projectId}/accommodations/{id}/translations
+PUT /api/projects/{projectId}/accommodations/{identifier}/translations
 ```
 
-Le dashboard peut remplacer l'ensemble des traductions en une seule requete.
-Cette route accepte uniquement un tableau `translations` ; les champs globaux
-de l'accommodation ne sont pas touches.
+Le dashboard peut envoyer plusieurs traductions en une seule requete. Cette route accepte
+un tableau `translations` et peut aussi recevoir les champs globaux de l'accommodation
+quand l'ecran multilingue les expose dans le meme formulaire.
 
 ```json
 {
@@ -64,8 +67,10 @@ de l'accommodation ne sont pas touches.
 }
 ```
 
-Les traductions existantes non incluses dans le payload sont supprimees (orphan removal).
-La reponse embarque la collection `translations` complete aux cotes des champs racine.
+Les traductions fournies sont creees ou mises a jour. Les traductions existantes non
+incluses dans le payload ne sont pas supprimees ; elles peuvent etre conservees ou
+completees par le pipeline de traduction automatique. La reponse embarque la collection
+`translations` complete aux cotes des champs racine non localises.
 
 Regles de sauvegarde :
 

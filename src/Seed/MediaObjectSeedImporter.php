@@ -6,6 +6,7 @@ use App\Entity\MediaObject;
 use App\Entity\Project;
 use App\Enum\AiReviewStatus;
 use App\Enum\MediaStatus;
+use App\Media\MediaCaptionGuesser;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -15,6 +16,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ResourceAutoTranslator $autoTranslator,
+        private MediaCaptionGuesser $mediaCaptionGuesser,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -48,7 +50,10 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
                     ->setFilePath($source['filename']);
             }
 
-            $caption = $source['caption'] ?? $this->captionFromFilename($source['filename']);
+            $sourceCaption = $source['caption'] ?? null;
+            $caption = is_string($sourceCaption) && '' !== trim($sourceCaption)
+                ? $sourceCaption
+                : ($this->mediaCaptionGuesser->guessFromFilename($source['filename']) ?? $source['filename']);
             $this->copyMediaFile($project, $source['sourcePath'], $source['filename']);
             $mediaObject->setCurrentLocale($data->locale);
             $mediaObject
@@ -77,13 +82,6 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
         }
 
         return $count;
-    }
-
-    private function captionFromFilename(string $filename): string
-    {
-        $caption = str_replace(['-', '_'], ' ', pathinfo($filename, PATHINFO_FILENAME));
-
-        return ucfirst($caption);
     }
 
     private function copyMediaFile(Project $project, string $sourcePath, string $filename): void

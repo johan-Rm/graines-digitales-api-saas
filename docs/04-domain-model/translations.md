@@ -24,7 +24,9 @@ Translations also store `project_id`. The root relation remains authoritative fo
 ## Auto-translation
 
 The `PUT /{id}/translations` and `POST /translations` routes trigger automatic translation
-after the provided translations are saved. The full pipeline for these routes is:
+after the provided translations are saved. They upsert provided locale entries; omitted
+locales are not deleted and may be created or completed by the automatic translation pass.
+The full pipeline for these routes is:
 
 1. **User data** — translations provided in the request body are applied first.
 2. **Auto-translation** — for each enabled locale other than the source locale, any field

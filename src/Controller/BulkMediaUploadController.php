@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\MediaObject;
+use App\Media\MediaCaptionGuesser;
 use App\Message\AnalyzeMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\LocaleResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,6 +30,8 @@ final readonly class BulkMediaUploadController
         private EntityManagerInterface $entityManager,
         private ValidatorInterface $validator,
         private MessageBusInterface $messageBus,
+        private MediaCaptionGuesser $mediaCaptionGuesser,
+        private LocaleResolver $localeResolver,
     ) {
     }
 
@@ -35,6 +39,7 @@ final readonly class BulkMediaUploadController
     {
         $project = $this->projectAccessGuard->getWritableProject($projectId);
         $actor = $this->currentUserProvider->getUser();
+        $locale = $this->localeResolver->resolve($project);
         $files = $this->extractFiles($request);
 
         if ([] === $files) {
@@ -58,10 +63,11 @@ final readonly class BulkMediaUploadController
         $captionOverride = $this->optionalString($request, 'caption');
 
         foreach ($files as $index => $file) {
-            $caption = $captionOverride ?? (pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) ?: null);
+            $caption = $captionOverride ?? $this->mediaCaptionGuesser->guessFromFilename($file->getClientOriginalName());
 
             $mediaObject = new MediaObject();
             $mediaObject->setProject($project);
+            $mediaObject->setResolvedLocale($locale, $locale, null);
             $mediaObject->markCreatedBy($actor);
             $mediaObject->touch($actor);
             $mediaObject->setFile($file);

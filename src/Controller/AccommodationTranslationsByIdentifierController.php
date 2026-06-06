@@ -11,6 +11,7 @@ use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\State\AccommodationIdentifierGenerator;
 use App\State\AccommodationStructuralPayloadApplier;
+use App\Translation\LocaleResolver;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,6 +39,7 @@ final readonly class AccommodationTranslationsByIdentifierController
         private ResourceAutoFiller $autoFiller,
         private AccommodationStructuralPayloadApplier $structuralApplier,
         private AccommodationIdentifierGenerator $identifierGenerator,
+        private LocaleResolver $localeResolver,
     ) {
     }
 
@@ -81,6 +83,8 @@ final readonly class AccommodationTranslationsByIdentifierController
             throw new BadRequestHttpException('Invalid JSON payload.');
         }
 
+        $locale = $this->localeResolver->resolve($project);
+        $accommodation->setResolvedLocale($locale, $locale, null);
         $this->structuralApplier->apply($accommodation, $project, $payload);
 
         if (!$this->identifierGenerator->isConsistentWith($accommodation)) {

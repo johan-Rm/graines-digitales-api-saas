@@ -83,6 +83,8 @@ Limites MVP : 20 images par requete, 12M par image, `post_max_size=256M` dans
 l'image Docker PHP.
 
 Le backend calcule `checksumSha256` cote serveur.
+Si `caption` est absent ou vide, le backend le genere depuis le nom du fichier en
+remplacant les separateurs (`-`, `_`, `.`) par des espaces et en normalisant la casse.
 
 ## Traductions
 

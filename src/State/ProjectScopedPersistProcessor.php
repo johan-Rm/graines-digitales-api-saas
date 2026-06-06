@@ -12,6 +12,7 @@ use App\Entity\Project;
 use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
 use App\Entity\TranslatableResource;
+use App\Media\MediaCaptionGuesser;
 use App\Message\WatermarkMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
@@ -34,6 +35,7 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         private MessageBusInterface $messageBus,
         private AccommodationIdentifierGenerator $accommodationIdentifierGenerator,
         private LocaleResolver $localeResolver,
+        private MediaCaptionGuesser $mediaCaptionGuesser,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -56,8 +58,14 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             // For creates, the provider is not called (read: false), so locale is not resolved.
             // Resolve it here from ?locale query param, falling back to the project source locale.
             if ($isCreate && $data instanceof TranslatableResource) {
+                $initialLocale = $data->getCurrentLocale();
+                $initialTranslation = $data->getTranslation($initialLocale);
                 $locale = $this->localeResolver->resolve($project);
                 $data->setResolvedLocale($locale, $locale, null);
+
+                if ($initialLocale !== $locale && $initialTranslation instanceof ResourceTranslation && null === $data->getTranslation($locale)) {
+                    $initialTranslation->setLocale($locale);
+                }
             }
 
             if ($data instanceof Accommodation) {
@@ -76,8 +84,8 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             if ($data instanceof MediaObject && null !== ($file = $data->getFile())) {
                 $data->setChecksumSha256(hash_file('sha256', $file->getPathname()) ?: null);
 
-                if (null === $data->getCaption() && $file instanceof UploadedFile) {
-                    $data->setCaption(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) ?: null);
+                if ($file instanceof UploadedFile && (null === $data->getCaption() || '' === trim($data->getCaption()))) {
+                    $data->setCaption($this->mediaCaptionGuesser->guessFromFilename($file->getClientOriginalName()));
                 }
             }
 
@@ -160,10 +168,17 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             return;
         }
 
-        if (!is_dir($originalsDir)) {
-            mkdir($originalsDir, 0777, true);
+        $target = $originalsDir.'/'.$mediaObject->getFilePath();
+        $targetDir = dirname($target);
+
+        if (!is_dir($targetDir) && !@mkdir($targetDir, 0775, true) && !is_dir($targetDir)) {
+            return;
         }
 
-        copy($source, $originalsDir.'/'.$mediaObject->getFilePath());
+        if (!is_readable($source) || !is_writable($targetDir)) {
+            return;
+        }
+
+        @copy($source, $target);
     }
 }

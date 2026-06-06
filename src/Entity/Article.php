@@ -14,6 +14,8 @@ use App\Entity\Traits\ProjectOwned;
 use App\Entity\Traits\TranslatableResourceBehavior;
 use App\Entity\Traits\UuidIdentity;
 use App\Enum\ContentStatus;
+use App\State\ProjectScopedBulkTranslationCreateProcessor;
+use App\State\ProjectScopedBulkTranslationProcessor;
 use App\State\ProjectScopedCollectionProvider;
 use App\State\ProjectScopedItemProvider;
 use App\State\ProjectScopedPersistProcessor;
@@ -32,6 +34,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(uriTemplate: '/projects/{projectId}/articles/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class),
         new Get(uriTemplate: '/projects/{projectId}/articles/{id}/translations', name: 'get_article_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Put(uriTemplate: '/projects/{projectId}/articles/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedPersistProcessor::class),
+        new Put(uriTemplate: '/projects/{projectId}/articles/{id}/translations', name: 'put_article_translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], deserialize: false, provider: ProjectScopedItemProvider::class, processor: ProjectScopedBulkTranslationProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
+        new Post(uriTemplate: '/projects/{projectId}/articles/translations', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'])], name: 'post_article_translations', read: false, deserialize: false, status: 201, processor: ProjectScopedBulkTranslationCreateProcessor::class, normalizationContext: ['groups' => ['read', 'read:with-translations']]),
         new Delete(uriTemplate: '/projects/{projectId}/articles/{id}', uriVariables: ['projectId' => new Link(fromClass: Project::class, identifiers: ['id'], toProperty: 'project'), 'id' => new Link(fromClass: Article::class, identifiers: ['id'])], provider: ProjectScopedItemProvider::class, processor: ProjectScopedRemoveProcessor::class),
     ],
     normalizationContext: ['groups' => ['read']],

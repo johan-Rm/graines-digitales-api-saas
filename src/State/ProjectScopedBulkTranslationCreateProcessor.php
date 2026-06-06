@@ -10,12 +10,15 @@ use App\Entity\CategoryCodeTranslation;
 use App\Entity\MediaObject;
 use App\Entity\ProjectScopedResource;
 use App\Entity\TranslatableResource;
+use App\Media\MediaCaptionGuesser;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
+use App\Translation\LocaleResolver;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -44,6 +47,8 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
         private ResourceAutoTranslator $autoTranslator,
         private ResourceAutoFiller $autoFiller,
         private RequestStack $requestStack,
+        private LocaleResolver $localeResolver,
+        private MediaCaptionGuesser $mediaCaptionGuesser,
     ) {
     }
 
@@ -69,7 +74,10 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             // CREATE mode: build a new entity from body fields
             $resource = $this->buildFromBody($body, $resourceClass);
             $resource->setProject($project);
+            $locale = $this->localeResolver->resolve($project);
+            $resource->setResolvedLocale($locale, $locale, null);
             $resource->markCreatedBy($actor);
+            $this->prepareMediaObjectUpload($resource);
             $resource->touch($actor);
             $this->entityManager->persist($resource);
 
@@ -144,12 +152,30 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
 
         if ($resource instanceof MediaObject) {
             $file = $this->requestStack->getCurrentRequest()?->files->get('file');
-            if (null !== $file) {
+            if ($file instanceof UploadedFile) {
                 $resource->setFile($file);
             }
         }
 
         return $resource;
+    }
+
+    private function prepareMediaObjectUpload(TranslatableResource&ProjectScopedResource $resource): void
+    {
+        if (!$resource instanceof MediaObject) {
+            return;
+        }
+
+        $file = $resource->getFile();
+        if (!$file instanceof UploadedFile) {
+            return;
+        }
+
+        $resource->setChecksumSha256(hash_file('sha256', $file->getPathname()) ?: null);
+
+        if (null === $resource->getCaption() || '' === trim($resource->getCaption())) {
+            $resource->setCaption($this->mediaCaptionGuesser->guessFromFilename($file->getClientOriginalName()));
+        }
     }
 
     private function applyTranslation(TranslatableResource $resource, mixed $translationData, mixed $actor): void

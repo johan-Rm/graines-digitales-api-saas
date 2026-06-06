@@ -198,7 +198,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('blue-bay-mogador');
 
-        $client->request('PUT', sprintf('/api/projects/%s/accommodations/LV001?locale=fr', $project->getId()), [
+        $client->request('PUT', sprintf('/api/projects/%s/accommodations/LV001/translations', $project->getId()), [
             'headers' => [
                 'Authorization' => 'Bearer '.$token,
                 'Accept' => 'application/ld+json',
