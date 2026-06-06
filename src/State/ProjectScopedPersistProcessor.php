@@ -82,7 +82,8 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             // Must run before the TranslatableResource block so that the auto-filled caption
             // creates the translation before we look it up and explicitly persist it below.
             if ($data instanceof MediaObject && null !== ($file = $data->getFile())) {
-                $data->setChecksumSha256(hash_file('sha256', $file->getPathname()) ?: null);
+                $checksum = hash_file('sha256', $file->getPathname());
+                $data->setChecksumSha256(false === $checksum ? null : $checksum);
 
                 if ($file instanceof UploadedFile && (null === $data->getCaption() || '' === trim($data->getCaption()))) {
                     $data->setCaption($this->mediaCaptionGuesser->guessFromFilename($file->getClientOriginalName()));

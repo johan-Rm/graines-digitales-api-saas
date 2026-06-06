@@ -171,7 +171,8 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
             return;
         }
 
-        $resource->setChecksumSha256(hash_file('sha256', $file->getPathname()) ?: null);
+        $checksum = hash_file('sha256', $file->getPathname());
+        $resource->setChecksumSha256(false === $checksum ? null : $checksum);
 
         if (null === $resource->getCaption() || '' === trim($resource->getCaption())) {
             $resource->setCaption($this->mediaCaptionGuesser->guessFromFilename($file->getClientOriginalName()));

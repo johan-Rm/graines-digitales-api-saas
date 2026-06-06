@@ -11,7 +11,6 @@ use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\State\AccommodationIdentifierGenerator;
 use App\State\AccommodationStructuralPayloadApplier;
-use App\Translation\LocaleResolver;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,6 +28,8 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[AsController]
 final readonly class AccommodationTranslationsByIdentifierController
 {
+    private const SUPPORTED_LOCALES = ['fr', 'en', 'es', 'ar'];
+
     public function __construct(
         private ProjectAccessGuard $projectAccessGuard,
         private CurrentUserProvider $currentUserProvider,
@@ -39,7 +40,6 @@ final readonly class AccommodationTranslationsByIdentifierController
         private ResourceAutoFiller $autoFiller,
         private AccommodationStructuralPayloadApplier $structuralApplier,
         private AccommodationIdentifierGenerator $identifierGenerator,
-        private LocaleResolver $localeResolver,
     ) {
     }
 
@@ -83,7 +83,7 @@ final readonly class AccommodationTranslationsByIdentifierController
             throw new BadRequestHttpException('Invalid JSON payload.');
         }
 
-        $locale = $this->localeResolver->resolve($project);
+        $locale = $this->resolveLocale($request, $project);
         $accommodation->setResolvedLocale($locale, $locale, null);
         $this->structuralApplier->apply($accommodation, $project, $payload);
 
@@ -145,6 +145,26 @@ final readonly class AccommodationTranslationsByIdentifierController
             $translation->touch($actor);
             $this->entityManager->persist($translation);
         }
+    }
+
+    private function resolveLocale(Request $request, Project $project): string
+    {
+        $queryLocale = $request->query->get('locale');
+        $locale = $queryLocale;
+        if (!is_string($locale) || '' === $locale) {
+            $locale = $request->headers->get('Accept-Language');
+        }
+        $locale = is_string($locale) && '' !== $locale ? substr($locale, 0, 2) : $project->getSourceLocale();
+
+        if (!in_array($locale, self::SUPPORTED_LOCALES, true)) {
+            throw new BadRequestHttpException('Unsupported locale.');
+        }
+
+        if (!in_array($locale, $project->getEnabledLocales(), true)) {
+            throw new BadRequestHttpException('Locale is not enabled for this project.');
+        }
+
+        return $locale;
     }
 
     private function findAccommodation(Project $project, string $identifier): Accommodation

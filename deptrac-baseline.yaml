@@ -19,6 +19,8 @@ deptrac:
       - App\Translation\AutoFill
       - App\Translation\AutoTranslate
     App\Entity\Article:
+      - App\State\ProjectScopedBulkTranslationCreateProcessor
+      - App\State\ProjectScopedBulkTranslationProcessor
       - App\State\ProjectScopedCollectionProvider
       - App\State\ProjectScopedItemProvider
       - App\State\ProjectScopedPersistProcessor

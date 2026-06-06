@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\MediaObject;
+use App\Entity\Project;
 use App\Media\MediaCaptionGuesser;
 use App\Message\AnalyzeMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
-use App\Translation\LocaleResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -23,6 +24,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 final readonly class BulkMediaUploadController
 {
     private const MAX_FILES = 20;
+    private const SUPPORTED_LOCALES = ['fr', 'en', 'es', 'ar'];
 
     public function __construct(
         private ProjectAccessGuard $projectAccessGuard,
@@ -31,7 +33,6 @@ final readonly class BulkMediaUploadController
         private ValidatorInterface $validator,
         private MessageBusInterface $messageBus,
         private MediaCaptionGuesser $mediaCaptionGuesser,
-        private LocaleResolver $localeResolver,
     ) {
     }
 
@@ -39,7 +40,7 @@ final readonly class BulkMediaUploadController
     {
         $project = $this->projectAccessGuard->getWritableProject($projectId);
         $actor = $this->currentUserProvider->getUser();
-        $locale = $this->localeResolver->resolve($project);
+        $locale = $this->resolveLocale($request, $project);
         $files = $this->extractFiles($request);
 
         if ([] === $files) {
@@ -72,7 +73,8 @@ final readonly class BulkMediaUploadController
             $mediaObject->touch($actor);
             $mediaObject->setFile($file);
             $mediaObject->setCaption($caption);
-            $mediaObject->setChecksumSha256(hash_file('sha256', $file->getPathname()) ?: null);
+            $checksum = hash_file('sha256', $file->getPathname());
+            $mediaObject->setChecksumSha256(false === $checksum ? null : $checksum);
 
             $violations = $this->validator->validate($mediaObject, null, ['Default', 'media:create']);
 
@@ -149,5 +151,25 @@ final readonly class BulkMediaUploadController
         $value = $request->request->get($key);
 
         return is_string($value) && '' !== trim($value) ? $value : null;
+    }
+
+    private function resolveLocale(Request $request, Project $project): string
+    {
+        $queryLocale = $request->query->get('locale');
+        $locale = $queryLocale;
+        if (!is_string($locale) || '' === $locale) {
+            $locale = $request->headers->get('Accept-Language');
+        }
+        $locale = is_string($locale) && '' !== $locale ? substr($locale, 0, 2) : $project->getSourceLocale();
+
+        if (!in_array($locale, self::SUPPORTED_LOCALES, true)) {
+            throw new BadRequestHttpException('Unsupported locale.');
+        }
+
+        if (!in_array($locale, $project->getEnabledLocales(), true)) {
+            throw new BadRequestHttpException('Locale is not enabled for this project.');
+        }
+
+        return $locale;
     }
 }
