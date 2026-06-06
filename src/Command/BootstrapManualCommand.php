@@ -111,7 +111,7 @@ final class BootstrapManualCommand extends Command
                 sourceLocale: 'fr',
                 enabledLocales: ['fr', 'en'],
                 mediaPath: 'blue-bay-mogador/public/images',
-                mediaBaseUrl: $siteUrl.'/blue-bay-mogador/images',
+                mediaBaseUrl: $siteUrl.'/images',
             );
             $this->upsertProjectMember($blueBayProject, $blueBayOwner, ProjectRole::Owner);
             $this->upsertProjectMember($blueBayProject, $blueBayAdmin, ProjectRole::Admin);
