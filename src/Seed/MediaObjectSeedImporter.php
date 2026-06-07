@@ -17,6 +17,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
         private EntityManagerInterface $entityManager,
         private ResourceAutoTranslator $autoTranslator,
         private MediaCaptionGuesser $mediaCaptionGuesser,
+        private MediaObjectSeedCaptionApplier $captionApplier,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -55,9 +56,8 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
                 ? $sourceCaption
                 : ($this->mediaCaptionGuesser->guessFromFilename($source['filename']) ?? $source['filename']);
             $this->copyMediaFile($project, $source['sourcePath'], $source['filename']);
-            $mediaObject->setCurrentLocale($data->locale);
+            $this->captionApplier->apply($mediaObject, $data->locale, $caption);
             $mediaObject
-                ->setCaption($caption)
                 ->setOriginalFilename($source['filename'])
                 ->setFinalFilename($source['filename'])
                 ->setChecksumSha256($source['checksum'])

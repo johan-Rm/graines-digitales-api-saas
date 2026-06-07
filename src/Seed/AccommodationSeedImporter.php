@@ -7,10 +7,10 @@ use App\Entity\AccommodationMedia;
 use App\Entity\AccommodationTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
-use App\Entity\MediaObjectTranslation;
 use App\Entity\Project;
 use App\Entity\ResourceTranslation;
 use App\Enum\ContentStatus;
+use App\Media\MediaCaptionGuesser;
 use App\State\AccommodationIdentifierGenerator;
 use App\Translation\ResourceAutoFiller;
 use App\Translation\ResourceAutoTranslator;
@@ -23,6 +23,8 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
         private AccommodationIdentifierGenerator $identifierGenerator,
         private ResourceAutoFiller $autoFiller,
         private ResourceAutoTranslator $autoTranslator,
+        private MediaObjectSeedCaptionApplier $captionApplier,
+        private MediaCaptionGuesser $mediaCaptionGuesser,
     ) {
     }
 
@@ -50,6 +52,7 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
         $count = 0;
         $reservedIdentifiers = [];
         $imported = [];
+        $captionedMediaObjects = [];
 
         foreach ($data->accommodations as $source) {
             $accommodation = $this->findAccommodation($project, $source['identifier'], $source['slug'], $source['locale']);
@@ -114,14 +117,20 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
                         ->setRepresentativeOfPage($edge['representativeOfPage'] ?? null),
                 );
 
-                $caption = is_string($edge['caption'] ?? null) ? $edge['caption'] : null;
+                $caption = is_string($edge['caption'] ?? null) && '' !== trim($edge['caption']) ? $edge['caption'] : null;
+                // Mirror the upload flow: when no caption is provided, derive one from the
+                // filename — but only if the media has none yet for the source locale, so an
+                // existing (or media-step) caption is never clobbered by a weaker guess.
+                if (null === $caption && null === $mediaObject->getTranslation($source['locale'])?->getCaption()) {
+                    $filename = $mediaObject->getFilePath() ?? '';
+                    $caption = '' !== $filename
+                        ? ($this->mediaCaptionGuesser->guessFromFilename($filename) ?? $filename)
+                        : null;
+                }
                 if (null !== $caption && '' !== $caption) {
-                    $translation = $mediaObject->getOrCreateTranslation($source['locale']);
-                    if ($translation instanceof MediaObjectTranslation) {
-                        $translation->setCaption($caption);
-                        $translation->setTranslatable($mediaObject);
-                        $this->entityManager->persist($translation);
-                    }
+                    $this->captionApplier->apply($mediaObject, $source['locale'], $caption);
+                    $this->entityManager->persist($mediaObject);
+                    $captionedMediaObjects[spl_object_id($mediaObject)] = $mediaObject;
                 }
             }
 
@@ -144,6 +153,9 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
         foreach ($imported as $accommodation) {
             $this->entityManager->refresh($accommodation);
             $this->autoTranslator->synchronize($accommodation, $project);
+        }
+        foreach ($captionedMediaObjects as $mediaObject) {
+            $this->autoTranslator->synchronize($mediaObject, $project);
         }
 
         return $count;
