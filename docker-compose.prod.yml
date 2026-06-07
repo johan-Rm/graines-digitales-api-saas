@@ -1,0 +1,113 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: ${API_IMAGE:-graines-digitales-api:prod}
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      DEFAULT_URI: ${DEFAULT_URI:-https://api.graines-digitales.online}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?CORS_ALLOW_ORIGIN is required}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-/srv/api/config/jwt/private.pem}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-/srv/api/config/jwt/public.pem}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}
+      JWT_TOKEN_TTL: ${JWT_TOKEN_TTL:-900}
+      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-2592000}
+      PLATFORM_SUPER_ADMIN_EMAILS: ${PLATFORM_SUPER_ADMIN_EMAILS:-}
+      WEBAPPS_DIR: ${WEBAPPS_DIR:-/srv/webapps}
+      SEED_PROJECT_PATH: ${SEED_PROJECT_PATH:-/srv/seed/webapp}
+    volumes:
+      - jwt_keys:/srv/api/config/jwt
+      - ${WEBAPPS_HOST_DIR:?WEBAPPS_HOST_DIR is required}:${WEBAPPS_DIR:-/srv/webapps}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app
+      - edge
+
+  worker:
+    image: ${API_IMAGE:-graines-digitales-api:prod}
+    restart: unless-stopped
+    command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=256M
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      DEFAULT_URI: ${DEFAULT_URI:-https://api.graines-digitales.online}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-/srv/api/config/jwt/private.pem}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-/srv/api/config/jwt/public.pem}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}
+      JWT_TOKEN_TTL: ${JWT_TOKEN_TTL:-900}
+      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-2592000}
+      PLATFORM_SUPER_ADMIN_EMAILS: ${PLATFORM_SUPER_ADMIN_EMAILS:-}
+      WEBAPPS_DIR: ${WEBAPPS_DIR:-/srv/webapps}
+      SEED_PROJECT_PATH: ${SEED_PROJECT_PATH:-/srv/seed/webapp}
+    volumes:
+      - jwt_keys:/srv/api/config/jwt
+      - ${WEBAPPS_HOST_DIR:?WEBAPPS_HOST_DIR is required}:${WEBAPPS_DIR:-/srv/webapps}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app
+
+  migrate:
+    image: ${API_IMAGE:-graines-digitales-api:prod}
+    profiles:
+      - ops
+    restart: "no"
+    command: php bin/console doctrine:migrations:migrate --no-interaction
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      DEFAULT_URI: ${DEFAULT_URI:-https://api.graines-digitales.online}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-/srv/api/config/jwt/private.pem}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-/srv/api/config/jwt/public.pem}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}
+      WEBAPPS_DIR: ${WEBAPPS_DIR:-/srv/webapps}
+    volumes:
+      - jwt_keys:/srv/api/config/jwt
+      - ${WEBAPPS_HOST_DIR:?WEBAPPS_HOST_DIR is required}:${WEBAPPS_DIR:-/srv/webapps}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-graines_digitales_api}
+      POSTGRES_USER: ${POSTGRES_USER:-graines_digitales_api}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-graines_digitales_api} -d $${POSTGRES_DB:-graines_digitales_api}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app
+
+volumes:
+  jwt_keys:
+  postgres_data:
+
+networks:
+  app:
+    driver: bridge
+  edge:
+    external: true
+    name: ${VPS_EDGE_NETWORK:-vps_edge}
