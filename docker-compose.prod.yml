@@ -28,8 +28,10 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - app
-      - edge
+      app:
+      edge:
+        aliases:
+          - graines-digitales-api-fpm
 
   worker:
     image: ${API_IMAGE:-graines-digitales-api:prod}
@@ -110,4 +112,4 @@ networks:
     driver: bridge
   edge:
     external: true
-    name: ${VPS_EDGE_NETWORK:-vps_edge}
+    name: ${VPS_EDGE_NETWORK:-edge-net}
