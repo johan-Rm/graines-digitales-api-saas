@@ -1,0 +1,95 @@
+# ============================
+# Docker Compose (PREPROD)
+# ============================
+# Réutilise la topologie prod (docker-compose.prod.yml) avec un env-file dédié.
+
+COMPOSE_PREPROD = $(DOCKER_COMPOSE) -f docker-compose.prod.yml --env-file .env.preprod
+EXEC_PREPROD    = $(COMPOSE_PREPROD) exec $(API_SERVICE)
+
+PREPROD_CORE_SERVICES ?= postgres api worker
+PREPROD_HEALTH_URL    ?= https://api-preprod.graines-digitales.online/api/docs.jsonld
+
+# Logs options
+TAIL ?= 200
+FOLLOW ?= -f
+
+.PHONY: preprod-up preprod-up-build preprod-build preprod-build-no-cache preprod-down preprod-clean preprod-stop preprod-status
+.PHONY: preprod-jwt preprod-migrate preprod-bootstrap-manual preprod-healthcheck preprod-deploy
+.PHONY: preprod-logs preprod-shell preprod-console preprod-guard-env
+
+# ----------------------------
+# Garde-fou env
+# ----------------------------
+
+preprod-guard-env: ## Vérifie la présence d'un .env.preprod.
+	@test -f .env.preprod || { echo "Manque .env.preprod (valeurs preprod : APP_ENV=prod, APP_DEBUG=0, DATABASE_URL, secrets, domaine)."; exit 1; }
+
+# ----------------------------
+# Up / Build
+# ----------------------------
+
+preprod-up: preprod-guard-env ## Lancer les services preprod.
+	$(COMPOSE_PREPROD) up -d $(PREPROD_CORE_SERVICES)
+
+preprod-up-build: preprod-guard-env ## Lancer la preprod avec rebuild des images.
+	$(COMPOSE_PREPROD) up -d --build $(PREPROD_CORE_SERVICES)
+
+preprod-build: preprod-guard-env ## Builder les images preprod.
+	$(COMPOSE_PREPROD) build $(PREPROD_CORE_SERVICES)
+
+preprod-build-no-cache: preprod-guard-env ## Builder la preprod sans cache.
+	$(COMPOSE_PREPROD) build --no-cache $(PREPROD_CORE_SERVICES)
+
+# ----------------------------
+# Tâches applicatives
+# ----------------------------
+
+preprod-jwt: preprod-guard-env ## Générer le keypair JWT s'il manque.
+	$(EXEC_PREPROD) php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+preprod-migrate: preprod-guard-env ## Jouer les migrations (fallback profil ops si l'API n'est pas up).
+	$(EXEC_PREPROD) php bin/console doctrine:migrations:migrate --no-interaction \
+		|| $(COMPOSE_PREPROD) --profile ops run --rm migrate
+
+preprod-bootstrap-manual: preprod-guard-env ## Lancer le bootstrap applicatif manuel.
+	$(EXEC_PREPROD) php bin/console app:bootstrap:manual
+
+preprod-healthcheck: ## Vérifier que l'API preprod répond (HTTP code).
+	@curl -fsS -o /dev/null -w 'preprod: HTTP %{http_code}\n' $(PREPROD_HEALTH_URL) || echo "preprod: vérifie le domaine ($(PREPROD_HEALTH_URL))"
+
+# ----------------------------
+# Déploiement one-shot
+# ----------------------------
+
+preprod-deploy: ## Déploiement complet : build, up, JWT, migrate, bootstrap, healthcheck.
+	$(MAKE) preprod-up-build
+	$(MAKE) preprod-jwt
+	$(MAKE) preprod-migrate
+	$(MAKE) preprod-bootstrap-manual
+	$(MAKE) preprod-healthcheck
+
+# ----------------------------
+# Lifecycle
+# ----------------------------
+
+preprod-stop: ## Stopper les containers preprod.
+	$(COMPOSE_PREPROD) stop
+
+preprod-down: ## Arrêter et supprimer les containers preprod.
+	$(COMPOSE_PREPROD) down
+
+preprod-clean: ## down + suppression des volumes et orphelins.
+	$(COMPOSE_PREPROD) down -v --remove-orphans
+
+preprod-status: ## Afficher l'état des services preprod.
+	$(COMPOSE_PREPROD) ps
+
+preprod-logs: ## Suivre les logs preprod.
+	$(COMPOSE_PREPROD) logs $(FOLLOW) --tail=$(TAIL)
+
+preprod-shell: ## Ouvrir un shell dans le container API preprod.
+	$(EXEC_PREPROD) sh
+
+preprod-console: ## Console Symfony en preprod. Usage: make preprod-console CMD="debug:router"
+	@test -n "$(CMD)" || (echo 'Missing CMD. Usage: make preprod-console CMD="debug:router"' && exit 1)
+	$(EXEC_PREPROD) php bin/console $(CMD)

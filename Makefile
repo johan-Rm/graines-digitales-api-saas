@@ -10,6 +10,8 @@ EXEC_T = $(DOCKER_COMPOSE) exec -T $(API_SERVICE)
 .DEFAULT_GOAL := help
 
 -include Makefile.dev
+-include Makefile.preprod
+-include Makefile.prod
 
 .PHONY: help
 help: ## List available commands.
