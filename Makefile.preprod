@@ -51,7 +51,7 @@ preprod-migrate: preprod-guard-env ## Jouer les migrations (fallback profil ops 
 	$(EXEC_PREPROD) php bin/console doctrine:migrations:migrate --no-interaction \
 		|| $(COMPOSE_PREPROD) --profile ops run --rm migrate
 
-preprod-bootstrap-manual: preprod-guard-env ## Lancer le bootstrap applicatif manuel.
+preprod-bootstrap-manual: preprod-guard-env ## Bootstrap applicatif (one-time / init) — hors déploiement récurrent.
 	$(EXEC_PREPROD) php bin/console app:bootstrap:manual
 
 preprod-healthcheck: ## Vérifier que l'API preprod répond (HTTP code).
@@ -61,12 +61,12 @@ preprod-healthcheck: ## Vérifier que l'API preprod répond (HTTP code).
 # Déploiement one-shot
 # ----------------------------
 
-preprod-deploy: ## Déploiement complet : build, up, JWT, migrate, bootstrap, healthcheck.
+preprod-deploy: ## Déploiement récurrent : build, up, JWT (skip-if-exists), migrate, healthcheck.
 	$(MAKE) preprod-up-build
 	$(MAKE) preprod-jwt
 	$(MAKE) preprod-migrate
-	$(MAKE) preprod-bootstrap-manual
 	$(MAKE) preprod-healthcheck
+	@echo "preprod: bootstrap NON rejoué (init one-time). Première mise en service : make preprod-bootstrap-manual"
 
 # ----------------------------
 # Lifecycle

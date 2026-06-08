@@ -50,7 +50,7 @@ prod-migrate: prod-guard-env ## Jouer les migrations (fallback profil ops si l'A
 	$(EXEC_PROD) php bin/console doctrine:migrations:migrate --no-interaction \
 		|| $(COMPOSE_PROD) --profile ops run --rm migrate
 
-prod-bootstrap-manual: prod-guard-env ## Lancer le bootstrap applicatif manuel.
+prod-bootstrap-manual: prod-guard-env ## Bootstrap applicatif (one-time / init) — hors déploiement récurrent.
 	$(EXEC_PROD) php bin/console app:bootstrap:manual
 
 prod-healthcheck: ## Vérifier que l'API répond (HTTP code).
@@ -60,12 +60,12 @@ prod-healthcheck: ## Vérifier que l'API répond (HTTP code).
 # Déploiement one-shot
 # ----------------------------
 
-prod-deploy: ## Déploiement complet : build, up, JWT, migrate, bootstrap, healthcheck.
+prod-deploy: ## Déploiement récurrent : build, up, JWT (skip-if-exists), migrate, healthcheck.
 	$(MAKE) prod-up-build
 	$(MAKE) prod-jwt
 	$(MAKE) prod-migrate
-	$(MAKE) prod-bootstrap-manual
 	$(MAKE) prod-healthcheck
+	@echo "prod: bootstrap NON rejoué (init one-time). Première mise en service : make prod-bootstrap-manual"
 
 # ----------------------------
 # Lifecycle
