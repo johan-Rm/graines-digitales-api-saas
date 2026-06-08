@@ -19,7 +19,6 @@ L'environnement production doit fournir :
 - `CORS_ALLOW_ORIGIN` limite aux frontends autorises
 - `JWT_SECRET_KEY`, `JWT_PUBLIC_KEY`, `JWT_PASSPHRASE`
 - `MESSENGER_TRANSPORT_DSN`
-- `WEBAPPS_DIR`
 - `PLATFORM_SUPER_ADMIN_EMAILS`
 
 Le host public et TLS sont geres hors de ce repo par `vps-edge`.

@@ -51,8 +51,6 @@ JWT_TOKEN_TTL=900
 JWT_REFRESH_TOKEN_TTL=2592000
 
 PLATFORM_SUPER_ADMIN_EMAILS=...
-WEBAPPS_DIR=/srv/webapps
-SEED_PROJECT_PATH=/srv/seed/webapp
 ```
 
 `DEFAULT_URI` est obligatoire pour les URLs generees hors contexte HTTP, notamment
@@ -84,6 +82,7 @@ docker build -f Dockerfile.prod -t graines-digitales-api:prod .
 - `api` : PHP-FPM Symfony
 - `worker` : consommation Messenger
 - `migrate` : migration Doctrine, active uniquement avec le profil `ops`
+- `seed-import` : import seed projet ponctuel, actif uniquement avec le profil `ops`
 - `postgres` : PostgreSQL local au VPS si aucun service manage n'est utilise
 
 Le fichier `.env.example` liste les variables attendues sans secret reel.
@@ -115,19 +114,46 @@ d'isolation inter-projets est bloquante.
 
 ## Stockage media
 
-`WEBAPPS_DIR` pointe vers le dossier racine ou les medias projet sont ecrits.
 Les uploads ne doivent pas etre stockes dans l'image applicative.
 
 Le reverse proxy ou le frontend peut servir les fichiers publics selon le
 `mediaBaseUrl` configure sur chaque `Project`. Verifier avant mise en prod :
 
-- chemin hote monte dans le container API
+- racine persistante `/srv/webapps` montee dans le container API
 - droits d'ecriture pour PHP-FPM
 - sauvegarde ou retention du volume media
 - coherence entre `Project.mediaPath` et `Project.mediaBaseUrl`
 
-Dans la topologie Compose de reference, le chemin hote est fourni par
-`WEBAPPS_HOST_DIR` et monte dans le container a l'emplacement `WEBAPPS_DIR`.
+Dans la topologie Compose de reference, `/srv/webapps` est une racine technique fixe.
+Le sous-chemin par projet vient de `Project.mediaPath` en base.
+
+## Import seed projet
+
+L'import seed est une operation ponctuelle. Le chemin seed hote n'est pas une variable
+runtime de l'API ; il est fourni uniquement au moment de lancer le service `seed-import`.
+
+Exemple :
+
+```bash
+SEED_PROJECT_HOST_DIR=/srv/seed/webapp \
+docker compose -f docker-compose.prod.yml --profile ops run --rm seed-import \
+  mlk-my-little-kasbah --force
+```
+
+Le service monte `SEED_PROJECT_HOST_DIR` en lecture seule dans le container a
+`/srv/seed/webapp`, puis la commande lit :
+
+```txt
+/srv/seed/webapp/{projectSlug}
+```
+
+Si les images doivent etre synchronisees, lancer la commande explicitement :
+
+```bash
+SEED_PROJECT_HOST_DIR=/srv/seed/webapp \
+docker compose -f docker-compose.prod.yml --profile ops run --rm seed-import \
+  mlk-my-little-kasbah --force --sync-images
+```
 
 ## Workers Messenger
 
