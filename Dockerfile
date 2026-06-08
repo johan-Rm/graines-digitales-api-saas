@@ -4,7 +4,6 @@ RUN apk add --no-cache \
         acl \
         autoconf \
         bash \
-        composer \
         g++ \
         git \
         icu-dev \
@@ -23,6 +22,10 @@ RUN apk add --no-cache \
     && cd /tmp/imagick && phpize && ./configure && make -j"$(nproc)" && make install \
     && docker-php-ext-enable imagick \
     && rm -rf /tmp/imagick
+
+# Composer via l'image officielle : il s'exécute sous /usr/local/bin/php (toutes
+# les extensions), sans tirer le paquet Alpine php84 et son PHP concurrent.
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN addgroup -g 1000 app && adduser -D -u 1000 -G app app
 RUN git config --system --add safe.directory /srv/api

@@ -2,7 +2,7 @@
 # Docker Compose (PROD)
 # ============================
 
-COMPOSE_PROD = $(DOCKER_COMPOSE) -f docker-compose.prod.yml --env-file .env
+COMPOSE_PROD = $(DOCKER_COMPOSE) -f docker-compose.prod.yml --env-file .env.prod
 EXEC_PROD    = $(COMPOSE_PROD) exec $(API_SERVICE)
 
 PROD_CORE_SERVICES ?= postgres api worker
@@ -20,8 +20,8 @@ FOLLOW ?= -f
 # Garde-fou env
 # ----------------------------
 
-prod-guard-env: ## Vérifie la présence d'un .env de prod.
-	@test -f .env || { echo "Manque .env (valeurs PROD : APP_ENV=prod, APP_DEBUG=0, DATABASE_URL, secrets). NE PAS copier .env.example tel quel (il est en dev)."; exit 1; }
+prod-guard-env: ## Vérifie la présence d'un .env.prod.
+	@test -f .env.prod || { echo "Manque .env.prod (valeurs PROD : APP_ENV=prod, APP_DEBUG=0, DATABASE_URL, secrets forts). Base : cp .env.example .env.prod puis appliquer les overrides prod."; exit 1; }
 
 # ----------------------------
 # Up / Build
