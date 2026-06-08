@@ -13,8 +13,11 @@ PREPROD_HEALTH_URL    ?= https://api-preprod.graines-digitales.online/api/docs.j
 TAIL ?= 200
 FOLLOW ?= -f
 
+# Périmètre par défaut chargé par preprod-seed-load (surchargeable : ONLY=...).
+ONLY ?= metadata,media,web-pages,accommodations
+
 .PHONY: preprod-up preprod-up-build preprod-build preprod-build-no-cache preprod-down preprod-clean preprod-stop preprod-status
-.PHONY: preprod-jwt preprod-migrate preprod-bootstrap-manual preprod-healthcheck preprod-deploy
+.PHONY: preprod-jwt preprod-migrate preprod-bootstrap-manual preprod-seed-load preprod-healthcheck preprod-deploy
 .PHONY: preprod-logs preprod-shell preprod-console preprod-guard-env
 
 # ----------------------------
@@ -53,6 +56,10 @@ preprod-migrate: preprod-guard-env ## Jouer les migrations (fallback profil ops 
 
 preprod-bootstrap-manual: preprod-guard-env ## Bootstrap applicatif (one-time / init) — hors déploiement récurrent.
 	$(EXEC_PREPROD) php bin/console app:bootstrap:manual
+
+preprod-seed-load: preprod-guard-env ## Charger un projet seed (one-time/init, service ops seed-import). Usage: make preprod-seed-load PROJECT=blue-bay-mogador [ONLY=...]
+	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make preprod-seed-load PROJECT=blue-bay-mogador [ONLY=metadata,media,web-pages,accommodations]' && exit 1)
+	$(COMPOSE_PREPROD) --profile ops run --rm seed-import $(PROJECT) --no-interaction --force --sync-images --only=$(ONLY)
 
 preprod-healthcheck: ## Vérifier que l'API preprod répond (HTTP code).
 	@curl -fsS -o /dev/null -w 'preprod: HTTP %{http_code}\n' $(PREPROD_HEALTH_URL) || echo "preprod: vérifie le domaine ($(PREPROD_HEALTH_URL))"
