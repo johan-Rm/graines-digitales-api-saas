@@ -25,6 +25,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
      */
     private const EMBEDDED_TYPES = [
         'AccommodationMedia',
+        'AccommodationComponent',
         'PropertyValue',
         'WebPageMedia',
     ];
@@ -330,13 +331,13 @@ final class ApiResourceNormalizer implements NormalizerInterface
             return in_array($type, self::EMBEDDED_TYPES, true);
         }
 
-        // PropertyValue: name + value fields, no inCodeSet
-        if (array_key_exists('name', $value) && array_key_exists('value', $value) && !array_key_exists('inCodeSet', $value)) {
-            return true;
-        }
-
-        // AccommodationMedia: mediaObject + position, no standalone @type
-        return array_key_exists('mediaObject', $value) && array_key_exists('position', $value);
+        // Shape-based detection when @type is absent (non-JSON-LD serialization context).
+        // PropertyValue: name + value, no inCodeSet.
+        // AccommodationComponent: additionalType + meta.
+        // AccommodationMedia: mediaObject + position.
+        return (array_key_exists('name', $value) && array_key_exists('value', $value) && !array_key_exists('inCodeSet', $value))
+            || (array_key_exists('additionalType', $value) && array_key_exists('meta', $value))
+            || (array_key_exists('mediaObject', $value) && array_key_exists('position', $value));
     }
 
     /**

@@ -121,6 +121,18 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     private Collection $qualities;
 
     /**
+     * Content blocks ("screens") composing the accommodation page (Schema.org hasPart).
+     * Structure is shared across locales; only headline/text/name are translated.
+     * Writes go through AccommodationHasPartPayloadApplier, hence the read-only group.
+     *
+     * @var Collection<int, AccommodationComponent>
+     */
+    #[ORM\OneToMany(mappedBy: 'accommodation', targetEntity: AccommodationComponent::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    #[Groups(['read'])]
+    private Collection $hasPart;
+
+    /**
      * @var Collection<int, AccommodationTranslation>
      */
     #[ORM\OneToMany(mappedBy: 'translatable', targetEntity: AccommodationTranslation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -194,6 +206,7 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
         $this->tags = new ArrayCollection();
         $this->associatedMedia = new ArrayCollection();
         $this->qualities = new ArrayCollection();
+        $this->hasPart = new ArrayCollection();
         $this->translations = new ArrayCollection();
     }
 
@@ -226,6 +239,13 @@ class Accommodation implements ProjectScopedResource, TranslatableResource
     public function addQuality(PropertyValue $quality): self { if (!$this->qualities->contains($quality)) { $quality->setPosition($this->qualities->count() + 1); $this->qualities->add($quality); $quality->setAccommodation($this); } return $this; }
     public function removeQuality(PropertyValue $quality): self { $this->qualities->removeElement($quality); return $this; }
     public function clearQualities(): self { $this->qualities->clear(); return $this; }
+    /**
+     * @return Collection<int, AccommodationComponent>
+     */
+    public function getHasPart(): Collection { return $this->hasPart; }
+    public function addComponent(AccommodationComponent $component): self { if (!$this->hasPart->contains($component)) { $this->hasPart->add($component); $component->setAccommodation($this); } return $this; }
+    public function removeComponent(AccommodationComponent $component): self { $this->hasPart->removeElement($component); return $this; }
+    public function clearHasPart(): self { $this->hasPart->clear(); return $this; }
     public function ensureDefaultQualities(): self
     {
         if (!$this->qualities->isEmpty()) {

@@ -653,3 +653,39 @@ parameters:
 			identifier: ternary.shortNotAllowed
 			count: 6
 			path: tests/bootstrap.php
+
+		-
+			message: '#^Method App\\Entity\\AccommodationComponent\:\:getTranslations\(\) should return Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\ResourceTranslation\> but returns Doctrine\\Common\\Collections\\Collection\<int, App\\Entity\\AccommodationComponentTranslation\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/AccommodationComponent.php
+
+		-
+			message: '#^Parameter \#1 \$element of method Doctrine\\Common\\Collections\\Collection\<int,App\\Entity\\AccommodationComponentTranslation\>\:\:add\(\) expects App\\Entity\\AccommodationComponentTranslation, App\\Entity\\ResourceTranslation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/AccommodationComponent.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationComponent\:\:\$accommodation type mapping mismatch\: property can contain App\\Entity\\Accommodation\|null but database expects App\\Entity\\Accommodation\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/AccommodationComponent.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationComponent\:\:\$project type mapping mismatch\: property can contain App\\Entity\\Project\|null but database expects App\\Entity\\Project\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/AccommodationComponent.php
+
+		-
+			message: '#^Property App\\Entity\\AccommodationComponentTranslation\:\:\$translatable type mapping mismatch\: property can contain App\\Entity\\AccommodationComponent\|null but database expects App\\Entity\\AccommodationComponent\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/AccommodationComponentTranslation.php
+
+		-
+			message: '#^Variable method call on App\\Entity\\AccommodationComponentTranslation\.$#'
+			identifier: method.dynamicName
+			count: 1
+			path: src/State/AccommodationHasPartPayloadApplier.php

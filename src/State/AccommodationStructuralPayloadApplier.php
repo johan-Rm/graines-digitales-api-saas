@@ -19,6 +19,7 @@ final readonly class AccommodationStructuralPayloadApplier
     public function __construct(
         private EntityManagerInterface $entityManager,
         private AccommodationAssociatedMediaPayloadApplier $associatedMediaApplier,
+        private AccommodationHasPartPayloadApplier $hasPartApplier,
     ) {
     }
 
@@ -32,6 +33,7 @@ final readonly class AccommodationStructuralPayloadApplier
         $this->applyAmenityFeature($accommodation, $project, $payload);
         $this->applyTags($accommodation, $project, $payload);
         $this->associatedMediaApplier->apply($accommodation, $project, $payload, $accommodation->getCurrentLocale());
+        $this->hasPartApplier->apply($accommodation, $project, $payload, $accommodation->getCurrentLocale());
         $this->applyQualities($accommodation, $payload);
         $this->applyScalarFields($accommodation, $payload);
     }

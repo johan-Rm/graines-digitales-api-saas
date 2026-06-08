@@ -16,6 +16,7 @@ final readonly class ProjectScopedAccommodationPersistProcessor implements Proce
     public function __construct(
         private ProcessorInterface $decorated,
         private AccommodationAssociatedMediaPayloadApplier $associatedMediaApplier,
+        private AccommodationHasPartPayloadApplier $hasPartApplier,
         private ProjectAccessGuard $projectAccessGuard,
         private LocaleResolver $localeResolver,
         private RequestStack $requestStack,
@@ -26,12 +27,13 @@ final readonly class ProjectScopedAccommodationPersistProcessor implements Proce
     {
         if ($data instanceof Accommodation) {
             $body = $this->extractBody();
-            if (array_key_exists('associatedMedia', $body)) {
+            if (array_key_exists('associatedMedia', $body) || array_key_exists('hasPart', $body)) {
                 $projectId = (string) ($uriVariables['projectId'] ?? '');
                 $project = $this->projectAccessGuard->getWritableProject($projectId);
                 $locale = $this->localeResolver->resolve($project);
 
                 $this->associatedMediaApplier->apply($data, $project, $body, $locale);
+                $this->hasPartApplier->apply($data, $project, $body, $locale);
             }
         }
 

@@ -37,6 +37,7 @@ final readonly class ProjectScopedAccommodationCreateWithTranslationsProcessor i
         private DenormalizerInterface $denormalizer,
         private RequestStack $requestStack,
         private AccommodationAssociatedMediaPayloadApplier $associatedMediaApplier,
+        private AccommodationHasPartPayloadApplier $hasPartApplier,
     ) {
     }
 
@@ -62,6 +63,9 @@ final readonly class ProjectScopedAccommodationCreateWithTranslationsProcessor i
         $body = $this->extractBody();
         if (array_key_exists('associatedMedia', $body)) {
             $this->associatedMediaApplier->apply($data, $project, $body);
+        }
+        if (array_key_exists('hasPart', $body)) {
+            $this->hasPartApplier->apply($data, $project, $body, $project->getSourceLocale());
         }
 
         $data->touch($actor);
