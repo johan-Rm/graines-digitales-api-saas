@@ -1,0 +1,94 @@
+# ============================
+# Docker Compose (PROD)
+# ============================
+
+COMPOSE_PROD = $(DOCKER_COMPOSE) -f docker-compose.prod.yml --env-file .env.prod
+EXEC_PROD    = $(COMPOSE_PROD) exec $(API_SERVICE)
+
+PROD_CORE_SERVICES ?= postgres api worker
+PROD_HEALTH_URL    ?= https://api.graines-digitales.online/api/docs.jsonld
+
+# Logs options
+TAIL ?= 200
+FOLLOW ?= -f
+
+.PHONY: prod-up prod-up-build prod-build prod-build-no-cache prod-down prod-clean prod-stop prod-status
+.PHONY: prod-jwt prod-migrate prod-bootstrap-manual prod-healthcheck prod-deploy
+.PHONY: prod-logs prod-shell prod-console prod-guard-env
+
+# ----------------------------
+# Garde-fou env
+# ----------------------------
+
+prod-guard-env: ## Vérifie la présence d'un .env.prod.
+	@test -f .env.prod || { echo "Manque .env.prod (valeurs PROD : APP_ENV=prod, APP_DEBUG=0, DATABASE_URL, secrets forts). Base : cp .env.example .env.prod puis appliquer les overrides prod."; exit 1; }
+
+# ----------------------------
+# Up / Build
+# ----------------------------
+
+prod-up: prod-guard-env ## Lancer les services de prod.
+	$(COMPOSE_PROD) up -d $(PROD_CORE_SERVICES)
+
+prod-up-build: prod-guard-env ## Lancer la prod avec rebuild des images.
+	$(COMPOSE_PROD) up -d --build $(PROD_CORE_SERVICES)
+
+prod-build: prod-guard-env ## Builder les images de prod.
+	$(COMPOSE_PROD) build $(PROD_CORE_SERVICES)
+
+prod-build-no-cache: prod-guard-env ## Builder la prod sans cache.
+	$(COMPOSE_PROD) build --no-cache $(PROD_CORE_SERVICES)
+
+# ----------------------------
+# Tâches applicatives
+# ----------------------------
+
+prod-jwt: prod-guard-env ## Générer le keypair JWT s'il manque.
+	$(EXEC_PROD) php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+prod-migrate: prod-guard-env ## Jouer les migrations (fallback profil ops si l'API n'est pas up).
+	$(EXEC_PROD) php bin/console doctrine:migrations:migrate --no-interaction \
+		|| $(COMPOSE_PROD) --profile ops run --rm migrate
+
+prod-bootstrap-manual: prod-guard-env ## Lancer le bootstrap applicatif manuel.
+	$(EXEC_PROD) php bin/console app:bootstrap:manual
+
+prod-healthcheck: ## Vérifier que l'API répond (HTTP code).
+	@curl -fsS -o /dev/null -w 'prod: HTTP %{http_code}\n' $(PROD_HEALTH_URL) || echo "prod: vérifie le domaine ($(PROD_HEALTH_URL))"
+
+# ----------------------------
+# Déploiement one-shot
+# ----------------------------
+
+prod-deploy: ## Déploiement complet : build, up, JWT, migrate, bootstrap, healthcheck.
+	$(MAKE) prod-up-build
+	$(MAKE) prod-jwt
+	$(MAKE) prod-migrate
+	$(MAKE) prod-bootstrap-manual
+	$(MAKE) prod-healthcheck
+
+# ----------------------------
+# Lifecycle
+# ----------------------------
+
+prod-stop: ## Stopper les containers de prod.
+	$(COMPOSE_PROD) stop
+
+prod-down: ## Arrêter et supprimer les containers de prod.
+	$(COMPOSE_PROD) down
+
+prod-clean: ## down + suppression des volumes et orphelins.
+	$(COMPOSE_PROD) down -v --remove-orphans
+
+prod-status: ## Afficher l'état des services de prod.
+	$(COMPOSE_PROD) ps
+
+prod-logs: ## Suivre les logs de prod.
+	$(COMPOSE_PROD) logs $(FOLLOW) --tail=$(TAIL)
+
+prod-shell: ## Ouvrir un shell dans le container API de prod.
+	$(EXEC_PROD) sh
+
+prod-console: ## Console Symfony en prod. Usage: make prod-console CMD="debug:router"
+	@test -n "$(CMD)" || (echo 'Missing CMD. Usage: make prod-console CMD="debug:router"' && exit 1)
+	$(EXEC_PROD) php bin/console $(CMD)

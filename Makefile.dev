@@ -1,6 +1,12 @@
-.PHONY: dev-setup dev-reset-cache dev-bootstrap-manual dev-fixtures-test dev-seed-load dev-create-super-admin dev-create-organization dev-db-test-create
+.PHONY: dev-setup dev-deploy dev-reset-cache dev-bootstrap-manual dev-fixtures-test dev-seed-load dev-create-super-admin dev-create-organization dev-db-test-create
+
+DEV_API_PORT   ?= 18080
+DEV_HEALTH_URL ?= http://localhost:$(DEV_API_PORT)/api/docs.jsonld
 
 dev-setup: up install jwt-keypair migrate ## Bootstrap the local Docker development environment.
+
+dev-deploy: dev-setup dev-bootstrap-manual ## One-shot dev : setup + bootstrap manuel + healthcheck.
+	@curl -fsS -o /dev/null -w 'dev: HTTP %{http_code}\n' $(DEV_HEALTH_URL) || echo "dev: API pas encore joignable sur $(DEV_HEALTH_URL)"
 
 dev-reset-cache: ## Remove Symfony var/cache from inside the API container.
 	$(EXEC) rm -rf var/cache
