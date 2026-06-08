@@ -19,11 +19,10 @@ services:
       JWT_TOKEN_TTL: ${JWT_TOKEN_TTL:-900}
       JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-2592000}
       PLATFORM_SUPER_ADMIN_EMAILS: ${PLATFORM_SUPER_ADMIN_EMAILS:-}
-      WEBAPPS_DIR: ${WEBAPPS_DIR:-/srv/webapps}
-      SEED_PROJECT_PATH: ${SEED_PROJECT_PATH:-/srv/seed/webapp}
+      WEBAPPS_DIR: /srv/webapps
     volumes:
       - jwt_keys:/srv/api/config/jwt
-      - ${WEBAPPS_HOST_DIR:?WEBAPPS_HOST_DIR is required}:${WEBAPPS_DIR:-/srv/webapps}
+      - /srv/webapps:/srv/webapps
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,11 +49,10 @@ services:
       JWT_TOKEN_TTL: ${JWT_TOKEN_TTL:-900}
       JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-2592000}
       PLATFORM_SUPER_ADMIN_EMAILS: ${PLATFORM_SUPER_ADMIN_EMAILS:-}
-      WEBAPPS_DIR: ${WEBAPPS_DIR:-/srv/webapps}
-      SEED_PROJECT_PATH: ${SEED_PROJECT_PATH:-/srv/seed/webapp}
+      WEBAPPS_DIR: /srv/webapps
     volumes:
       - jwt_keys:/srv/api/config/jwt
-      - ${WEBAPPS_HOST_DIR:?WEBAPPS_HOST_DIR is required}:${WEBAPPS_DIR:-/srv/webapps}
+      - /srv/webapps:/srv/webapps
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,10 +74,38 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-/srv/api/config/jwt/private.pem}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-/srv/api/config/jwt/public.pem}
       JWT_PASSPHRASE: ${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}
-      WEBAPPS_DIR: ${WEBAPPS_DIR:-/srv/webapps}
+      WEBAPPS_DIR: /srv/webapps
     volumes:
       - jwt_keys:/srv/api/config/jwt
-      - ${WEBAPPS_HOST_DIR:?WEBAPPS_HOST_DIR is required}:${WEBAPPS_DIR:-/srv/webapps}
+      - /srv/webapps:/srv/webapps
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app
+
+  seed-import:
+    image: ${API_IMAGE:-graines-digitales-api:prod}
+    profiles:
+      - ops
+    restart: "no"
+    entrypoint: ["php", "bin/console", "app:seed:load-project"]
+    command: ["--help"]
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      DEFAULT_URI: ${DEFAULT_URI:-https://api.graines-digitales.online}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-/srv/api/config/jwt/private.pem}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-/srv/api/config/jwt/public.pem}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}
+      WEBAPPS_DIR: /srv/webapps
+      SEED_PROJECT_PATH: /srv/seed/webapp
+    volumes:
+      - jwt_keys:/srv/api/config/jwt
+      - /srv/webapps:/srv/webapps
+      - ${SEED_PROJECT_HOST_DIR:?SEED_PROJECT_HOST_DIR is required}:/srv/seed/webapp:ro
     depends_on:
       postgres:
         condition: service_healthy
