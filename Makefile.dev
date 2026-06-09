@@ -4,7 +4,7 @@
 DEV_API_PORT   ?= 18080
 DEV_HEALTH_URL ?= http://localhost:$(DEV_API_PORT)/api/docs.jsonld
 
-COMPOSE_DEV = $(DOCKER_COMPOSE) -f docker-compose.yml
+# COMPOSE_DEV est défini dans le Makefile de base (-f docker-compose.dev.yml).
 TAIL ?= 200
 FOLLOW ?= -f
 
