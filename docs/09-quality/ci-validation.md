@@ -7,18 +7,18 @@ declenchee automatiquement a chaque sollicitation IA.
 Commandes de reference :
 
 ```bash
-docker compose exec api php bin/console lint:container
-docker compose exec api composer analyse
-docker compose exec api composer cs:check
-docker compose exec api composer deptrac
-docker compose exec api php bin/console doctrine:schema:validate
-docker compose exec api php bin/phpunit
+docker compose -f docker-compose.dev.yml exec api php bin/console lint:container
+docker compose -f docker-compose.dev.yml exec api composer analyse
+docker compose -f docker-compose.dev.yml exec api composer cs:check
+docker compose -f docker-compose.dev.yml exec api composer deptrac
+docker compose -f docker-compose.dev.yml exec api php bin/console doctrine:schema:validate
+docker compose -f docker-compose.dev.yml exec api php bin/phpunit
 ```
 
 Le script rapide agrege les controles non destructifs et evite la suite PHPUnit complete :
 
 ```bash
-docker compose exec api composer quality:fast
+docker compose -f docker-compose.dev.yml exec api composer quality:fast
 ```
 
 La CI doit executer l'equivalent dans un environnement reproductible uniquement pour les
