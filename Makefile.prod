@@ -67,8 +67,9 @@ prod-healthcheck: ## Vérifier que l'API répond (HTTP code).
 # Déploiement one-shot
 # ----------------------------
 
-prod-deploy: ## Déploiement récurrent : build, up, JWT (skip-if-exists), migrate, healthcheck.
-	$(MAKE) prod-up-build
+prod-deploy: ## Déploiement récurrent : build (api) puis up, JWT (skip-if-exists), migrate, healthcheck.
+	$(MAKE) prod-build
+	$(MAKE) prod-up
 	$(MAKE) prod-jwt
 	$(MAKE) prod-migrate
 	$(MAKE) prod-healthcheck
