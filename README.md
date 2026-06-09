@@ -23,10 +23,10 @@ Il definit l'ordre de lecture et le proprietaire documentaire de chaque regle.
 
 ```bash
 cp .env.example .env.local
-docker compose up -d --build
-docker compose exec api composer install
-docker compose exec api php bin/console lexik:jwt:generate-keypair --skip-if-exists
-docker compose exec api php bin/console doctrine:migrations:migrate --no-interaction
+docker compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml exec api composer install
+docker compose -f docker-compose.dev.yml exec api php bin/console lexik:jwt:generate-keypair --skip-if-exists
+docker compose -f docker-compose.dev.yml exec api php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
 API locale : `http://localhost:18080`
@@ -97,7 +97,7 @@ Voir `docs/04-domain-model/translations.md` pour le modèle et les invariants, e
 ## Tests
 
 ```bash
-docker compose exec api php bin/phpunit
+docker compose -f docker-compose.dev.yml exec api php bin/phpunit
 ```
 
 Pendant une intervention IA ou une petite correction locale, preferer les tests cibles
@@ -107,9 +107,9 @@ aux merges vers `develop`, sauf demande explicite.
 Validation backend complete avant merge vers `develop` :
 
 ```bash
-docker compose exec api php bin/console lint:container
-docker compose exec api php bin/console doctrine:schema:validate
-docker compose exec api php bin/phpunit
+docker compose -f docker-compose.dev.yml exec api php bin/console lint:container
+docker compose -f docker-compose.dev.yml exec api php bin/console doctrine:schema:validate
+docker compose -f docker-compose.dev.yml exec api php bin/phpunit
 ```
 
 Les tests critiques couvrent auth, refresh token, isolation projet, acces inter-projets,
