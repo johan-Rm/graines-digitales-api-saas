@@ -73,7 +73,6 @@ preprod-deploy: ## Déploiement récurrent : build, up, JWT (skip-if-exists), mi
 	$(MAKE) preprod-jwt
 	$(MAKE) preprod-migrate
 	$(MAKE) preprod-healthcheck
-	@echo "preprod: bootstrap NON rejoué (init one-time). Première mise en service : make preprod-bootstrap-manual"
 
 # ----------------------------
 # Lifecycle

@@ -73,7 +73,6 @@ prod-deploy: ## Déploiement récurrent : build (api) puis up, JWT (skip-if-exis
 	$(MAKE) prod-jwt
 	$(MAKE) prod-migrate
 	$(MAKE) prod-healthcheck
-	@echo "prod: bootstrap NON rejoué (init one-time). Première mise en service : make prod-bootstrap-manual"
 
 # ----------------------------
 # Lifecycle
