@@ -1,11 +1,12 @@
 SHELL := /bin/sh
 
 DOCKER_COMPOSE ?= docker compose
+COMPOSE_DEV ?= $(DOCKER_COMPOSE) -f docker-compose.dev.yml
 API_SERVICE ?= api
 POSTGRES_SERVICE ?= postgres
 
-EXEC = $(DOCKER_COMPOSE) exec $(API_SERVICE)
-EXEC_T = $(DOCKER_COMPOSE) exec -T $(API_SERVICE)
+EXEC = $(COMPOSE_DEV) exec $(API_SERVICE)
+EXEC_T = $(COMPOSE_DEV) exec -T $(API_SERVICE)
 
 .DEFAULT_GOAL := help
 
@@ -19,24 +20,24 @@ help: ## List available commands.
 
 .PHONY: ps up up-build down restart logs logs-api shell console composer
 ps: ## Show Docker Compose services.
-	$(DOCKER_COMPOSE) ps
+	$(COMPOSE_DEV) ps
 
 up: ## Start Docker Compose services.
-	$(DOCKER_COMPOSE) up -d
+	$(COMPOSE_DEV) up -d
 
 up-build: ## Build and start Docker Compose services.
-	$(DOCKER_COMPOSE) up -d --build
+	$(COMPOSE_DEV) up -d --build
 
 down: ## Stop Docker Compose services.
-	$(DOCKER_COMPOSE) down
+	$(COMPOSE_DEV) down
 
 restart: down up ## Restart Docker Compose services.
 
 logs: ## Follow all Docker Compose logs.
-	$(DOCKER_COMPOSE) logs -f
+	$(COMPOSE_DEV) logs -f
 
 logs-api: ## Follow API container logs.
-	$(DOCKER_COMPOSE) logs -f $(API_SERVICE)
+	$(COMPOSE_DEV) logs -f $(API_SERVICE)
 
 shell: ## Open a shell in the API container.
 	$(EXEC) sh

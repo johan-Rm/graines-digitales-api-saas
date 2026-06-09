@@ -14,6 +14,8 @@ services:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
       CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?CORS_ALLOW_ORIGIN is required}
+      # Mot de passe des comptes créés par `make prod-bootstrap-manual` (one-time).
+      API_PASSWORD: ${API_PASSWORD:-}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-/srv/api/config/jwt/private.pem}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-/srv/api/config/jwt/public.pem}
       JWT_PASSPHRASE: ${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}

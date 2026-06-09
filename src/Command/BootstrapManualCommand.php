@@ -19,6 +19,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
@@ -34,6 +35,8 @@ final class BootstrapManualCommand extends Command
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly PlatformSuperAdminResolver $superAdminResolver,
+        #[Autowire('%env(default::API_PASSWORD)%')]
+        private readonly ?string $bootstrapPassword = null,
     ) {
         parent::__construct();
     }
@@ -41,7 +44,7 @@ final class BootstrapManualCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Password applied to bootstrap users.', self::DEFAULT_PASSWORD)
+            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Password applied to bootstrap users (default: env API_PASSWORD, else dev fallback).', '' !== (string) $this->bootstrapPassword ? (string) $this->bootstrapPassword : self::DEFAULT_PASSWORD)
             ->addOption('site-url', null, InputOption::VALUE_REQUIRED, 'Frontend site base URL used for project mediaBaseUrl.', 'http://localhost:3000')
         ;
     }
