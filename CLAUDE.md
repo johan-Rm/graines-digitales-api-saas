@@ -18,7 +18,7 @@ du projet propriétaire.
 - Async : Symfony Messenger (`AnalyzeMediaObject`)
 - CORS : NelmioCorsBunde
 - Tests : PHPUnit (suite fonctionnelle API Platform + suite unitaire)
-- Runtime conteneurisé : `docker compose exec api`
+- Runtime conteneurisé : Docker Compose (`docker-compose.dev.yml`) — commandes via `make`
 
 ## Architecture — lecture obligatoire avant d'agir
 
@@ -118,21 +118,10 @@ PUT  /api/projects/{projectId}/web-pages/{id}/translations/{locale}
 
 ## Commandes courantes
 
-```bash
-# Développement
-docker compose exec api php bin/console lint:container
-docker compose exec api php bin/console doctrine:schema:validate
-
-# Tests — toujours dans le container
-docker compose exec api php bin/phpunit
-
-# Accès shell
-docker compose exec api bash
-
-# Migrations
-docker compose exec api php bin/console doctrine:migrations:migrate
-docker compose exec api php bin/console doctrine:migrations:diff
-```
+Toutes les commandes passent par `make` (qui cible `docker-compose.dev.yml` en local).
+Lancer `make help` pour la liste complète : cibles `dev-*` pour le cycle de vie local,
+`preprod-*` / `prod-*` pour le déploiement, plus les commandes communes (tests, qualité,
+migrations, console Symfony via `make console CMD="…"`).
 
 Pendant une intervention IA courante, Claude ne doit pas lancer automatiquement toute la
 suite PHPUnit. Utiliser des validations ciblees liees au changement, puis indiquer ce qui

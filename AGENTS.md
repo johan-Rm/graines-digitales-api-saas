@@ -61,11 +61,8 @@ documenter ce qui n'a pas été lancé.
 La suite PHPUnit complète est réservée aux validations pré-merge et aux merges vers
 `develop`, sauf demande explicite.
 
-```bash
-docker compose exec api php bin/console lint:container
-docker compose exec api php bin/console doctrine:schema:validate
-docker compose exec api php bin/phpunit
-```
+Lancer les contrôles via `make` (voir `make help` : `lint-container`, `schema-validate`,
+`test`, `quality-fast`…).
 
 ## Contraintes
 
