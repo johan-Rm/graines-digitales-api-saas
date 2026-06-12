@@ -40,7 +40,7 @@ final class BootstrapManualCommandTest extends FunctionalTestCase
         $this->assertUserPassword('developer@graines-digitales.online', 'super-admin-password');
         $this->assertUserPassword('johan.remy@graines-digitales.online', 'mlk-password');
         $this->assertUserPassword('buzac@mlk-my-little-kasbah.immo', 'mlk-password');
-        $this->assertUserPassword('johan.remy+1@graines-digitales.online', 'blue-bay-password');
+        $this->assertUserPassword('demo@graines-digitales.online', 'blue-bay-password');
         $this->assertUserPassword('manager@blue-bay-mogador.test', 'blue-bay-password');
     }
 
