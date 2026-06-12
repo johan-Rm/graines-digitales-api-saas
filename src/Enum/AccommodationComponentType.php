@@ -10,5 +10,4 @@ enum AccommodationComponentType: string
     case Split = 'SCREEN_ACCOMMODATION_SPLIT';
     case Carousel = 'SCREEN_ACCOMMODATION_CAROUSEL';
     case Duo = 'SCREEN_ACCOMMODATION_DUO';
-    case Contact = 'SCREEN_ACCOMMODATION_CONTACT';
 }

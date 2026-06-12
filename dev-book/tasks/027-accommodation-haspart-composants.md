@@ -52,8 +52,8 @@ hasPart:
 
 ### Enums (`src/Enum/`)
 
-- `AccommodationComponentType: string` — 7 cas :
-  `SCREEN_ACCOMMODATION_TRYPTIQUE`, `_OVERLAY`, `_FULL`, `_SPLIT`, `_CAROUSEL`, `_DUO`, `_CONTACT`.
+- `AccommodationComponentType: string` — 6 cas :
+  `SCREEN_ACCOMMODATION_TRYPTIQUE`, `_OVERLAY`, `_FULL`, `_SPLIT`, `_CAROUSEL`, `_DUO`.
 
 ### Entité `AccommodationComponent` (racine, partagée entre locales)
 
