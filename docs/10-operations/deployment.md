@@ -135,9 +135,7 @@ runtime de l'API ; il est fourni uniquement au moment de lancer le service `seed
 Exemple :
 
 ```bash
-SEED_PROJECT_HOST_DIR=/srv/seed/webapp \
-docker compose -f docker-compose.prod.yml --profile ops run --rm seed-import \
-  mlk-my-little-kasbah --force
+make prod-seed-load PROJECT=mlk-modern-site-web PASSWORD='project-password'
 ```
 
 Le service monte `SEED_PROJECT_HOST_DIR` en lecture seule dans le container a
@@ -150,9 +148,7 @@ Le service monte `SEED_PROJECT_HOST_DIR` en lecture seule dans le container a
 Si les images doivent etre synchronisees, lancer la commande explicitement :
 
 ```bash
-SEED_PROJECT_HOST_DIR=/srv/seed/webapp \
-docker compose -f docker-compose.prod.yml --profile ops run --rm seed-import \
-  mlk-my-little-kasbah --force --sync-images
+make prod-seed-load PROJECT=mlk-modern-site-web PASSWORD='project-password' ONLY=metadata,media,web-pages,accommodations
 ```
 
 ## Workers Messenger

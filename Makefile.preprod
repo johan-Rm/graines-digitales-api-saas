@@ -58,8 +58,10 @@ preprod-bootstrap-manual: preprod-guard-env ## Bootstrap applicatif (one-time / 
 	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make preprod-bootstrap-manual PASSWORD=password1234' && exit 1)
 	$(EXEC_PREPROD) php bin/console app:bootstrap:manual --password=$(PASSWORD)
 
-preprod-seed-load: preprod-guard-env ## Charger un projet seed (one-time/init, service ops seed-import). Usage: make preprod-seed-load PROJECT=blue-bay-mogador [ONLY=...]
-	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make preprod-seed-load PROJECT=blue-bay-mogador [ONLY=metadata,media,web-pages,accommodations]' && exit 1)
+preprod-seed-load: preprod-guard-env ## Charger un projet seed (one-time/init, service ops seed-import). Usage: make preprod-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234 [ONLY=...]
+	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make preprod-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234 [ONLY=metadata,media,web-pages,accommodations]' && exit 1)
+	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make preprod-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234 [ONLY=metadata,media,web-pages,accommodations]' && exit 1)
+	$(EXEC_PREPROD) php bin/console app:bootstrap:manual --password=$(PASSWORD) --password-project=$(PROJECT)
 	$(COMPOSE_PREPROD) --profile ops run --rm seed-import $(PROJECT) --no-interaction --force --sync-images --only=$(ONLY)
 
 preprod-healthcheck: ## Vérifier que l'API preprod répond (HTTP code).
