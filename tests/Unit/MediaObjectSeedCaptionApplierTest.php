@@ -3,6 +3,7 @@
 namespace App\Tests\Unit;
 
 use App\Entity\MediaObject;
+use App\Entity\MediaObjectTranslation;
 use App\Entity\Project;
 use App\Seed\MediaObjectSeedCaptionApplier;
 use App\Translation\GoogleTranslateClient;
@@ -23,20 +24,29 @@ final class MediaObjectSeedCaptionApplierTest extends TestCase
         $captionApplier->apply($mediaObject, 'fr', 'Nom de fichier');
         $autoTranslator->synchronize($mediaObject, $project);
 
-        self::assertSame('Nom de fichier', $mediaObject->getTranslation('fr')?->getCaption());
-        self::assertSame('Nom de fichier', $mediaObject->getTranslation('en')?->getCaption());
-        self::assertSame('Nom de fichier', $mediaObject->getTranslation('es')?->getCaption());
+        self::assertSame('Nom de fichier', $this->translation($mediaObject, 'fr')->getCaption());
+        self::assertSame('Nom de fichier', $this->translation($mediaObject, 'en')->getCaption());
+        self::assertSame('Nom de fichier', $this->translation($mediaObject, 'es')->getCaption());
 
         $captionApplier->apply($mediaObject, 'fr', 'Terrasse de villa');
 
-        self::assertSame('Terrasse de villa', $mediaObject->getTranslation('fr')?->getCaption());
-        self::assertNull($mediaObject->getTranslation('en')?->getCaption());
-        self::assertNull($mediaObject->getTranslation('es')?->getCaption());
+        self::assertSame('Terrasse de villa', $this->translation($mediaObject, 'fr')->getCaption());
+        self::assertNull($this->translation($mediaObject, 'en')->getCaption());
+        self::assertNull($this->translation($mediaObject, 'es')->getCaption());
 
         $autoTranslator->synchronize($mediaObject, $project);
 
-        self::assertSame('Terrasse de villa', $mediaObject->getTranslation('fr')?->getCaption());
-        self::assertSame('Terrasse de villa', $mediaObject->getTranslation('en')?->getCaption());
-        self::assertSame('Terrasse de villa', $mediaObject->getTranslation('es')?->getCaption());
+        self::assertSame('Terrasse de villa', $this->translation($mediaObject, 'fr')->getCaption());
+        self::assertSame('Terrasse de villa', $this->translation($mediaObject, 'en')->getCaption());
+        self::assertSame('Terrasse de villa', $this->translation($mediaObject, 'es')->getCaption());
+    }
+
+    private function translation(MediaObject $mediaObject, string $locale): MediaObjectTranslation
+    {
+        $translation = $mediaObject->getTranslation($locale);
+
+        self::assertInstanceOf(MediaObjectTranslation::class, $translation);
+
+        return $translation;
     }
 }

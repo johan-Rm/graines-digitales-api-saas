@@ -1,0 +1,64 @@
+# ----------------------------
+# Cibles globales (env-agnostiques)
+#
+# Outillage projet : tests, qualité, validation, CI. Aucune n'est liée à un
+# environnement déployable (pas de variante preprod-/prod-). Les cibles
+# conteneurisées s'exécutent dans le conteneur dev via $(EXEC) (défini dans le
+# Makefile de base) ; `diff-check` tourne sur l'hôte.
+# ----------------------------
+
+.PHONY: test test-file test-filter test-debug
+test: ## Run the PHPUnit suite.
+	$(EXEC) php bin/phpunit
+
+test-file: ## Run one PHPUnit file. Usage: make test-file FILE=tests/Functional/AuthTest.php
+	@test -n "$(FILE)" || (echo 'Missing FILE. Usage: make test-file FILE=tests/Functional/AuthTest.php' && exit 1)
+	$(EXEC) php bin/phpunit $(FILE)
+
+test-filter: ## Run PHPUnit tests matching a filter. Usage: make test-filter FILTER=ProjectIsolation
+	@test -n "$(FILTER)" || (echo 'Missing FILTER. Usage: make test-filter FILTER=ProjectIsolation' && exit 1)
+	$(EXEC) php bin/phpunit --filter "$(FILTER)"
+
+test-debug: ## Run PHPUnit with the debug configuration.
+	$(EXEC) php bin/phpunit --configuration=phpunit_debug.xml
+
+.PHONY: schema-validate lint-container
+schema-validate: ## Validate Doctrine mapping and database schema.
+	$(EXEC) php bin/console doctrine:schema:validate
+
+lint-container: ## Validate Symfony service container.
+	$(EXEC) php bin/console lint:container
+
+.PHONY: analyse cs-check cs-fix deptrac rector-check rector-fix infection audit quality quality-fast diff-check
+analyse: ## Run PHPStan.
+	$(EXEC) composer analyse
+
+cs-check: ## Check PHP style with PHP-CS-Fixer.
+	$(EXEC) composer cs:check
+
+cs-fix: ## Fix PHP style with PHP-CS-Fixer.
+	$(EXEC) composer cs:fix
+
+deptrac: ## Check architecture dependency rules.
+	$(EXEC) composer deptrac
+
+rector-check: ## Preview Rector refactors.
+	$(EXEC) composer rector:check
+
+rector-fix: ## Apply Rector refactors.
+	$(EXEC) composer rector:fix
+
+infection: ## Run Infection mutation testing.
+	$(EXEC) composer infection
+
+audit: ## Run Composer security audit.
+	$(EXEC) composer audit
+
+quality-fast: ## Run fast non-destructive quality checks.
+	$(EXEC) composer quality:fast
+
+quality: ## Run full project quality script, including PHPUnit.
+	$(EXEC) composer quality
+
+diff-check: ## Check Git diff for whitespace errors.
+	git diff --check

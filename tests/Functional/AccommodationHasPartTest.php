@@ -36,8 +36,8 @@ final class AccommodationHasPartTest extends FunctionalTestCase
                         'meta' => ['reverse' => true, 'overlayMode' => 'light'],
                     ],
                     [
-                        'additionalType' => 'SCREEN_ACCOMMODATION_CONTACT',
-                        'headline' => 'Contactez-nous',
+                        'additionalType' => 'SCREEN_ACCOMMODATION_DUO',
+                        'headline' => 'Deux espaces complémentaires',
                     ],
                 ],
             ],
@@ -58,8 +58,8 @@ final class AccommodationHasPartTest extends FunctionalTestCase
         self::assertSame('light', $first['meta']['overlayMode']);
 
         $second = $payload['hasPart'][1];
-        self::assertSame('SCREEN_ACCOMMODATION_CONTACT', $second['additionalType']);
-        self::assertSame('Contactez-nous', $second['headline']);
+        self::assertSame('SCREEN_ACCOMMODATION_DUO', $second['additionalType']);
+        self::assertSame('Deux espaces complémentaires', $second['headline']);
         self::assertSame(1, $second['position']);
     }
 

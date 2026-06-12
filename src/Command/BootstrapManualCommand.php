@@ -19,7 +19,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
@@ -28,15 +27,14 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 )]
 final class BootstrapManualCommand extends Command
 {
-    private const DEFAULT_PASSWORD = 'password1234';
     private const SUPER_ADMIN_EMAIL = 'developer@graines-digitales.online';
+    private const PROJECT_BLUE_BAY = 'blue-bay-mogador';
+    private const PROJECT_MLK = 'mlk-modern-site-web';
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly PlatformSuperAdminResolver $superAdminResolver,
-        #[Autowire('%env(default::API_PASSWORD)%')]
-        private readonly ?string $bootstrapPassword = null,
     ) {
         parent::__construct();
     }
@@ -44,8 +42,20 @@ final class BootstrapManualCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Password applied to bootstrap users (default: env API_PASSWORD, else dev fallback).', '' !== (string) $this->bootstrapPassword ? (string) $this->bootstrapPassword : self::DEFAULT_PASSWORD)
-            ->addOption('site-url', null, InputOption::VALUE_REQUIRED, 'Frontend site base URL used for project mediaBaseUrl.', 'http://localhost:3000')
+            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Password applied to bootstrap users.')
+            ->addOption(
+                'password-project',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Restrict password updates to users of a bootstrap project.',
+            )
+            ->addOption(
+                'site-url',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Frontend site base URL used for project mediaBaseUrl.',
+                'http://localhost:3000',
+            )
         ;
     }
 
@@ -53,10 +63,20 @@ final class BootstrapManualCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $password = (string) $input->getOption('password');
+        $passwordProject = $this->resolvePasswordProject($input->getOption('password-project'));
         $siteUrl = rtrim((string) $input->getOption('site-url'), '/');
 
         if ('' === trim($password)) {
             $io->error('Bootstrap password cannot be empty.');
+
+            return Command::FAILURE;
+        }
+
+        if (false === $passwordProject) {
+            $io->error(sprintf(
+                'Unsupported password project. Expected one of: %s.',
+                implode(', ', [self::PROJECT_BLUE_BAY, self::PROJECT_MLK]),
+            ));
 
             return Command::FAILURE;
         }
@@ -68,11 +88,27 @@ final class BootstrapManualCommand extends Command
             ));
         }
 
-        $this->entityManager->wrapInTransaction(function () use ($password, $siteUrl): void {
-            $this->upsertUser(self::SUPER_ADMIN_EMAIL, $password, ['ROLE_SUPER_ADMIN']);
+        $this->entityManager->wrapInTransaction(function () use ($password, $passwordProject, $siteUrl): void {
+            $this->upsertUser(
+                email: self::SUPER_ADMIN_EMAIL,
+                password: $password,
+                roles: ['ROLE_SUPER_ADMIN'],
+                updatePassword: null === $passwordProject,
+            );
 
-            $mlkOwner = $this->upsertUser('johan.remy@graines-digitales.online', $password, ['ROLE_ADMIN']);
-            $mlkAdmin = $this->upsertUser('buzac@mlk-my-little-kasbah.immo', $password, ['ROLE_ADMIN']);
+            $mlkPasswordScoped = self::PROJECT_MLK === $passwordProject || null === $passwordProject;
+            $mlkOwner = $this->upsertUser(
+                'johan.remy@graines-digitales.online',
+                $password,
+                ['ROLE_ADMIN'],
+                $mlkPasswordScoped,
+            );
+            $mlkAdmin = $this->upsertUser(
+                'buzac@mlk-my-little-kasbah.immo',
+                $password,
+                ['ROLE_ADMIN'],
+                $mlkPasswordScoped,
+            );
             $mlkOrganization = $this->upsertOrganization(
                 name: 'MLK - My Little Kasbah',
                 acronym: 'MLK',
@@ -95,8 +131,19 @@ final class BootstrapManualCommand extends Command
             $this->upsertProjectMember($mlkProject, $mlkOwner, ProjectRole::Owner);
             $this->upsertProjectMember($mlkProject, $mlkAdmin, ProjectRole::Admin);
 
-            $blueBayOwner = $this->upsertUser('johan.remy+1@graines-digitales.online', $password, ['ROLE_ADMIN']);
-            $blueBayAdmin = $this->upsertUser('manager@blue-bay-mogador.test', $password, ['ROLE_ADMIN']);
+            $blueBayPasswordScoped = self::PROJECT_BLUE_BAY === $passwordProject || null === $passwordProject;
+            $blueBayOwner = $this->upsertUser(
+                'johan.remy+1@graines-digitales.online',
+                $password,
+                ['ROLE_ADMIN'],
+                $blueBayPasswordScoped,
+            );
+            $blueBayAdmin = $this->upsertUser(
+                'manager@blue-bay-mogador.test',
+                $password,
+                ['ROLE_ADMIN'],
+                $blueBayPasswordScoped,
+            );
             $blueBayOrganization = $this->upsertOrganization(
                 name: 'Blue Bay Mogador',
                 acronym: 'BBM',
@@ -148,7 +195,7 @@ final class BootstrapManualCommand extends Command
     /**
      * @param list<string> $roles
      */
-    private function upsertUser(string $email, string $password, array $roles): User
+    private function upsertUser(string $email, string $password, array $roles, bool $updatePassword): User
     {
         $email = strtolower(trim($email));
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
@@ -157,12 +204,34 @@ final class BootstrapManualCommand extends Command
             $user = new User();
             $user->setEmail($email);
             $this->entityManager->persist($user);
+            $updatePassword = true;
         }
 
         $user->setRoles($roles);
-        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
+
+        if ($updatePassword) {
+            $user->setPassword($this->passwordHasher->hashPassword($user, $password));
+        }
 
         return $user;
+    }
+
+    /**
+     * @return string|null|false
+     */
+    private function resolvePasswordProject(mixed $value): string|null|false
+    {
+        if (!is_string($value) || '' === trim($value)) {
+            return null;
+        }
+
+        $project = trim($value);
+
+        if (in_array($project, [self::PROJECT_BLUE_BAY, self::PROJECT_MLK], true)) {
+            return $project;
+        }
+
+        return false;
     }
 
     /**

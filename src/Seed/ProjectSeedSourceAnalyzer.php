@@ -177,7 +177,7 @@ final class ProjectSeedSourceAnalyzer
     }
 
     /**
-     * @return list<array{identifier: string|null, slug: string, locale: string, name: string|null, category: string, place: string, realEstateListing: string, amenityFeature: list<string>, tags: list<string>, associatedMedia: list<array{image: string, caption: string|null, keywords: list<string>}>, body: string, metaTitle: string|null, metaDescription: string|null, highlight: string|null, review: string|null, offer: array<string, mixed>, fields: array<string, mixed>, source: string}>
+     * @return list<array{identifier: string|null, slug: string, locale: string, name: string|null, category: string, place: string, realEstateListing: string, amenityFeature: list<string>, tags: list<string>, associatedMedia: list<array{image: string, caption: string|null, keywords: list<string>}>, hasPart: list<array{additionalType: string, position: int|null, name: string|null, headline: string|null, text: string|null, associatedMedia: list<string>, meta: array<string, mixed>}>, body: string, metaTitle: string|null, metaDescription: string|null, highlight: string|null, review: string|null, offer: array<string, mixed>, fields: array<string, mixed>, source: string}>
      */
     private function loadAccommodations(string $path, string $locale): array
     {
@@ -200,6 +200,7 @@ final class ProjectSeedSourceAnalyzer
                 'amenityFeature' => $this->stringList($frontMatter['amenityFeature'] ?? []),
                 'tags' => $this->stringList($frontMatter['keywords'] ?? []),
                 'associatedMedia' => $this->mediaEdges($frontMatter['associatedMedia'] ?? []),
+                'hasPart' => $this->hasPartBlocks($frontMatter['hasPart'] ?? []),
                 'body' => $body,
                 'metaTitle' => $this->nullableStringValue($frontMatter, 'metaTitle'),
                 'metaDescription' => $this->nullableStringValue($frontMatter, 'metaDescription'),
@@ -380,6 +381,48 @@ final class ProjectSeedSourceAnalyzer
         }
 
         return $edges;
+    }
+
+    /**
+     * Parses the `hasPart` content blocks (Schema.org) of an accommodation. Structural
+     * fields are shared across locales; name/headline/text are localized source-locale text.
+     *
+     * @return list<array{additionalType: string, position: int|null, name: string|null, headline: string|null, text: string|null, associatedMedia: list<string>, meta: array<string, mixed>}>
+     */
+    private function hasPartBlocks(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $blocks = [];
+        foreach ($value as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $additionalType = $this->stringValue($item, 'additionalType');
+            if ('' === $additionalType) {
+                continue;
+            }
+
+            $position = $item['position'] ?? null;
+
+            $blocks[] = [
+                'additionalType' => $additionalType,
+                'position' => is_numeric($position) ? (int) $position : null,
+                'name' => $this->nullableStringValue($item, 'name'),
+                'headline' => $this->nullableStringValue($item, 'headline'),
+                'text' => $this->nullableStringValue($item, 'text'),
+                'associatedMedia' => array_map(
+                    static fn (array $edge): string => $edge['image'],
+                    $this->mediaEdges($item['associatedMedia'] ?? []),
+                ),
+                'meta' => is_array($item['meta'] ?? null) ? $item['meta'] : [],
+            ];
+        }
+
+        return $blocks;
     }
 
     private function normalizeMediaReference(string $reference): string

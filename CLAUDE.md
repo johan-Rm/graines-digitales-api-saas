@@ -119,9 +119,14 @@ PUT  /api/projects/{projectId}/web-pages/{id}/translations/{locale}
 ## Commandes courantes
 
 Toutes les commandes passent par `make` (qui cible `docker-compose.dev.yml` en local).
-Lancer `make help` pour la liste complète : cibles `dev-*` pour le cycle de vie local,
-`preprod-*` / `prod-*` pour le déploiement, plus les commandes communes (tests, qualité,
-migrations, console Symfony via `make console CMD="…"`).
+Lancer `make help` pour la liste complète. L'organisation suit deux axes :
+
+- cibles **liées à un environnement**, préfixées : `dev-*` (cycle de vie + opérations
+  locales : `dev-migrate`, `dev-jwt`, `dev-console CMD="…"`, `dev-install`…),
+  `preprod-*` / `prod-*` pour le déploiement
+- cibles **globales** env-agnostiques, sans préfixe (`Makefile.common`) : tests
+  (`test`, `test-filter`…), qualité (`quality`, `analyse`, `cs-*`, `rector-*`…),
+  validation (`schema-validate`, `lint-container`), `diff-check`
 
 Pendant une intervention IA courante, Claude ne doit pas lancer automatiquement toute la
 suite PHPUnit. Utiliser des validations ciblees liees au changement, puis indiquer ce qui

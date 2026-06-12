@@ -24,17 +24,24 @@ docker compose exec api php bin/console doctrine:migrations:migrate --no-interac
 Les etapes 1 a 17 peuvent ensuite etre executees automatiquement :
 
 ```bash
-docker compose exec api php bin/console app:bootstrap:manual
+docker compose exec api php bin/console app:bootstrap:manual --password=password1234
 ```
 
 La commande est idempotente : elle cree ou met a jour les utilisateurs,
 organisations, projets et memberships attendus, puis affiche les UUID projets a
 reporter cote frontend.
 
-Options utiles :
+Le mot de passe doit etre fourni explicitement :
 
 ```bash
 docker compose exec api php bin/console app:bootstrap:manual --password=password1234 --site-url=http://localhost:3000
+```
+
+Depuis `make`, passer le mot de passe avec une variable `PASSWORD`, pas avec une
+option `--password` :
+
+```bash
+make dev-bootstrap-manual PASSWORD='super-admin-password'
 ```
 
 ---
@@ -341,3 +348,25 @@ docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogado
 ```
 
 Familles disponibles : `metadata`, `media`, `web-pages`, `accommodations`.
+
+La cible `make dev-seed-load` lance d'abord le bootstrap manuel avec un scope de
+mot de passe limite au projet demande, puis charge le seed :
+
+```bash
+make dev-seed-load PROJECT=blue-bay-mogador PASSWORD='blue-bay-password'
+make dev-seed-load PROJECT=mlk-modern-site-web PASSWORD='mlk-password'
+```
+
+Avec un bootstrap initial :
+
+```bash
+make dev-bootstrap-manual PASSWORD='super-admin-password'
+```
+
+la sequence ci-dessus conserve les mots de passe suivants :
+
+- `developer@graines-digitales.online` : `super-admin-password`
+- `johan.remy@graines-digitales.online` : `mlk-password`
+- `buzac@mlk-my-little-kasbah.immo` : `mlk-password`
+- `johan.remy+1@graines-digitales.online` : `blue-bay-password`
+- `manager@blue-bay-mogador.test` : `blue-bay-password`

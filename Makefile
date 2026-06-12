@@ -10,6 +10,7 @@ EXEC_T = $(COMPOSE_DEV) exec -T $(API_SERVICE)
 
 .DEFAULT_GOAL := help
 
+-include Makefile.common
 -include Makefile.dev
 -include Makefile.preprod
 -include Makefile.prod
@@ -23,26 +24,13 @@ help:
 	@printf "═══════════════════════════════════════════════════════════════\n"
 	@printf "\n"
 
-	@printf "🔧 Commandes communes\n\n"
-	@printf "  console CMD=\"...\"           Exécuter une commande Symfony console\n"
-	@printf "  composer CMD=\"...\"          Exécuter une commande Composer\n"
-	@printf "\n"
-
-	@printf "🧱 Symfony & Base de données\n\n"
-	@printf "  install                     Installer les dépendances Composer\n"
-	@printf "  update-lock                 Rafraîchir composer.lock\n"
-	@printf "  cache-clear                 Vider le cache Symfony\n"
-	@printf "  jwt-keypair                 Générer le keypair JWT\n"
-	@printf "  migrate                     Jouer les migrations Doctrine\n"
-	@printf "  schema-validate             Valider le schéma Doctrine\n"
-	@printf "  lint-container              Valider le container Symfony\n"
-	@printf "\n"
-
-	@printf "🧪 Tests\n\n"
+	@printf "🌐 Cibles globales (env-agnostiques)\n\n"
 	@printf "  test                        Suite PHPUnit complète\n"
 	@printf "  test-file FILE=\"...\"        Exécuter un fichier de test\n"
 	@printf "  test-filter FILTER=\"...\"    Exécuter des tests filtrés\n"
 	@printf "  test-debug                  PHPUnit mode debug\n"
+	@printf "  schema-validate             Valider le schéma Doctrine\n"
+	@printf "  lint-container              Valider le container Symfony\n"
 	@printf "\n"
 
 	@printf "✅ Qualité\n\n"
@@ -70,6 +58,16 @@ help:
 	@printf "  dev-restart                 Redémarrer les services dev\n"
 	@printf "  dev-clean                   Reset complet dev avec suppression des volumes\n"
 	@printf "  dev-status                  Afficher l'état des services dev\n"
+	@printf "\n"
+
+	@printf "🧱 Symfony & Base de données (dev)\n\n"
+	@printf "  dev-console CMD=\"...\"       Console Symfony en dev\n"
+	@printf "  dev-composer CMD=\"...\"      Commande Composer en dev\n"
+	@printf "  dev-install                 Installer les dépendances Composer\n"
+	@printf "  dev-update-lock             Rafraîchir composer.lock\n"
+	@printf "  dev-cache-clear             Vider le cache Symfony\n"
+	@printf "  dev-jwt                     Générer le keypair JWT\n"
+	@printf "  dev-migrate                 Jouer les migrations Doctrine\n"
 	@printf "\n"
 
 	@printf "📜 Logs & Shell\n\n"
