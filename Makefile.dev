@@ -1,5 +1,6 @@
 .PHONY: dev-setup dev-deploy dev-reset-cache dev-bootstrap-manual dev-fixtures-test dev-seed-load dev-create-super-admin dev-create-organization dev-db-test-create
 .PHONY: dev-up dev-up-build dev-down dev-stop dev-restart dev-clean dev-status dev-logs dev-logs-api dev-shell
+.PHONY: dev-console dev-composer dev-install dev-update-lock dev-cache-clear dev-jwt dev-migrate
 
 DEV_API_PORT   ?= 18080
 DEV_HEALTH_URL ?= http://localhost:$(DEV_API_PORT)/api/docs.jsonld
@@ -45,7 +46,7 @@ dev-shell: ## Ouvrir un shell dans le container api dev.
 # Setup / Bootstrap
 # ----------------------------
 
-dev-setup: dev-up install jwt-keypair migrate ## Bootstrap the local Docker development environment.
+dev-setup: dev-up dev-install dev-jwt dev-migrate ## Bootstrap the local Docker development environment.
 
 dev-deploy: dev-setup dev-bootstrap-manual ## One-shot dev : setup + bootstrap manuel + healthcheck.
 	@curl -fsS -o /dev/null -w 'dev: HTTP %{http_code}\n' $(DEV_HEALTH_URL) || echo "dev: API pas encore joignable sur $(DEV_HEALTH_URL)"
@@ -79,3 +80,31 @@ dev-create-organization: ## Create an organization. Usage: make dev-create-organ
 
 dev-db-test-create: ## Create the test database if it does not exist.
 	$(EXEC) php bin/console doctrine:database:create --if-not-exists --env=test
+
+# ----------------------------
+# Opérations dev liées à l'environnement (conteneur dev : $(EXEC))
+# Équivalents non déployables des cibles preprod-/prod-.
+# ----------------------------
+
+dev-console: ## Console Symfony en dev. Usage: make dev-console CMD="debug:router"
+	@test -n "$(CMD)" || (echo 'Missing CMD. Usage: make dev-console CMD="debug:router"' && exit 1)
+	$(EXEC) php bin/console $(CMD)
+
+dev-composer: ## Commande Composer en dev. Usage: make dev-composer CMD="show --direct"
+	@test -n "$(CMD)" || (echo 'Missing CMD. Usage: make dev-composer CMD="show --direct"' && exit 1)
+	$(EXEC) composer $(CMD)
+
+dev-install: ## Installer les dépendances Composer dans le conteneur dev.
+	$(EXEC) composer install
+
+dev-update-lock: ## Rafraîchir composer.lock sans changer les versions.
+	$(EXEC) composer update --lock --no-scripts
+
+dev-cache-clear: ## Vider le cache Symfony (cache:clear) en dev.
+	$(EXEC) php bin/console cache:clear
+
+dev-jwt: ## Générer le keypair JWT s'il manque (dev).
+	$(EXEC) php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+dev-migrate: ## Jouer les migrations Doctrine en dev.
+	$(EXEC) php bin/console doctrine:migrations:migrate --no-interaction
