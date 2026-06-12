@@ -133,7 +133,7 @@ final class BootstrapManualCommand extends Command
 
             $blueBayPasswordScoped = self::PROJECT_BLUE_BAY === $passwordProject || null === $passwordProject;
             $blueBayOwner = $this->upsertUser(
-                'johan.remy+1@graines-digitales.online',
+                'demo@graines-digitales.online',
                 $password,
                 ['ROLE_ADMIN'],
                 $blueBayPasswordScoped,

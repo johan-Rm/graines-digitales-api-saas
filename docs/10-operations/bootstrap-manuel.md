@@ -188,7 +188,7 @@ SYMFONY_PROJECT_ID={projectUuid}
 ## 10 — Deuxieme organisation
 
 ```bash
-docker compose exec api php bin/console app:organization:create "Blue Bay Mogador" --owner-email=johan.remy+1@graines-digitales.online --owner-password=password1234
+docker compose exec api php bin/console app:organization:create "Blue Bay Mogador" --owner-email=demo@graines-digitales.online --owner-password=password1234
 ```
 
 ---
@@ -200,7 +200,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "johan.remy+1@graines-digitales.online",
+  "email": "demo@graines-digitales.online",
   "password": "password1234"
 }
 ```
@@ -290,7 +290,7 @@ Authorization: Bearer {token}
 Content-Type: application/ld+json
 
 {
-  "email": "johan.remy+1@graines-digitales.online",
+  "email": "demo@graines-digitales.online",
   "role": "owner"
 }
 ```
@@ -371,5 +371,5 @@ la sequence ci-dessus conserve les mots de passe suivants :
 - `developer@graines-digitales.online` : `super-admin-password`
 - `johan.remy@graines-digitales.online` : `mlk-password`
 - `buzac@mlk-my-little-kasbah.immo` : `mlk-password`
-- `johan.remy+1@graines-digitales.online` : `blue-bay-password`
+- `demo@graines-digitales.online` : `blue-bay-password`
 - `manager@blue-bay-mogador.test` : `blue-bay-password`
