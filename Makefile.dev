@@ -64,7 +64,7 @@ dev-fixtures-test: ## Load test fixtures through the project command.
 dev-seed-load: ## Load project seed data. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234
 	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234' && exit 1)
 	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234' && exit 1)
-	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD)
+	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD) --password-project=$(PROJECT)
 	$(EXEC) php bin/console app:seed:load-project $(PROJECT)
 
 dev-create-super-admin: ## Create or update a super admin. Usage: make dev-create-super-admin EMAIL=user@example.test PASSWORD=password1234
