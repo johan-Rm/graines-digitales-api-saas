@@ -24,14 +24,14 @@ docker compose exec api php bin/console doctrine:migrations:migrate --no-interac
 Les etapes 1 a 17 peuvent ensuite etre executees automatiquement :
 
 ```bash
-docker compose exec api php bin/console app:bootstrap:manual
+docker compose exec api php bin/console app:bootstrap:manual --password=password1234
 ```
 
 La commande est idempotente : elle cree ou met a jour les utilisateurs,
 organisations, projets et memberships attendus, puis affiche les UUID projets a
 reporter cote frontend.
 
-Options utiles :
+Le mot de passe doit etre fourni explicitement :
 
 ```bash
 docker compose exec api php bin/console app:bootstrap:manual --password=password1234 --site-url=http://localhost:3000

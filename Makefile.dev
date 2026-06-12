@@ -53,14 +53,17 @@ dev-deploy: dev-setup dev-bootstrap-manual ## One-shot dev : setup + bootstrap m
 dev-reset-cache: ## Remove Symfony var/cache from inside the API container.
 	$(EXEC) rm -rf var/cache
 
-dev-bootstrap-manual: ## Run the manual bootstrap command.
-	$(EXEC) php bin/console app:bootstrap:manual
+dev-bootstrap-manual: ## Run the manual bootstrap command. Usage: make dev-bootstrap-manual PASSWORD=password1234
+	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make dev-bootstrap-manual PASSWORD=password1234' && exit 1)
+	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD)
 
 dev-fixtures-test: ## Load test fixtures through the project command.
 	$(EXEC) php bin/console app:fixtures:load-test
 
-dev-seed-load: ## Load project seed data. Usage: make dev-seed-load PROJECT=blue-bay-mogador
-	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make dev-seed-load PROJECT=blue-bay-mogador' && exit 1)
+dev-seed-load: ## Load project seed data. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234
+	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234' && exit 1)
+	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234' && exit 1)
+	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD)
 	$(EXEC) php bin/console app:seed:load-project $(PROJECT)
 
 dev-create-super-admin: ## Create or update a super admin. Usage: make dev-create-super-admin EMAIL=user@example.test PASSWORD=password1234
