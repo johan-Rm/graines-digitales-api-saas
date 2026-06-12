@@ -8,6 +8,7 @@ use App\Entity\AccommodationMedia;
 use App\Entity\AccommodationTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
+use App\Entity\MediaObjectTranslation;
 use App\Entity\Project;
 use App\Entity\ResourceTranslation;
 use App\Enum\AccommodationComponentType;
@@ -132,7 +133,11 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
                 // Mirror the upload flow: when no caption is provided, derive one from the
                 // filename — but only if the media has none yet for the source locale, so an
                 // existing (or media-step) caption is never clobbered by a weaker guess.
-                if (null === $caption && null === $mediaObject->getTranslation($source['locale'])?->getCaption()) {
+                $mediaTranslation = $mediaObject->getTranslation($source['locale']);
+                if (
+                    null === $caption
+                    && (!$mediaTranslation instanceof MediaObjectTranslation || null === $mediaTranslation->getCaption())
+                ) {
                     $filename = $mediaObject->getFilePath() ?? '';
                     $caption = '' !== $filename
                         ? ($this->mediaCaptionGuesser->guessFromFilename($filename) ?? $filename)
