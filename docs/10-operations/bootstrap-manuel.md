@@ -349,12 +349,15 @@ docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogado
 
 Familles disponibles : `metadata`, `media`, `web-pages`, `accommodations`.
 
-La cible `make dev-seed-load` lance d'abord le bootstrap manuel avec un scope de
-mot de passe limite au projet demande, puis charge le seed :
+Les cibles `make dev-seed-load`, `make preprod-seed-load` et `make prod-seed-load`
+lancent d'abord le bootstrap manuel avec un scope de mot de passe limite au projet
+demande, puis chargent le seed :
 
 ```bash
 make dev-seed-load PROJECT=blue-bay-mogador PASSWORD='blue-bay-password'
 make dev-seed-load PROJECT=mlk-modern-site-web PASSWORD='mlk-password'
+make prod-seed-load PROJECT=blue-bay-mogador PASSWORD='blue-bay-password'
+make prod-seed-load PROJECT=mlk-modern-site-web PASSWORD='mlk-password'
 ```
 
 Avec un bootstrap initial :
