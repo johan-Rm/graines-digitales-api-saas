@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\Accommodation;
+use App\Entity\AccommodationComponent;
 use App\Entity\AccommodationMedia;
 use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
@@ -15,6 +16,7 @@ use App\Entity\ProjectMember;
 use App\Entity\PropertyValue;
 use App\Entity\User;
 use App\Entity\WebPage;
+use App\Enum\AccommodationComponentType;
 use App\Enum\AccommodationQuality;
 use App\Enum\MediaStatus;
 use App\Enum\OrganizationRole;
@@ -242,7 +244,25 @@ final class LoadTestFixturesCommand extends Command
         $villaBlueBay = 'Villa Blue Bay';
         $this->createAccommodation(
             $project, 'LV001', $villaBlueBay, 'villa-blue-bay',
-            ['type' => $type, 'listing' => $listing, 'place' => $place, 'amenities' => [$amenity1, $amenity2, $amenity3], 'tags' => [$tag1, $tag2, $tag3], 'media' => $media],
+            [
+                'type' => $type, 'listing' => $listing, 'place' => $place,
+                'amenities' => [$amenity1, $amenity2, $amenity3], 'tags' => [$tag1, $tag2, $tag3], 'media' => $media,
+                'components' => [
+                    [
+                        'additionalType' => AccommodationComponentType::Full,
+                        'name' => 'Vue d\'ensemble',
+                        'headline' => 'Une villa face au lagon',
+                        'text' => 'Lignes contemporaines et grandes ouvertures sur la baie.',
+                        'media' => [$media],
+                        'meta' => ['reverse' => false, 'overlayMode' => 'light'],
+                    ],
+                    [
+                        'additionalType' => AccommodationComponentType::Duo,
+                        'headline' => 'Deux espaces, une même vue',
+                        'text' => 'Salon ouvert et suite principale profitent de la lumière du lagon.',
+                    ],
+                ],
+            ],
             $admin, ['en' => $villaBlueBay, 'es' => $villaBlueBay],
         );
     }
@@ -443,7 +463,7 @@ final class LoadTestFixturesCommand extends Command
     }
 
     /**
-     * @param array{type: CategoryCode, listing: CategoryCode, place: CategoryCode, amenities: CategoryCode[], tags: CategoryCode[], media: MediaObject} $taxonomy
+     * @param array{type: CategoryCode, listing: CategoryCode, place: CategoryCode, amenities: CategoryCode[], tags: CategoryCode[], media: MediaObject, components?: list<array{additionalType: AccommodationComponentType, name?: string, headline?: string, text?: string, media?: MediaObject[], meta?: array<string, mixed>}>} $taxonomy
      * @param array<string, string> $translations locale → name
      */
     private function createAccommodation(
@@ -497,6 +517,10 @@ final class LoadTestFixturesCommand extends Command
         $accommodation->addAssociatedMedia($media);
         $this->entityManager->persist($media);
 
+        foreach ($taxonomy['components'] ?? [] as $index => $component) {
+            $accommodation->addComponent($this->buildComponent($component, $index));
+        }
+
         foreach ($translations as $locale => $translatedName) {
             $accommodation->setCurrentLocale($locale);
             $accommodation->setName($translatedName);
@@ -507,5 +531,27 @@ final class LoadTestFixturesCommand extends Command
         $this->entityManager->persist($accommodation);
 
         return $accommodation;
+    }
+
+    /**
+     * @param array{additionalType: AccommodationComponentType, name?: string, headline?: string, text?: string, media?: MediaObject[], meta?: array<string, mixed>} $data
+     */
+    private function buildComponent(array $data, int $index): AccommodationComponent
+    {
+        $component = new AccommodationComponent();
+        $component->setAdditionalType($data['additionalType']);
+        $component->setPosition($index + 1);
+        $component->setMeta($data['meta'] ?? []);
+        $component->setAssociatedMedia(array_map(
+            static fn (MediaObject $media): string => (string) $media->getId(),
+            $data['media'] ?? [],
+        ));
+
+        $component->setCurrentLocale('fr');
+        $component->setName($data['name'] ?? null);
+        $component->setHeadline($data['headline'] ?? null);
+        $component->setText($data['text'] ?? null);
+
+        return $component;
     }
 }

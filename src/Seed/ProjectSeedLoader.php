@@ -68,27 +68,54 @@ final readonly class ProjectSeedLoader
 
         if (isset($selected[ProjectSeedFamily::ACCOMMODATIONS])) {
             foreach ($data->accommodations as $accommodation) {
-                $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::CATEGORY_CODE_SET, $accommodation['category'], $accommodation['source'], 'category');
-                $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::PLACE_CODE_SET, $accommodation['place'], $accommodation['source'], 'place');
-                $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::REAL_ESTATE_LISTING_CODE_SET, $accommodation['realEstateListing'], $accommodation['source'], 'realEstateListing');
-
-                foreach ($accommodation['amenityFeature'] as $amenityFeature) {
-                    $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::AMENITY_FEATURE_CODE_SET, $amenityFeature, $accommodation['source'], 'amenityFeature');
-                }
-
-                foreach ($accommodation['associatedMedia'] as $edge) {
-                    if (!isset($availableMedia[$this->normalizeMediaReference($edge['image'])])) {
-                        $errors[] = sprintf(
-                            'Cannot import accommodations because media reference "%s" from %s is not available in the selected seed data or existing project media.',
-                            $edge['image'],
-                            $accommodation['source'],
-                        );
-                    }
-                }
+                $this->validateAccommodation($errors, $availableCategoryCodes, $availableMedia, $accommodation);
             }
         }
 
         return array_values(array_unique($errors));
+    }
+
+    /**
+     * @param list<string>        $errors
+     * @param array<string, true> $availableCategoryCodes
+     * @param array<string, true> $availableMedia
+     * @param array{category: string, place: string, realEstateListing: string, amenityFeature: list<string>, associatedMedia: list<array{image: string}>, hasPart: list<array{associatedMedia: list<string>}>, source: string} $accommodation
+     */
+    private function validateAccommodation(array &$errors, array $availableCategoryCodes, array $availableMedia, array $accommodation): void
+    {
+        $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::CATEGORY_CODE_SET, $accommodation['category'], $accommodation['source'], 'category');
+        $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::PLACE_CODE_SET, $accommodation['place'], $accommodation['source'], 'place');
+        $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::REAL_ESTATE_LISTING_CODE_SET, $accommodation['realEstateListing'], $accommodation['source'], 'realEstateListing');
+
+        foreach ($accommodation['amenityFeature'] as $amenityFeature) {
+            $this->requireCategoryCode($errors, $availableCategoryCodes, Accommodation::AMENITY_FEATURE_CODE_SET, $amenityFeature, $accommodation['source'], 'amenityFeature');
+        }
+
+        foreach ($accommodation['associatedMedia'] as $edge) {
+            $this->requireMediaReference($errors, $availableMedia, $edge['image'], $accommodation['source'], 'media');
+        }
+
+        foreach ($accommodation['hasPart'] as $block) {
+            foreach ($block['associatedMedia'] as $reference) {
+                $this->requireMediaReference($errors, $availableMedia, $reference, $accommodation['source'], 'hasPart media');
+            }
+        }
+    }
+
+    /**
+     * @param list<string>        $errors
+     * @param array<string, true> $availableMedia
+     */
+    private function requireMediaReference(array &$errors, array $availableMedia, string $reference, string $source, string $kind): void
+    {
+        if (!isset($availableMedia[$this->normalizeMediaReference($reference)])) {
+            $errors[] = sprintf(
+                'Cannot import accommodations because %s reference "%s" from %s is not available in the selected seed data or existing project media.',
+                $kind,
+                $reference,
+                $source,
+            );
+        }
     }
 
     /**

@@ -3,12 +3,14 @@
 namespace App\Seed;
 
 use App\Entity\Accommodation;
+use App\Entity\AccommodationComponent;
 use App\Entity\AccommodationMedia;
 use App\Entity\AccommodationTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\MediaObject;
 use App\Entity\Project;
 use App\Entity\ResourceTranslation;
+use App\Enum\AccommodationComponentType;
 use App\Enum\ContentStatus;
 use App\Media\MediaCaptionGuesser;
 use App\State\AccommodationIdentifierGenerator;
@@ -38,7 +40,8 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
         $requires = [ProjectSeedFamily::METADATA];
 
         foreach ($data->accommodations as $accommodation) {
-            if ([] !== $accommodation['associatedMedia']) {
+            $hasPartMedia = array_filter($accommodation['hasPart'], static fn (array $block): bool => [] !== $block['associatedMedia']);
+            if ([] !== $accommodation['associatedMedia'] || [] !== $hasPartMedia) {
                 $requires[] = ProjectSeedFamily::MEDIA;
                 break;
             }
@@ -67,7 +70,6 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
                 ->setCategory($this->categoryCode($project, Accommodation::CATEGORY_CODE_SET, $source['category']))
                 ->setPlace($this->categoryCode($project, Accommodation::PLACE_CODE_SET, $source['place']))
                 ->setRealEstateListing($this->categoryCode($project, Accommodation::REAL_ESTATE_LISTING_CODE_SET, $source['realEstateListing']))
-                ->setSlug($source['slug'])
                 ->setName($source['name'])
                 ->setLabel($source['name'])
                 ->setHighlight($source['highlight'])
@@ -91,9 +93,18 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
                 ->setOccupancy($this->intField($source['fields'], 'occupancy'))
                 ->clearAmenityFeature()
                 ->clearTags()
-                ->clearAssociatedMedia();
+                ->clearAssociatedMedia()
+                ->clearHasPart();
 
             $accommodation->setIdentifier($this->resolveIdentifier($accommodation, $source['identifier'], $reservedIdentifiers));
+
+            // Slug is never stored from the seed source: it is recomputed server-side
+            // from identifier + name + place, exactly like the normal write flow
+            // (ProjectScopedPersistProcessor). See docs/04-domain-model/accommodations.md.
+            $translation = $accommodation->getTranslation($source['locale']);
+            if ($translation instanceof AccommodationTranslation) {
+                $translation->recomputeSlug();
+            }
 
             foreach ($source['amenityFeature'] as $amenityFeature) {
                 $accommodation->addAmenityFeature($this->categoryCode($project, Accommodation::AMENITY_FEATURE_CODE_SET, $amenityFeature));
@@ -134,6 +145,8 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
                 }
             }
 
+            $this->applyHasPart($accommodation, $project, $source['hasPart'], $source['locale'], $source['slug']);
+
             $accommodation->ensureDefaultQualities();
             $this->entityManager->persist($accommodation);
 
@@ -159,6 +172,62 @@ final readonly class AccommodationSeedImporter implements ProjectSeedImporterInt
         }
 
         return $count;
+    }
+
+    /**
+     * Rebuilds the `hasPart` content blocks of an accommodation from the seed source.
+     * Structural fields are locale-agnostic; name/headline/text are written on the
+     * source-locale translation, mirroring the API write flow (read falls back to the
+     * source locale for other locales). Components cascade-persist with the accommodation.
+     *
+     * @param list<array{additionalType: string, position: int|null, name: string|null, headline: string|null, text: string|null, associatedMedia: list<string>, meta: array<string, mixed>}> $blocks
+     */
+    private function applyHasPart(Accommodation $accommodation, Project $project, array $blocks, string $locale, string $slug): void
+    {
+        foreach ($blocks as $index => $block) {
+            $component = new AccommodationComponent();
+            $component->setAdditionalType($this->componentType($block['additionalType'], $slug));
+            $component->setPosition($block['position'] ?? ($index + 1));
+            $component->setMeta($block['meta']);
+            $component->setAssociatedMedia($this->resolveComponentMedia($project, $block['associatedMedia'], $slug));
+
+            $component->setCurrentLocale($locale);
+            $component->setName($block['name']);
+            $component->setHeadline($block['headline']);
+            $component->setText($block['text']);
+
+            $accommodation->addComponent($component);
+        }
+    }
+
+    private function componentType(string $raw, string $slug): AccommodationComponentType
+    {
+        $type = AccommodationComponentType::tryFrom($raw);
+        if (!$type instanceof AccommodationComponentType) {
+            throw new \RuntimeException(sprintf('Unknown hasPart additionalType "%s" while importing accommodation "%s".', $raw, $slug));
+        }
+
+        return $type;
+    }
+
+    /**
+     * @param list<string> $references
+     *
+     * @return list<string>
+     */
+    private function resolveComponentMedia(Project $project, array $references, string $slug): array
+    {
+        $uuids = [];
+        foreach ($references as $reference) {
+            $mediaObject = $this->findMediaObject($project, $reference);
+            if (!$mediaObject instanceof MediaObject) {
+                throw new \RuntimeException(sprintf('Media reference "%s" was not found while importing hasPart of accommodation "%s".', $reference, $slug));
+            }
+
+            $uuids[] = (string) $mediaObject->getId();
+        }
+
+        return $uuids;
     }
 
     private function findAccommodation(Project $project, ?string $identifier, string $slug, string $locale): ?Accommodation
