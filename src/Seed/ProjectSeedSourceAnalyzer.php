@@ -86,11 +86,24 @@ final class ProjectSeedSourceAnalyzer
                 'name' => $name,
                 'inCodeSet' => $inCodeSet,
                 'text' => $this->nullableStringValue($item, 'text'),
+                'isEnabled' => $this->nullableBoolValue($item, 'isEnabled'),
                 'source' => $path,
             ];
         }
 
         return $categoryCodes;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function nullableBoolValue(array $item, string $key): ?bool
+    {
+        if (!array_key_exists($key, $item)) {
+            return null;
+        }
+
+        return is_bool($item[$key]) ? $item[$key] : null;
     }
 
     /**

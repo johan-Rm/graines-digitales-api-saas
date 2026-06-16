@@ -118,7 +118,11 @@ final class ProjectIsolationTest extends FunctionalTestCase
         self::assertSame('fr', $payload['locale'] ?? null);
         self::assertSame('Superbe local commercial a Erraounak', $payload['name'] ?? null);
         self::assertSame($accommodation->getCategory()?->getCodeValue(), $payload['category'] ?? null);
-        self::assertSame($accommodation->getRealEstateListing()?->getCodeValue(), $payload['realEstateListing'] ?? null);
+        self::assertIsArray($payload['realEstateListing'] ?? null);
+        self::assertSame($accommodation->getRealEstateListing()->getCodeValue(), $payload['realEstateListing']['slug'] ?? null);
+        self::assertSame($accommodation->getRealEstateListing()->getLabel(), $payload['realEstateListing']['name'] ?? null);
+        self::assertArrayHasKey('text', $payload['realEstateListing']);
+        self::assertIsBool($payload['realEstateListing']['isEnabled'] ?? null);
         self::assertSame($accommodation->getPlace()?->getCodeValue(), $payload['place'] ?? null);
         self::assertSame(
             array_map(static fn ($item): string => $item->getCodeValue(), $accommodation->getAmenityFeature()->toArray()),

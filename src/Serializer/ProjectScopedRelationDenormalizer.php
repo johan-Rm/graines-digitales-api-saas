@@ -178,7 +178,6 @@ final class ProjectScopedRelationDenormalizer implements DenormalizerInterface, 
 
         return $this->entityManager->getRepository(CategoryCode::class)->findOneBy($criteria);
     }
-
     private function resolveResourceByUuid(string $value, string $targetClass): ?object
     {
         if (!Uuid::isValid($value)) {
