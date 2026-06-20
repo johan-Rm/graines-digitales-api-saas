@@ -2,7 +2,9 @@
 
 namespace App\Serializer;
 
+use App\Entity\Accommodation;
 use App\Entity\CategoryCode;
+use App\Entity\CategoryCodeTranslation;
 use App\Entity\MediaObject;
 use App\Entity\Organization;
 use App\Entity\Project;
@@ -72,6 +74,9 @@ final class ApiResourceNormalizer implements NormalizerInterface
         $withTranslations = in_array('read:with-translations', $context['groups'] ?? [], true);
         if ($object instanceof CategoryCode) {
             $data = $this->addCategoryCodeTextFields($object, $data, $withTranslations);
+        }
+        if ($object instanceof Accommodation) {
+            $data['realEstateListing'] = $this->buildRealEstateListing($object);
         }
 
         return $this->compactRoot($data, $withTranslations);
@@ -201,6 +206,24 @@ final class ApiResourceNormalizer implements NormalizerInterface
         );
 
         return $data;
+    }
+
+    /**
+     * @return array{slug: string, name: string, text: string|null, isEnabled: bool}
+     */
+    private function buildRealEstateListing(Accommodation $accommodation): array
+    {
+        $listing = $accommodation->getRealEstateListing();
+        $translation = $listing->getTranslation($accommodation->getLocale())
+            ?? $listing->getTranslation($accommodation->getProject()?->getSourceLocale());
+        $metadata = $listing->getMetadata() ?? [];
+
+        return [
+            'slug' => $listing->getCodeValue(),
+            'name' => $translation instanceof CategoryCodeTranslation ? $translation->getLabel() : $listing->getLabel(),
+            'text' => $translation instanceof CategoryCodeTranslation ? $translation->getText() : $listing->getText(),
+            'isEnabled' => is_bool($metadata['isEnabled'] ?? null) ? $metadata['isEnabled'] : true,
+        ];
     }
 
     private function compactValue(mixed $value, bool $withTranslations = false): mixed

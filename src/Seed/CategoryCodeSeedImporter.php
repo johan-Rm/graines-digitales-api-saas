@@ -47,6 +47,11 @@ final readonly class CategoryCodeSeedImporter implements ProjectSeedImporterInte
             $categoryCode->setCurrentLocale($data->locale);
             $categoryCode->setLabel($source['name']);
             $categoryCode->setText($source['text'] ?? null);
+            if (array_key_exists('isEnabled', $source) && is_bool($source['isEnabled'])) {
+                $categoryCode->setMetadata(array_merge($categoryCode->getMetadata() ?? [], [
+                    'isEnabled' => $source['isEnabled'],
+                ]));
+            }
             $this->clearTranslatedTexts($categoryCode, $data->locale);
 
             $this->entityManager->persist($categoryCode);

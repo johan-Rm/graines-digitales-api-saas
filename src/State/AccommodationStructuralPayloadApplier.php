@@ -9,6 +9,7 @@ use App\Entity\CategoryCode;
 use App\Entity\Project;
 use App\Entity\PropertyValue;
 use App\Enum\AccommodationQuality;
+use App\Security\CurrentUserProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
@@ -20,6 +21,7 @@ final readonly class AccommodationStructuralPayloadApplier
         private EntityManagerInterface $entityManager,
         private AccommodationAssociatedMediaPayloadApplier $associatedMediaApplier,
         private AccommodationHasPartPayloadApplier $hasPartApplier,
+        private CurrentUserProvider $currentUserProvider,
     ) {
     }
 
@@ -64,8 +66,19 @@ final readonly class AccommodationStructuralPayloadApplier
             $accommodation->setCategory($this->resolveCategoryCode($payload['category'], $project, 'accommodation-type'));
         }
 
-        if (isset($payload['realEstateListing']) && is_string($payload['realEstateListing'])) {
-            $accommodation->setRealEstateListing($this->resolveCategoryCode($payload['realEstateListing'], $project, 'real-estate-listing'));
+        if (array_key_exists('realEstateListing', $payload)) {
+            if (is_string($payload['realEstateListing'])) {
+                $accommodation->setRealEstateListing($this->resolveCategoryCode($payload['realEstateListing'], $project, 'real-estate-listing'));
+            } elseif (is_array($payload['realEstateListing']) && !array_is_list($payload['realEstateListing'])) {
+                $accommodation->setRealEstateListing($this->resolveCategoryCodeObject(
+                    $payload['realEstateListing'],
+                    $project,
+                    'real-estate-listing',
+                    $accommodation->getCurrentLocale(),
+                ));
+            } else {
+                throw new BadRequestHttpException('realEstateListing must be a string or an object.');
+            }
         }
 
         if (isset($payload['place']) && is_string($payload['place'])) {
@@ -230,6 +243,63 @@ final readonly class AccommodationStructuralPayloadApplier
         if (!$categoryCode instanceof CategoryCode) {
             throw new BadRequestHttpException(sprintf('Unknown %s category code IRI.', $expectedCodeSet));
         }
+
+        return $categoryCode;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function resolveCategoryCodeObject(array $payload, Project $project, string $expectedCodeSet, string $locale): CategoryCode
+    {
+        $slug = $payload['slug'] ?? null;
+        $name = $payload['name'] ?? null;
+
+        if (!is_string($slug) || '' === trim($slug) || 1 !== preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug)) {
+            throw new BadRequestHttpException('realEstateListing.slug must be a non-empty kebab-case string.');
+        }
+
+        if (!is_string($name) || '' === trim($name)) {
+            throw new BadRequestHttpException('realEstateListing.name must be a non-empty string.');
+        }
+
+        if (array_key_exists('isEnabled', $payload) && !is_bool($payload['isEnabled'])) {
+            throw new BadRequestHttpException('realEstateListing.isEnabled must be a boolean.');
+        }
+
+        $categoryCode = $this->entityManager->getRepository(CategoryCode::class)->findOneBy([
+            'project' => $project,
+            'inCodeSet' => $expectedCodeSet,
+            'codeValue' => $slug,
+        ]);
+
+        $actor = $this->currentUserProvider->getUser();
+        if (!$categoryCode instanceof CategoryCode) {
+            $categoryCode = (new CategoryCode())
+                ->setProject($project)
+                ->setCodeValue($slug)
+                ->setInCodeSet($expectedCodeSet);
+            $categoryCode->markCreatedBy($actor);
+        }
+
+        $categoryCode->setCurrentLocale($locale);
+        $categoryCode->setLabel($name);
+        $categoryCode->setText(is_string($payload['text'] ?? null) ? $payload['text'] : null);
+
+        if (array_key_exists('isEnabled', $payload)) {
+            $categoryCode->setMetadata(array_merge($categoryCode->getMetadata() ?? [], [
+                'isEnabled' => $payload['isEnabled'],
+            ]));
+        }
+
+        $categoryCode->touch($actor);
+        $translation = $categoryCode->getTranslation($locale);
+        if (null !== $translation) {
+            $translation->touch($actor);
+            $this->entityManager->persist($translation);
+        }
+
+        $this->entityManager->persist($categoryCode);
 
         return $categoryCode;
     }

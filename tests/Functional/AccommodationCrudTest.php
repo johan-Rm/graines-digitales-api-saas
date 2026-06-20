@@ -288,6 +288,40 @@ final class AccommodationCrudTest extends FunctionalTestCase
         self::assertNotContains('vue-degagee', $payload['amenityFeature'] ?? []);
     }
 
+    public function testPutAccommodationAcceptsRealEstateListingContractObject(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, self::EDITOR);
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+
+        $response = $client->request('PUT', sprintf('/api/projects/%s/accommodations/BAVLC001?locale=fr', $project->getId()), [
+            'headers' => $this->jsonHeaders($token),
+            'json' => [
+                'category' => 'local-commercial',
+                'realEstateListing' => [
+                    'slug' => 'professionnels',
+                    'name' => 'Professionnels dashboard',
+                    'text' => 'Opportunites professionnelles depuis le dashboard.',
+                    'isEnabled' => false,
+                ],
+                'place' => 'ghazoua',
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $payload = $response->toArray(false);
+
+        self::assertSame('professionnels', $payload['realEstateListing']['slug'] ?? null);
+        self::assertSame('Professionnels dashboard', $payload['realEstateListing']['name'] ?? null);
+        self::assertSame('Opportunites professionnelles depuis le dashboard.', $payload['realEstateListing']['text'] ?? null);
+        self::assertFalse($payload['realEstateListing']['isEnabled'] ?? true);
+
+        $listing = $this->findCategoryCode($project, 'real-estate-listing', 'professionnels');
+        self::assertSame('Professionnels dashboard', $listing->getLabel());
+        self::assertSame('Opportunites professionnelles depuis le dashboard.', $listing->getText());
+        self::assertSame(false, $listing->getMetadata()['isEnabled'] ?? null);
+    }
+
     /** @return array<string, string> */
     private function jsonLdHeaders(string $token, bool $withContentType = false): array
     {

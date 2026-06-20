@@ -25,6 +25,12 @@ existe pour les ecrans qui ne connaissent pas encore l'UUID technique du bien.
   },
   "areaSize": "27",
   "floorSize": "27",
+  "realEstateListing": {
+    "slug": "bien-a-vendre",
+    "name": "Biens a vendre",
+    "text": "Selection de biens disponibles a la vente.",
+    "isEnabled": true
+  },
   "name": "Superbe local commercial a Erraounak",
   "body": "<p>Local commercial renove.</p>",
   "metaTitle": "Local commercial a vendre a Essaouira",
@@ -80,6 +86,10 @@ Regles de sauvegarde :
   source.
 - Les champs globaux de l'`Accommodation` restent communs a toutes les locales et ne
   doivent pas etre dupliques dans chaque objet de traduction.
+- `realEstateListing` accepte le code compact historique (`"bien-a-vendre"`) ou l'objet
+  du contrat webapp `RealEstateListing` (`slug`, `name`, `text`, `isEnabled`). Dans ce
+  cas, `slug` alimente le `CategoryCode.codeValue`, `name/text` alimentent la traduction
+  courante et `isEnabled` est conserve dans `CategoryCode.metadata`.
 - Le prix et la disponibilite sont portes par l'objet global `offer`.
 - Les surfaces `floorSize`, `areaSize`, `areaTerrace` et `landArea` sont exposees et
   sauvegardees comme des chaines pour conserver les valeurs composees ou formatees.
