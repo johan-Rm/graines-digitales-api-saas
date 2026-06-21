@@ -162,8 +162,9 @@ class Project
     private ?string $mediaPath = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Regex(pattern: '#^/images(?:/.*)?$#', message: 'The media base URL must be a relative path starting with /images.')]
     #[Groups(['read', 'write'])]
-    private ?string $mediaBaseUrl = null;
+    private ?string $mediaBaseUrl = '/images';
 
     public function getMediaPath(): ?string { return $this->mediaPath; }
     public function setMediaPath(?string $mediaPath): self { $this->mediaPath = $mediaPath; return $this; }

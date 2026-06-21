@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\MediaObject;
 use App\Entity\Project;
 use App\Media\MediaCaptionGuesser;
+use App\Media\MediaContentUrlResolver;
 use App\Message\AnalyzeMediaObject;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
@@ -33,6 +34,7 @@ final readonly class BulkMediaUploadController
         private ValidatorInterface $validator,
         private MessageBusInterface $messageBus,
         private MediaCaptionGuesser $mediaCaptionGuesser,
+        private MediaContentUrlResolver $mediaContentUrlResolver,
     ) {
     }
 
@@ -101,7 +103,7 @@ final readonly class BulkMediaUploadController
             $created[] = [
                 'index' => $index,
                 'id' => (string) $mediaObject->getId(),
-                'contentUrl' => '/media/'.$mediaObject->getFilePath(),
+                'contentUrl' => $this->mediaContentUrlResolver->resolve($mediaObject),
                 'filePath' => $mediaObject->getFilePath(),
                 'mimeType' => $mediaObject->getMimeType(),
                 'size' => $mediaObject->getSize(),

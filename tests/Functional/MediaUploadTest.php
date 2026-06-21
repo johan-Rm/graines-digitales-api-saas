@@ -35,6 +35,7 @@ final class MediaUploadTest extends FunctionalTestCase
         $id = $payload['id'] ?? null;
 
         self::assertIsString($id);
+        self::assertStringStartsWith('/images/', $payload['contentUrl'] ?? '');
 
         $mediaObject = $this->entityManager()->getRepository(MediaObject::class)->find($id);
         self::assertInstanceOf(MediaObject::class, $mediaObject);
@@ -138,6 +139,7 @@ final class MediaUploadTest extends FunctionalTestCase
 
         foreach ($payload['created'] as $createdMediaObject) {
             self::assertIsString($createdMediaObject['id'] ?? null);
+            self::assertStringStartsWith('/images/', $createdMediaObject['contentUrl'] ?? '');
 
             $mediaObject = $this->entityManager()->getRepository(MediaObject::class)->find($createdMediaObject['id']);
             self::assertInstanceOf(MediaObject::class, $mediaObject);

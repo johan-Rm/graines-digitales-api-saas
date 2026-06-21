@@ -11,11 +11,11 @@ use App\Entity\Project;
 use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
 use App\Entity\User;
+use App\Media\MediaContentUrlResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Uid\Uuid;
-use Vich\UploaderBundle\Storage\StorageInterface;
 
 final class ApiResourceNormalizer implements NormalizerInterface
 {
@@ -41,7 +41,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
     public function __construct(
         #[Autowire(service: 'api_platform.jsonld.normalizer.item')]
         private readonly NormalizerInterface $normalizer,
-        private readonly StorageInterface $storage,
+        private readonly MediaContentUrlResolver $mediaContentUrlResolver,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -54,15 +54,7 @@ final class ApiResourceNormalizer implements NormalizerInterface
         $context[self::ALREADY_CALLED] = true;
 
         if ($object instanceof MediaObject) {
-            $project = $object->getProject();
-            $mediaBaseUrl = $project?->getMediaBaseUrl();
-            $filePath = $object->getFilePath();
-
-            if ($mediaBaseUrl && $filePath) {
-                $object->contentUrl = rtrim($mediaBaseUrl, '/').'/'.ltrim($filePath, '/');
-            } else {
-                $object->contentUrl = $this->storage->resolveUri($object, 'file');
-            }
+            $object->contentUrl = $this->mediaContentUrlResolver->resolve($object);
         }
 
         $data = $this->normalizer->normalize($object, $format, $context);

@@ -49,13 +49,6 @@ final class BootstrapManualCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Restrict password updates to users of a bootstrap project.',
             )
-            ->addOption(
-                'site-url',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Frontend site base URL used for project mediaBaseUrl.',
-                'http://localhost:3000',
-            )
         ;
     }
 
@@ -64,7 +57,6 @@ final class BootstrapManualCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $password = (string) $input->getOption('password');
         $passwordProject = $this->resolvePasswordProject($input->getOption('password-project'));
-        $siteUrl = rtrim((string) $input->getOption('site-url'), '/');
 
         if ('' === trim($password)) {
             $io->error('Bootstrap password cannot be empty.');
@@ -88,7 +80,7 @@ final class BootstrapManualCommand extends Command
             ));
         }
 
-        $this->entityManager->wrapInTransaction(function () use ($password, $passwordProject, $siteUrl): void {
+        $this->entityManager->wrapInTransaction(function () use ($password, $passwordProject): void {
             $this->upsertUser(
                 email: self::SUPER_ADMIN_EMAIL,
                 password: $password,
@@ -126,7 +118,7 @@ final class BootstrapManualCommand extends Command
                 sourceLocale: 'fr',
                 enabledLocales: ['fr', 'en', 'es'],
                 mediaPath: 'mlk-my-little-kasbah/public/images',
-                mediaBaseUrl: $siteUrl.'/images',
+                mediaBaseUrl: '/images',
             );
             $this->upsertProjectMember($mlkProject, $mlkOwner, ProjectRole::Owner);
             $this->upsertProjectMember($mlkProject, $mlkAdmin, ProjectRole::Admin);
@@ -161,7 +153,7 @@ final class BootstrapManualCommand extends Command
                 sourceLocale: 'fr',
                 enabledLocales: ['fr', 'en'],
                 mediaPath: 'blue-bay-mogador/public/images',
-                mediaBaseUrl: $siteUrl.'/images',
+                mediaBaseUrl: '/images',
             );
             $this->upsertProjectMember($blueBayProject, $blueBayOwner, ProjectRole::Owner);
             $this->upsertProjectMember($blueBayProject, $blueBayAdmin, ProjectRole::Admin);

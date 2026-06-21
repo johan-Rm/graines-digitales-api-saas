@@ -10,6 +10,17 @@
   jointure ou de valeur utiles, comme `associatedMedia` ou `PropertyValue`, peuvent
   conserver leurs champs propres mais doivent referencer leurs ressources liees par UUID.
 
+## URLs des medias
+
+`MediaObject.contentUrl` expose toujours une URI publique relative a l'origine du frontend :
+
+```text
+/images/{filePath}
+```
+
+L'API ne doit pas inclure de protocole ni de host dans ce champ. `Project.mediaPath` reste
+le chemin physique de stockage et ne doit pas etre expose dans `contentUrl`.
+
 TASK-002 prevoit des DTOs explicites pour les contenus localises :
 
 - lecture localisee
