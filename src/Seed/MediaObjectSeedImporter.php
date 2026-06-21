@@ -6,6 +6,7 @@ use App\Entity\MediaObject;
 use App\Entity\Project;
 use App\Enum\AiReviewStatus;
 use App\Enum\MediaStatus;
+use App\Media\ImageWatermarker;
 use App\Media\MediaCaptionGuesser;
 use App\Translation\ResourceAutoTranslator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,6 +19,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
         private ResourceAutoTranslator $autoTranslator,
         private MediaCaptionGuesser $mediaCaptionGuesser,
         private MediaObjectSeedCaptionApplier $captionApplier,
+        private ImageWatermarker $imageWatermarker,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -55,7 +57,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
             $caption = is_string($sourceCaption) && '' !== trim($sourceCaption)
                 ? $sourceCaption
                 : ($this->mediaCaptionGuesser->guessFromFilename($source['filename']) ?? $source['filename']);
-            $this->copyMediaFile($project, $source['sourcePath'], $source['filename']);
+            $this->copyMediaFile($project, $source['sourcePath'], $source['filename'], $source['mimeType']);
             $this->captionApplier->apply($mediaObject, $data->locale, $caption);
             $mediaObject
                 ->setOriginalFilename($source['filename'])
@@ -84,7 +86,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
         return $count;
     }
 
-    private function copyMediaFile(Project $project, string $sourcePath, string $filename): void
+    private function copyMediaFile(Project $project, string $sourcePath, string $filename, ?string $mimeType): void
     {
         $mediaPath = $project->getMediaPath();
         if (null === $mediaPath || '' === trim($mediaPath)) {
@@ -102,10 +104,40 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
             throw new \RuntimeException(sprintf('Unable to create media originals directory: %s', $originalsDirectory));
         }
 
-        foreach ([$targetDirectory.'/'.$filename, $originalsDirectory.'/'.$filename] as $targetPath) {
-            if (!copy($sourcePath, $targetPath)) {
-                throw new \RuntimeException(sprintf('Unable to copy seed media "%s" to "%s".', $sourcePath, $targetPath));
-            }
+        // originals/ keeps the untouched source; the public copy receives the watermark.
+        if (!copy($sourcePath, $originalsDirectory.'/'.$filename)) {
+            throw new \RuntimeException(sprintf('Unable to copy seed media "%s" to "%s".', $sourcePath, $originalsDirectory.'/'.$filename));
         }
+
+        $publicPath = $targetDirectory.'/'.$filename;
+        if ($this->watermarkSeedMedia($project, $sourcePath, $publicPath, $mimeType)) {
+            return;
+        }
+
+        if (!copy($sourcePath, $publicPath)) {
+            throw new \RuntimeException(sprintf('Unable to copy seed media "%s" to "%s".', $sourcePath, $publicPath));
+        }
+    }
+
+    /**
+     * Watermarks the public seed copy in place (same filename, so the import stays
+     * idempotent). Returns false when watermarking does not apply, so the caller
+     * falls back to a plain copy.
+     */
+    private function watermarkSeedMedia(Project $project, string $sourcePath, string $publicPath, ?string $mimeType): bool
+    {
+        $watermarkPath = $project->getWatermarkPath();
+        if (null === $watermarkPath || !$this->imageWatermarker->isWatermarkable($mimeType)) {
+            return false;
+        }
+
+        $watermarkFile = rtrim($this->webappsDir, '/').'/'.$watermarkPath;
+        if (!file_exists($watermarkFile)) {
+            return false;
+        }
+
+        $this->imageWatermarker->apply($sourcePath, $watermarkFile, $publicPath);
+
+        return true;
     }
 }

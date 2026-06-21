@@ -9,6 +9,8 @@ RUN apk add --no-cache \
         icu-dev \
         imagemagick \
         imagemagick-dev \
+        imagemagick-jpeg \
+        imagemagick-webp \
         libpq-dev \
         linux-headers \
         make \

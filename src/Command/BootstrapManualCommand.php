@@ -119,6 +119,7 @@ final class BootstrapManualCommand extends Command
                 enabledLocales: ['fr', 'en', 'es'],
                 mediaPath: 'mlk-my-little-kasbah/public/images',
                 mediaBaseUrl: '/images',
+                watermarkPath: 'mlk-my-little-kasbah/app/assets/logo/watermark4.png',
             );
             $this->upsertProjectMember($mlkProject, $mlkOwner, ProjectRole::Owner);
             $this->upsertProjectMember($mlkProject, $mlkAdmin, ProjectRole::Admin);
@@ -154,6 +155,7 @@ final class BootstrapManualCommand extends Command
                 enabledLocales: ['fr', 'en'],
                 mediaPath: 'blue-bay-mogador/public/images',
                 mediaBaseUrl: '/images',
+                watermarkPath: 'blue-bay-mogador/app/assets/logo/watermark4.png',
             );
             $this->upsertProjectMember($blueBayProject, $blueBayOwner, ProjectRole::Owner);
             $this->upsertProjectMember($blueBayProject, $blueBayAdmin, ProjectRole::Admin);
@@ -270,6 +272,7 @@ final class BootstrapManualCommand extends Command
         array $enabledLocales,
         string $mediaPath,
         string $mediaBaseUrl,
+        ?string $watermarkPath = null,
     ): Project {
         $probe = new Project();
         $probe->setName($name);
@@ -286,7 +289,8 @@ final class BootstrapManualCommand extends Command
             ->setSourceLocale($sourceLocale)
             ->setEnabledLocales($enabledLocales)
             ->setMediaPath($mediaPath)
-            ->setMediaBaseUrl($mediaBaseUrl);
+            ->setMediaBaseUrl($mediaBaseUrl)
+            ->setWatermarkPath($watermarkPath);
 
         return $project;
     }
