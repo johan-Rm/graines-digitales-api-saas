@@ -8,7 +8,7 @@ use App\Entity\MediaObject;
 use App\Entity\Project;
 use App\Media\MediaCaptionGuesser;
 use App\Media\MediaContentUrlResolver;
-use App\Message\AnalyzeMediaObject;
+use App\Media\MediaUploadFinalizer;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,7 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
@@ -32,9 +31,9 @@ final readonly class BulkMediaUploadController
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
         private ValidatorInterface $validator,
-        private MessageBusInterface $messageBus,
         private MediaCaptionGuesser $mediaCaptionGuesser,
         private MediaContentUrlResolver $mediaContentUrlResolver,
+        private MediaUploadFinalizer $mediaUploadFinalizer,
     ) {
     }
 
@@ -98,7 +97,7 @@ final readonly class BulkMediaUploadController
 
             $this->entityManager->persist($mediaObject);
             $this->entityManager->flush();
-            $this->messageBus->dispatch(new AnalyzeMediaObject((string) $mediaObject->getId()));
+            $this->mediaUploadFinalizer->finalize($mediaObject);
 
             $created[] = [
                 'index' => $index,
