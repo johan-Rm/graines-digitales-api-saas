@@ -6,6 +6,7 @@ use App\Entity\Project;
 use App\Seed\ProjectSeedFamily;
 use App\Seed\ProjectSeedImageSynchronizer;
 use App\Seed\ProjectSeedLoader;
+use App\Seed\ProjectSeedWatermarkInstaller;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -26,6 +27,7 @@ final class LoadProjectSeedCommand extends Command
         private readonly EntityManagerInterface $entityManager,
         private readonly ProjectSeedLoader $projectSeedLoader,
         private readonly ProjectSeedImageSynchronizer $imageSynchronizer,
+        private readonly ProjectSeedWatermarkInstaller $watermarkInstaller,
         #[Autowire('%env(default:seed_project_path:SEED_PROJECT_PATH)%')]
         private readonly string $seedProjectPath,
     ) {
@@ -115,6 +117,8 @@ final class LoadProjectSeedCommand extends Command
             return Command::SUCCESS;
         }
 
+        // Install the watermark before importing media so image watermarking finds it.
+        $watermarkInstalled = $this->watermarkInstaller->install($project, $report->data);
         $result = $this->projectSeedLoader->import($project, $report->data, $plan);
         $syncedImages = null;
         if ($syncImages) {
@@ -130,6 +134,7 @@ final class LoadProjectSeedCommand extends Command
         if (null !== $syncedImages) {
             $rows[] = ['synced-images', (string) $syncedImages];
         }
+        $rows[] = ['watermark', $watermarkInstalled ? 'installed' : 'skipped'];
 
         $io->table(
             ['Family', 'Processed'],
