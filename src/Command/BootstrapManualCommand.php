@@ -119,7 +119,7 @@ final class BootstrapManualCommand extends Command
                 enabledLocales: ['fr', 'en', 'es'],
                 mediaPath: 'mlk-my-little-kasbah/public/images',
                 mediaBaseUrl: '/images',
-                watermarkPath: 'mlk-my-little-kasbah/app/assets/logo/watermark4.png',
+                watermarkPath: 'mlk-my-little-kasbah/public/watermark4.png',
             );
             $this->upsertProjectMember($mlkProject, $mlkOwner, ProjectRole::Owner);
             $this->upsertProjectMember($mlkProject, $mlkAdmin, ProjectRole::Admin);
@@ -155,7 +155,7 @@ final class BootstrapManualCommand extends Command
                 enabledLocales: ['fr', 'en'],
                 mediaPath: 'blue-bay-mogador/public/images',
                 mediaBaseUrl: '/images',
-                watermarkPath: 'blue-bay-mogador/app/assets/logo/watermark4.png',
+                watermarkPath: 'blue-bay-mogador/public/watermark4.png',
             );
             $this->upsertProjectMember($blueBayProject, $blueBayOwner, ProjectRole::Owner);
             $this->upsertProjectMember($blueBayProject, $blueBayAdmin, ProjectRole::Admin);
