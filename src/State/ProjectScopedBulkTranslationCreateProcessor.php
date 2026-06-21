@@ -11,6 +11,7 @@ use App\Entity\MediaObject;
 use App\Entity\ProjectScopedResource;
 use App\Entity\TranslatableResource;
 use App\Media\MediaCaptionGuesser;
+use App\Media\MediaUploadFinalizer;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\Translation\LocaleResolver;
@@ -49,6 +50,7 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
         private RequestStack $requestStack,
         private LocaleResolver $localeResolver,
         private MediaCaptionGuesser $mediaCaptionGuesser,
+        private MediaUploadFinalizer $mediaUploadFinalizer,
     ) {
     }
 
@@ -102,6 +104,12 @@ final readonly class ProjectScopedBulkTranslationCreateProcessor implements Proc
                 $this->entityManager->flush();
             } catch (UniqueConstraintViolationException $e) {
                 throw new ConflictHttpException('A resource with the same unique identifier already exists.', $e);
+            }
+
+            // Same post-upload pipeline as the dedicated media POST routes:
+            // copy to originals + watermark (which chains analysis).
+            if ($resource instanceof MediaObject) {
+                $this->mediaUploadFinalizer->finalize($resource);
             }
 
             return $resource;

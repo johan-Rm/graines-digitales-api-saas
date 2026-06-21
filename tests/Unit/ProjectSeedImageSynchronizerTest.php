@@ -3,6 +3,7 @@
 namespace App\Tests\Unit;
 
 use App\Entity\Project;
+use App\Media\ImageWatermarker;
 use App\Seed\ProjectSeedData;
 use App\Seed\ProjectSeedImageSynchronizer;
 use PHPUnit\Framework\TestCase;
@@ -40,7 +41,7 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
             ->setMediaPath('blue-bay');
         $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
 
-        $count = (new ProjectSeedImageSynchronizer($webappsDirectory))->sync($project, $data);
+        $count = (new ProjectSeedImageSynchronizer(new ImageWatermarker(), $webappsDirectory))->sync($project, $data);
 
         self::assertSame(2, $count);
         self::assertFileExists($targetDirectory.'/hero.jpg');
@@ -63,7 +64,7 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('has no mediaPath configured');
 
-        (new ProjectSeedImageSynchronizer($this->tempDirectory.'/webapps'))->sync($project, $data);
+        (new ProjectSeedImageSynchronizer(new ImageWatermarker(), $this->tempDirectory.'/webapps'))->sync($project, $data);
     }
 
     public function testSyncRejectsUnsafeProjectMediaPath(): void
@@ -79,7 +80,7 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Unsafe project mediaPath configured');
 
-        (new ProjectSeedImageSynchronizer($this->tempDirectory.'/webapps'))->sync($project, $data);
+        (new ProjectSeedImageSynchronizer(new ImageWatermarker(), $this->tempDirectory.'/webapps'))->sync($project, $data);
     }
 
     public function testSyncAcceptsSlashWrappedProjectMediaPath(): void
@@ -94,7 +95,7 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
             ->setMediaPath('/blue-bay/');
         $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
 
-        $count = (new ProjectSeedImageSynchronizer($webappsDirectory))->sync($project, $data);
+        $count = (new ProjectSeedImageSynchronizer(new ImageWatermarker(), $webappsDirectory))->sync($project, $data);
 
         self::assertSame(1, $count);
         self::assertFileExists($webappsDirectory.'/blue-bay/hero.jpg');

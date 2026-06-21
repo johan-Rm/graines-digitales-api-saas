@@ -3,11 +3,13 @@
 namespace App\Seed;
 
 use App\Entity\Project;
+use App\Media\ImageWatermarker;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final readonly class ProjectSeedImageSynchronizer
 {
     public function __construct(
+        private ImageWatermarker $imageWatermarker,
         #[Autowire(env: 'WEBAPPS_DIR')]
         private string $webappsDir,
     ) {
@@ -32,14 +34,43 @@ final readonly class ProjectSeedImageSynchronizer
         $this->ensureDirectory($targetDirectory);
         $this->ensureDirectory($originalsDirectory);
 
+        $watermarkFile = $this->resolveWatermarkFile($project);
+
         $count = 0;
         foreach ($this->sourceFiles($sourceDirectory) as $sourcePath => $relativePath) {
-            $this->copyFile($sourcePath, $targetDirectory.'/'.$relativePath);
+            // originals/ keeps the untouched source; the public copy receives the watermark.
             $this->copyFile($sourcePath, $originalsDirectory.'/'.$relativePath);
+            $this->copyOrWatermark($sourcePath, $targetDirectory.'/'.$relativePath, $watermarkFile);
             $count++;
         }
 
         return $count;
+    }
+
+    private function resolveWatermarkFile(Project $project): ?string
+    {
+        $watermarkPath = $project->getWatermarkPath();
+        if (null === $watermarkPath) {
+            return null;
+        }
+
+        $watermarkFile = rtrim($this->webappsDir, '/').'/'.$watermarkPath;
+
+        return file_exists($watermarkFile) ? $watermarkFile : null;
+    }
+
+    private function copyOrWatermark(string $sourcePath, string $targetPath, ?string $watermarkFile): void
+    {
+        $detectedMime = mime_content_type($sourcePath);
+        $mimeType = false === $detectedMime ? null : $detectedMime;
+        if (null !== $watermarkFile && $this->imageWatermarker->isWatermarkable($mimeType)) {
+            $this->ensureDirectory(dirname($targetPath));
+            $this->imageWatermarker->apply($sourcePath, $watermarkFile, $targetPath);
+
+            return;
+        }
+
+        $this->copyFile($sourcePath, $targetPath);
     }
 
     private function targetDirectory(string $mediaPath): string

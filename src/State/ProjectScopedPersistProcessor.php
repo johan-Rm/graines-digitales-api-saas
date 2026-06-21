@@ -13,17 +13,15 @@ use App\Entity\ProjectScopedResource;
 use App\Entity\ResourceTranslation;
 use App\Entity\TranslatableResource;
 use App\Media\MediaCaptionGuesser;
-use App\Message\WatermarkMediaObject;
+use App\Media\MediaUploadFinalizer;
 use App\Security\CurrentUserProvider;
 use App\Security\ProjectAccessGuard;
 use App\Translation\LocaleResolver;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
 {
@@ -32,12 +30,10 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         private ProjectAccessGuard $projectAccessGuard,
         private CurrentUserProvider $currentUserProvider,
         private EntityManagerInterface $entityManager,
-        private MessageBusInterface $messageBus,
         private AccommodationIdentifierGenerator $accommodationIdentifierGenerator,
         private LocaleResolver $localeResolver,
         private MediaCaptionGuesser $mediaCaptionGuesser,
-        #[Autowire(env: 'WEBAPPS_DIR')]
-        private string $webappsDir,
+        private MediaUploadFinalizer $mediaUploadFinalizer,
     ) {
     }
 
@@ -112,9 +108,8 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
             throw new ConflictHttpException('A resource with the same unique identifier already exists.', $e);
         }
 
-        if ($data instanceof MediaObject && null !== $data->getFilePath()) {
-            $this->copyToOriginals($data);
-            $this->messageBus->dispatch(new WatermarkMediaObject((string) $data->getId()));
+        if ($data instanceof MediaObject) {
+            $this->mediaUploadFinalizer->finalize($data);
         }
 
         return $result;
@@ -152,34 +147,5 @@ final readonly class ProjectScopedPersistProcessor implements ProcessorInterface
         if ((string) $categoryCode->getProject()?->getId() !== (string) $project->getId()) {
             throw new BadRequestHttpException(sprintf('Accommodation.%s must reference a CategoryCode from the current project.', $field));
         }
-    }
-
-    private function copyToOriginals(MediaObject $mediaObject): void
-    {
-        $mediaPath = $mediaObject->getProject()?->getMediaPath();
-        if (null === $mediaPath) {
-            return;
-        }
-
-        $webappsDir = rtrim($this->webappsDir, '/');
-        $source = $webappsDir.'/'.$mediaPath.'/'.$mediaObject->getFilePath();
-        $originalsDir = $webappsDir.'/'.$mediaPath.'/originals';
-
-        if (!file_exists($source)) {
-            return;
-        }
-
-        $target = $originalsDir.'/'.$mediaObject->getFilePath();
-        $targetDir = dirname($target);
-
-        if (!is_dir($targetDir) && !@mkdir($targetDir, 0775, true) && !is_dir($targetDir)) {
-            return;
-        }
-
-        if (!is_readable($source) || !is_writable($targetDir)) {
-            return;
-        }
-
-        @copy($source, $target);
     }
 }
