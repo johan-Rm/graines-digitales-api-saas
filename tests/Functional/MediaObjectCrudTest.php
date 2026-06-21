@@ -16,6 +16,9 @@ final class MediaObjectCrudTest extends FunctionalTestCase
     {
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+        $mediaObject = $this->findMediaObjectByProject($project)->setFilePath('riad-patio.jpg');
+        $this->entityManager()->flush();
 
         $response = $client->request('GET', '/api/media-objects', [
             'headers' => ['Authorization' => 'Bearer '.$token],
@@ -24,9 +27,10 @@ final class MediaObjectCrudTest extends FunctionalTestCase
         self::assertResponseIsSuccessful();
         $payload = $response->toArray(false);
 
-        $items = $payload['hydra:member'] ?? $payload;
+        $items = $payload['hydra:member'] ?? $payload['member'] ?? $payload;
         self::assertIsArray($items);
         self::assertNotEmpty($items);
+        self::assertContains('/images/'.$mediaObject->getFilePath(), array_column($items, 'contentUrl'));
     }
 
     public function testGlobalMediaObjectCollectionRequiresAuthentication(): void
@@ -45,6 +49,8 @@ final class MediaObjectCrudTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('riads-medina-essaouira');
+        $mediaObject = $this->findMediaObjectByProject($project)->setFilePath('riad-patio.jpg');
+        $this->entityManager()->flush();
 
         $response = $client->request('GET', sprintf('/api/projects/%s/media-objects', $project->getId()), [
             'headers' => ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/ld+json'],
@@ -59,6 +65,7 @@ final class MediaObjectCrudTest extends FunctionalTestCase
 
         $first = is_array($items[0] ?? null) ? $items[0] : reset($items);
         self::assertIsArray($first, 'First collection item should be an array');
+        self::assertContains('/images/'.$mediaObject->getFilePath(), array_column($items, 'contentUrl'));
         self::assertArrayNotHasKey('translations', $first, 'translations must be hidden on collection GET');
     }
 
@@ -68,6 +75,8 @@ final class MediaObjectCrudTest extends FunctionalTestCase
         $token = $this->login($client, 'admin@grainesdigitales.local');
         $project = $this->findProjectBySlug('riads-medina-essaouira');
         $mediaObject = $this->findMediaObjectByProject($project);
+        $mediaObject->setFilePath('riad-patio.jpg');
+        $this->entityManager()->flush();
 
         $response = $client->request('GET', sprintf(
             '/api/projects/%s/media-objects/%s',
@@ -81,6 +90,7 @@ final class MediaObjectCrudTest extends FunctionalTestCase
         $payload = $response->toArray(false);
 
         self::assertNotEmpty($payload['id'] ?? null);
+        self::assertSame('/images/'.$mediaObject->getFilePath(), $payload['contentUrl'] ?? null);
         self::assertArrayNotHasKey('translations', $payload, 'translations must be hidden on standard GET');
     }
 

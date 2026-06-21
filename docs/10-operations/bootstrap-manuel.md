@@ -34,7 +34,7 @@ reporter cote frontend.
 Le mot de passe doit etre fourni explicitement :
 
 ```bash
-docker compose exec api php bin/console app:bootstrap:manual --password=password1234 --site-url=http://localhost:3000
+docker compose exec api php bin/console app:bootstrap:manual --password=password1234
 ```
 
 Depuis `make`, passer le mot de passe avec une variable `PASSWORD`, pas avec une
@@ -139,7 +139,7 @@ Content-Type: application/ld+json
   "sourceLocale": "fr",
   "enabledLocales": ["fr", "en", "es"],
   "mediaPath": "mlk-my-little-kasbah/public/images",
-  "mediaBaseUrl": "{SITE_URL}/images"
+  "mediaBaseUrl": "/images"
 }
 ```
 
@@ -271,7 +271,7 @@ Content-Type: application/ld+json
   "sourceLocale": "fr",
   "enabledLocales": ["fr", "en"],
   "mediaPath": "blue-bay-mogador/public/images",
-  "mediaBaseUrl": "{SITE_URL}/blue-bay-mogador/images"
+  "mediaBaseUrl": "/images"
 }
 ```
 

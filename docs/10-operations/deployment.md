@@ -116,13 +116,15 @@ d'isolation inter-projets est bloquante.
 
 Les uploads ne doivent pas etre stockes dans l'image applicative.
 
-Le reverse proxy ou le frontend peut servir les fichiers publics selon le
-`mediaBaseUrl` configure sur chaque `Project`. Verifier avant mise en prod :
+Le frontend sert les fichiers publics sous le chemin relatif `/images`. Le champ
+`MediaObject.contentUrl` ne contient jamais de protocole ni de host. Verifier avant mise
+en prod :
 
 - racine persistante `/srv/webapps` montee dans le container API
 - droits d'ecriture pour PHP-FPM
 - sauvegarde ou retention du volume media
-- coherence entre `Project.mediaPath` et `Project.mediaBaseUrl`
+- `Project.mediaBaseUrl` configure avec `/images`
+- coherence entre `Project.mediaPath` et le repertoire public `images` du frontend
 
 Dans la topologie Compose de reference, `/srv/webapps` est une racine technique fixe.
 Le sous-chemin par projet vient de `Project.mediaPath` en base.
