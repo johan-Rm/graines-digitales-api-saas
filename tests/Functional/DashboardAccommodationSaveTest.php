@@ -2,9 +2,11 @@
 
 namespace App\Tests\Functional;
 
+use App\Entity\Accommodation;
 use App\Entity\AccommodationTranslation;
 use App\Entity\CategoryCode;
 use App\Entity\Project;
+use App\State\AccommodationIdentifierGenerator;
 
 final class DashboardAccommodationSaveTest extends FunctionalTestCase
 {
@@ -43,6 +45,35 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         $payload = $response->toArray(false);
 
         self::assertSame('BAVLC002', $payload['identifier'] ?? null);
+    }
+
+    public function testAccommodationIdentifierIgnoresLongerPrefixesWhenIncrementingCounter(): void
+    {
+        self::bootKernel();
+
+        $project = $this->findProjectBySlug('villas-arganier-ghazoua');
+        $listing = $this->findCategoryCode($project, 'real-estate-listing', 'bien-a-vendre');
+        $place = $this->findCategoryCode($project, 'accommodation-place', 'nouvelle-ville');
+        $apartment = $this->createCategoryCode($project, 'accommodation-type', 'appartement');
+        $apartmentLuxury = $this->createCategoryCode($project, 'accommodation-type', 'appartement-luxe');
+
+        foreach (range(1, 6) as $counter) {
+            $this->createAccommodation($project, sprintf('BAVA%03d', $counter), $listing, $apartment, $place);
+        }
+
+        $this->createAccommodation($project, 'BAVAL001', $listing, $apartmentLuxury, $place);
+        $this->createAccommodation($project, 'BAVAL002', $listing, $apartmentLuxury, $place);
+        $this->entityManager()->flush();
+
+        $nextAccommodation = (new Accommodation())
+            ->setProject($project)
+            ->setRealEstateListing($listing)
+            ->setCategory($apartment)
+            ->setPlace($place);
+
+        $generator = self::getContainer()->get(AccommodationIdentifierGenerator::class);
+
+        self::assertSame('BAVA007', $generator->generate($nextAccommodation));
     }
 
     public function testDashboardCanUpdateAccommodationByIdentifier(): void
@@ -293,5 +324,36 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         self::assertInstanceOf(CategoryCode::class, $categoryCode);
 
         return $categoryCode;
+    }
+
+    private function createCategoryCode(Project $project, string $inCodeSet, string $code): CategoryCode
+    {
+        $categoryCode = (new CategoryCode())
+            ->setProject($project)
+            ->setInCodeSet($inCodeSet)
+            ->setCodeValue($code);
+
+        $this->entityManager()->persist($categoryCode);
+
+        return $categoryCode;
+    }
+
+    private function createAccommodation(
+        Project $project,
+        string $identifier,
+        CategoryCode $listing,
+        CategoryCode $category,
+        CategoryCode $place,
+    ): Accommodation {
+        $accommodation = (new Accommodation())
+            ->setProject($project)
+            ->setIdentifier($identifier)
+            ->setRealEstateListing($listing)
+            ->setCategory($category)
+            ->setPlace($place);
+
+        $this->entityManager()->persist($accommodation);
+
+        return $accommodation;
     }
 }

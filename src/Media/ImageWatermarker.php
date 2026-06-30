@@ -13,7 +13,7 @@ final readonly class ImageWatermarker
 {
     private const WATERMARK_RATIO = 0.22;
     private const WATERMARK_SCALE = 0.6;
-    private const WATERMARK_OPACITY = 0.35;
+    private const WATERMARK_OPACITY = 0.45;
     private const JPEG_QUALITY = 95;
 
     /**

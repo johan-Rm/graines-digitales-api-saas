@@ -41,6 +41,9 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
 
         $imported = [];
 
+        // Watermarking is scoped to real-estate images only.
+        $accommodationMedia = ProjectSeedAccommodationMediaIndex::fromSeedData($data);
+
         foreach ($data->mediaObjects as $source) {
             $mediaObject = $this->entityManager->getRepository(MediaObject::class)->findOneBy([
                 'project' => $project,
@@ -57,7 +60,13 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
             $caption = is_string($sourceCaption) && '' !== trim($sourceCaption)
                 ? $sourceCaption
                 : ($this->mediaCaptionGuesser->guessFromFilename($source['filename']) ?? $source['filename']);
-            $this->copyMediaFile($project, $source['sourcePath'], $source['filename'], $source['mimeType']);
+            $this->copyMediaFile(
+                $project,
+                $source['sourcePath'],
+                $source['filename'],
+                $source['mimeType'],
+                $accommodationMedia->covers($source['filename']),
+            );
             $this->captionApplier->apply($mediaObject, $data->locale, $caption);
             $mediaObject
                 ->setOriginalFilename($source['filename'])
@@ -86,7 +95,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
         return $count;
     }
 
-    private function copyMediaFile(Project $project, string $sourcePath, string $filename, ?string $mimeType): void
+    private function copyMediaFile(Project $project, string $sourcePath, string $filename, ?string $mimeType, bool $watermark): void
     {
         $mediaPath = $project->getMediaPath();
         if (null === $mediaPath || '' === trim($mediaPath)) {
@@ -110,7 +119,7 @@ final readonly class MediaObjectSeedImporter implements ProjectSeedImporterInter
         }
 
         $publicPath = $targetDirectory.'/'.$filename;
-        if ($this->watermarkSeedMedia($project, $sourcePath, $publicPath, $mimeType)) {
+        if ($watermark && $this->watermarkSeedMedia($project, $sourcePath, $publicPath, $mimeType)) {
             return;
         }
 

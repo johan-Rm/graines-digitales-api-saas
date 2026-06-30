@@ -45,7 +45,7 @@ final readonly class AccommodationIdentifierGenerator
             }
         }
 
-        $nextCounter = max(\count($identifiers), $maxSuffix) + 1;
+        $nextCounter = $maxSuffix + 1;
 
         return sprintf('%s%03d', $prefix, $nextCounter);
     }
