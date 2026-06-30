@@ -7,6 +7,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class MediaUploadTest extends FunctionalTestCase
 {
+    protected function shouldResetDatabaseBeforeEachTest(): bool
+    {
+        return true;
+    }
+
     public function testImageUploadCreatesMediaObjectWithChecksum(): void
     {
         $client = static::createClient();
@@ -102,6 +107,74 @@ final class MediaUploadTest extends FunctionalTestCase
         );
 
         self::assertSame([['locale' => 'en', 'caption' => 'English upload caption']], $rows);
+    }
+
+    public function testTranslationImageUploadReturnsWatermarkedPublicUrl(): void
+    {
+        $client = static::createClient();
+        $token = $this->login($client, 'admin@grainesdigitales.local');
+        $project = $this->findProjectBySlug('riads-medina-essaouira');
+        $webappsDir = $this->webappsDir();
+        $mediaPath = 'test-dashboard-media/'.bin2hex(random_bytes(6)).'/images';
+        $watermarkPath = 'test-dashboard-media/watermark.png';
+        $originalMediaPath = $project->getMediaPath();
+        $originalMediaBaseUrl = $project->getMediaBaseUrl();
+        $originalWatermarkPath = $project->getWatermarkPath();
+
+        $this->writePngFile($webappsDir.'/'.$watermarkPath, self::WATERMARK_PNG);
+        $project
+            ->setMediaPath($mediaPath)
+            ->setMediaBaseUrl('/images')
+            ->setWatermarkPath($watermarkPath);
+        $this->entityManager()->flush();
+
+        $filePath = $this->createDashboardPngFile();
+
+        $response = $client->request('POST', sprintf('/api/projects/%s/media-objects/translations', $project->getId()), [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/json',
+                'Accept-Language' => 'fr',
+                'Content-Type' => 'multipart/form-data',
+            ],
+            'extra' => [
+                'parameters' => [
+                    'translations' => json_encode([
+                        ['locale' => 'fr', 'caption' => 'Image dashboard filigranée'],
+                    ], \JSON_THROW_ON_ERROR),
+                ],
+                'files' => [
+                    'file' => new UploadedFile($filePath, 'dashboard-watermark.png', 'image/png', null, true),
+                ],
+            ],
+        ]);
+
+        $project
+            ->setMediaPath($originalMediaPath)
+            ->setMediaBaseUrl($originalMediaBaseUrl)
+            ->setWatermarkPath($originalWatermarkPath);
+        $this->entityManager()->flush();
+
+        self::assertResponseStatusCodeSame(201);
+
+        $payload = $response->toArray(false);
+        $id = $payload['id'] ?? null;
+
+        self::assertIsString($id);
+
+        $mediaObject = $this->entityManager()->getRepository(MediaObject::class)->find($id);
+        self::assertInstanceOf(MediaObject::class, $mediaObject);
+
+        $finalFilePath = $mediaObject->getFilePath();
+        self::assertIsString($finalFilePath);
+        self::assertStringStartsWith('dashboard-watermark-', $finalFilePath);
+        self::assertSame('/images/'.$finalFilePath, $payload['contentUrl'] ?? null);
+        self::assertFileExists($webappsDir.'/'.$mediaPath.'/'.$finalFilePath);
+        self::assertNotSame([], glob($webappsDir.'/'.$mediaPath.'/originals/*') ?: []);
+
+        $this->assertNoLocalizedRootFields($payload);
+        $byLocale = array_column($payload['translations'], null, 'locale');
+        self::assertSame('Image dashboard filigranée', $byLocale['fr']['caption'] ?? null);
     }
 
     public function testBulkImageUploadCreatesMediaObjects(): void
@@ -211,4 +284,36 @@ final class MediaUploadTest extends FunctionalTestCase
 
         return $filePath;
     }
+
+    private function createDashboardPngFile(): string
+    {
+        $filePath = tempnam(sys_get_temp_dir(), 'upload-test-');
+
+        self::assertIsString($filePath);
+        file_put_contents($filePath, base64_decode(self::DASHBOARD_PNG, true));
+
+        return $filePath;
+    }
+
+    private function writePngFile(string $path, string $base64Content): void
+    {
+        $directory = dirname($path);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+
+        file_put_contents($path, base64_decode($base64Content, true));
+    }
+
+    private function webappsDir(): string
+    {
+        $webappsDir = $_SERVER['WEBAPPS_DIR'] ?? $_ENV['WEBAPPS_DIR'] ?? '/srv/webapps';
+
+        self::assertIsString($webappsDir);
+
+        return rtrim($webappsDir, '/');
+    }
+
+    private const DASHBOARD_PNG = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAQMAAABJtOi3AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGUExURf8AAP///0EdNBEAAAABYktHRAH/Ai3eAAAADElEQVQI12NgGNwAAACgAAFhJX1HAAAAAElFTkSuQmCC';
+    private const WATERMARK_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGUExURQAA/////3vcmSwAAAABYktHRAH/Ai3eAAAAC0lEQVQI12NgQAUAABAAAaHFIcEAAAAASUVORK5CYII=';
 }

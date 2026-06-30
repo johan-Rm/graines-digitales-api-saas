@@ -22,7 +22,7 @@ final readonly class ImageWatermarker
      */
     public function isWatermarkable(?string $mimeType): bool
     {
-        return in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true);
+        return in_array($mimeType, ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'], true);
     }
 
     public function apply(string $sourcePath, string $watermarkPath, string $targetPath): void

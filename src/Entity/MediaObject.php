@@ -119,7 +119,7 @@ class MediaObject implements ProjectScopedResource, TranslatableResource
 
     #[Vich\UploadableField(mapping: 'media_object', fileNameProperty: 'filePath', size: 'size', mimeType: 'mimeType', originalName: 'originalFilename')]
     #[Assert\NotNull(groups: ['media:create'])]
-    #[Assert\File(maxSize: '12M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])]
+    #[Assert\File(maxSize: '12M', mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])]
     #[Groups(['write'])]
     private ?File $file = null;
 
