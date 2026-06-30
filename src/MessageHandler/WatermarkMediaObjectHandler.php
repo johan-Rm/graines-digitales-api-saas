@@ -54,13 +54,15 @@ final class WatermarkMediaObjectHandler
         $targetFile = $webappsDir.'/'.$mediaPath.'/'.$newFilename;
 
         $watermarkPath = $project->getWatermarkPath();
-        if (null !== $watermarkPath) {
-            $watermarkFile = $webappsDir.'/'.$watermarkPath;
-            if (file_exists($watermarkFile)) {
-                $this->imageWatermarker->apply($originalFile, $watermarkFile, $targetFile);
-            } else {
-                copy($originalFile, $targetFile);
-            }
+        $watermarkFile = null === $watermarkPath ? null : $webappsDir.'/'.$watermarkPath;
+
+        // Imagick has no decode delegate for every accepted upload format (e.g. AVIF, GIF):
+        // only watermark raster formats it can read, otherwise deliver the untouched copy.
+        if (null !== $watermarkFile
+            && file_exists($watermarkFile)
+            && $this->imageWatermarker->isWatermarkable($mediaObject->getMimeType())
+        ) {
+            $this->imageWatermarker->apply($originalFile, $watermarkFile, $targetFile);
         } else {
             copy($originalFile, $targetFile);
         }
