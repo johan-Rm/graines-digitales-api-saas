@@ -35,12 +35,15 @@ final readonly class ProjectSeedImageSynchronizer
         $this->ensureDirectory($originalsDirectory);
 
         $watermarkFile = $this->resolveWatermarkFile($project);
+        // Watermarking is scoped to real-estate images only.
+        $accommodationMedia = ProjectSeedAccommodationMediaIndex::fromSeedData($data);
 
         $count = 0;
         foreach ($this->sourceFiles($sourceDirectory) as $sourcePath => $relativePath) {
             // originals/ keeps the untouched source; the public copy receives the watermark.
             $this->copyFile($sourcePath, $originalsDirectory.'/'.$relativePath);
-            $this->copyOrWatermark($sourcePath, $targetDirectory.'/'.$relativePath, $watermarkFile);
+            $watermarkForFile = $accommodationMedia->covers($relativePath) ? $watermarkFile : null;
+            $this->copyOrWatermark($sourcePath, $targetDirectory.'/'.$relativePath, $watermarkForFile);
             $count++;
         }
 
