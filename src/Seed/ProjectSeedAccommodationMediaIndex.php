@@ -74,11 +74,14 @@ final readonly class ProjectSeedAccommodationMediaIndex
 
         $basename = pathinfo($normalized, PATHINFO_FILENAME);
 
-        return array_values(array_unique(array_filter([
-            $normalized,
-            $basename,
-            '' === $basename ? '' : 'media-'.$basename,
-        ])));
+        return array_values(array_unique(array_filter(
+            [
+                $normalized,
+                $basename,
+                '' === $basename ? '' : 'media-'.$basename,
+            ],
+            static fn (string $candidate): bool => '' !== $candidate,
+        )));
     }
 
     private static function normalize(string $reference): string
