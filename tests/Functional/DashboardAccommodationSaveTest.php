@@ -227,7 +227,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
     {
         $client = static::createClient();
         $token = $this->login($client, 'admin@grainesdigitales.local');
-        $project = $this->findProjectBySlug('blue-bay-mogador');
+        $project = $this->findProjectBySlug('showcase-immobilier');
 
         $client->request('PUT', sprintf('/api/projects/%s/accommodations/LV001/translations', $project->getId()), [
             'headers' => [
@@ -260,7 +260,7 @@ final class DashboardAccommodationSaveTest extends FunctionalTestCase
         self::assertResponseIsSuccessful();
 
         $this->entityManager()->clear();
-        $project = $this->findProjectBySlug('blue-bay-mogador');
+        $project = $this->findProjectBySlug('showcase-immobilier');
         $accommodation = $this->findAccommodationByIdentifier('LV001', $project);
         $englishTranslation = $accommodation->getTranslation('en');
         $spanishTranslation = $accommodation->getTranslation('es');

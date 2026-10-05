@@ -1,0 +1,1974 @@
+type: collection.insomnia.rest/5.0
+name: Graines Digitales API Saas
+meta:
+  id: wrk_d9abc829e6c9462d9782b8b2a7e4d9c1
+  created: 1779202548136
+  modified: 1791115361660
+  description: ""
+collection:
+  - url: "{{ _.base_url }}/api/docs"
+    name: Swagger
+    meta:
+      id: req_37d7ee8185df4d29af6100be1c4b4a44
+      created: 1779202561342
+      modified: 1780672147988
+      isPrivate: false
+      description: ""
+      sortKey: -1779202561342
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/auth/local-users"
+    name: Create user
+    meta:
+      id: req_b67326fc1e634f76b2c4229f95b0bd4b
+      created: 1779213336764
+      modified: 1780926129446
+      isPrivate: false
+      description: ""
+      sortKey: -1779213336764
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "email": "{{ _.email_user }}",
+          "password": "{{ _.default_password }}",
+          "roles": ["ROLE_ADMIN"]
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/auth/login"
+    name: Auth Login
+    meta:
+      id: req_6fb867d6e6054e31b6ec160ab8a3c3d4
+      created: 1779215527594
+      modified: 1780926143336
+      isPrivate: false
+      description: ""
+      sortKey: -1779215527594
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "email": "{{ _.email_user }}",
+          "password": "{{ _.default_password }}"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects"
+    name: Projects
+    meta:
+      id: req_94befe1d9205422696a4720adfa9bd9a
+      created: 1779298190736
+      modified: 1780672407360
+      isPrivate: false
+      description: ""
+      sortKey: -1779298190736
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations?pagination=false&locale=fr"
+    name: Accommodations
+    meta:
+      id: req_272672e48bc04a3cad65c44d2a370ae7
+      created: 1779371030135
+      modified: 1780992491058
+      isPrivate: false
+      description: ""
+      sortKey: -1779371030135
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects"
+    name: Upload Image
+    meta:
+      id: req_343e58f9347e4002a1552cc8fca3a5c8
+      created: 1779375105177
+      modified: 1782074591746
+      isPrivate: false
+      description: ""
+      sortKey: -1779371284825.125
+    method: POST
+    body:
+      mimeType: multipart/form-data
+      params:
+        - id: pair_67545efc368d4a3283fdd51b7a5ffbeb
+          name: file
+          value: ""
+          description: ""
+          disabled: false
+          type: file
+          fileName: \\wsl.localhost\Ubuntu\home\johan\www\graines-digitales\seed\webapp\showcase-immobilier\resources\images\affaire-commerciale-cafe-medina-02.jpg
+    headers:
+      - name: Content-Type
+        value: multipart/form-data
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects"
+    name: Upload Images
+    meta:
+      id: req_11598d25be88458dadd6165d0a33503c
+      created: 1779376982177
+      modified: 1780672581695
+      isPrivate: false
+      description: ""
+      sortKey: -1779371157480.0625
+    method: POST
+    body:
+      mimeType: multipart/form-data
+      params:
+        - id: pair_cd8d63983c26424283feedceb7d7fe96
+          name: "caption "
+          value: Patio lumineux de riad
+          description: ""
+          disabled: false
+        - id: pair_67545efc368d4a3283fdd51b7a5ffbeb
+          name: file
+          value: ""
+          description: ""
+          disabled: false
+          type: file
+          fileName: C:\Users\johan\Pictures\photo_2025-10-15_17-10-25.jpg
+    headers:
+      - name: Content-Type
+        value: multipart/form-data
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/organizations/"
+    name: Organizations
+    meta:
+      id: req_637e0a0b7bc149fbaa396aebf83f4092
+      created: 1779377036810
+      modified: 1780672335669
+      isPrivate: false
+      description: ""
+      sortKey: -1779277524950.5
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/organizations"
+    name: Organizations
+    meta:
+      id: req_90c353d6273c445a9daefb48cc559a83
+      created: 1779378610432
+      modified: 1780672256354
+      isPrivate: false
+      description: ""
+      sortKey: -1779246526272.25
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "name": "MLK - My Little Kasbah"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_f14f55cc02cf4af09d05ccd9ae3cd774',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects"
+    name: Projects
+    meta:
+      id: req_873086e26c0240a2a74f050f7f40bd6f
+      created: 1779378765165
+      modified: 1780672369892
+      isPrivate: false
+      description: ""
+      sortKey: -1779287857843.25
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+          "organization": "/api/organizations/{% response 'body', 'req_8bc7b5d0ca1c420ca4826078c80fa97e', 'b64::JC5pZA==::46b', 'always', 60 %}",
+          "name": "MLK - Modern Site Web",
+          "sourceLocale": "fr",
+          "enabledLocales": ["fr", "en", "es"],
+          "mediaPath": "mlk-my-little-kasbah/public/images",
+          "mediaBaseUrl": "{{ _.site_url }}/images"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/members"
+    name: Project Members
+    meta:
+      id: req_cc93eda58511492984ee4338ee757cc0
+      created: 1779378910197
+      modified: 1780672423071
+      isPrivate: false
+      description: ""
+      sortKey: -1779334610435.5
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/members"
+    name: Projects Members
+    meta:
+      id: req_aeb8efe2d13746129f67677b3f79b33d
+      created: 1779378964489
+      modified: 1780672414709
+      isPrivate: false
+      description: ""
+      sortKey: -1779316400585.75
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "email": "johan.remy@graines-digitales.online",
+          "role": "owner"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations/BAVA002"
+    name: Accommodations
+    meta:
+      id: req_e7a292f138a24312bffa01d7333b1753
+      created: 1779456240078
+      modified: 1782057968000
+      isPrivate: false
+      description: ""
+      sortKey: -1779368825036.0068
+    method: PUT
+    body:
+      mimeType: application/json
+      text: "{\"locale\":\"fr\",\"fileName\":\"bava002-appartement-centre-ville-balco\
+        n-medina.md\",\"slug\":\"bava002-appartement-centre-ville-balcon-medina\
+        \",\"identifier\":\"BAVA002\",\"frontmatter\":{\"identifier\":\"BAVA002\
+        \",\"slug\":\"bava002-appartement-centre-ville-balcon-medina\",\"name\":\
+        \"Appartement centre ville,
+        balcon\",\"dateCreated\":\"2026-06-21T11:30:55+00:00\",\"dateModified\":\
+        \"2026-06-21T11:30:55+00:00\",\"category\":\"appartement\",\"realEstate\
+        Listing\":\"bien-a-vendre\",\"place\":\"medina\",\"offer\":{\"price\":1\
+        85000,\"priceCurrency\":\"EUR\",\"priceSpecification\":\"A la
+        vente\"},\"yearBuilt\":2004,\"floorSize\":92,\"landArea\":0,\"areaSize\
+        \":\"92\",\"numberOfRooms\":4,\"numberOfBedrooms\":2,\"numberOfBathroom\
+        sTotal\":2,\"numberOfGarages\":0,\"occupancy\":4,\"amenityFeature\":[\"\
+        barbecue-ou-plancha\",\"cave-a-vin\",\"congelateur\",\"douche-exterieure\
+        \",\"enceinte-portable\",\"fer-a-repasser\",\"four\",\"frigo-americain\
+        \",\"home-cinema\",\"lave-linge\",\"lave-vaisselle\",\"machine-a-cafe\",\
+        \"micro-onde\",\"mobilier-exterieur\",\"piscine\",\"refrigerateur\",\"r\
+        obot-menager\",\"seche-linge\",\"television\",\"climatisation\",\"wifi\
+        \"],\"associatedMedia\":[{\"image\":\"019ee9f2-a82c-7250-883b-d0fb86600\
+        e34\",\"caption\":\"Appartement centre Essaouira - pièce de
+        vie\",\"keywords\":[\"gallery\"],\"representativeOfPage\":true},{\"image\
+        \":\"019ee9f2-a82e-7688-913b-485d39028a8a\",\"caption\":\"Appartement
+        centre Essaouira - intérieur
+        lumineux\",\"keywords\":[\"gallery\"]},{\"image\":\"019ee9f2-a830-7e0b-\
+        ab7f-b57ec49e8dfd\",\"caption\":\"Appartement centre Essaouira - espace
+        aménagé\",\"keywords\":[\"gallery\"]}],\"isActive\":true,\"label\":\"Ap\
+        partement centre ville, balcon\",\"highlight\":\"Une adresse centrale
+        facile a vivre\",\"review\":\"Un appartement bien distribue au coeur de
+        la ville, facile a vivre au quotidien et simple a projeter.\\nSon
+        balcon, ses volumes equilibrés et sa proximite immediate des commodites
+        en font une base solide pour une residence principale ou un
+        investissement.\",\"metaTitle\":\"Appartement 92 m2 centre ville -
+        Essaouira\",\"metaDescription\":\"Appartement lumineux de 92 m2 au
+        centre ville, 2 chambres, balcon et ascenseur.\"},\"body\":\"## Visite
+        guidee\\n\\nUn appartement central pense pour une vie simple, pratique
+        et immediate.\\n\\n### Une base confortable au coeur de la ville\\n\\nLa
+        force du bien tient dans son equilibre. Les volumes sont lisibles, les
+        circulations restent fluides et le balcon prolonge agreablement la piece
+        de vie sans compliquer l'usage quotidien.\\n\\nAvec ses deux chambres et
+        ses deux salles d'eau, l'appartement couvre facilement plusieurs
+        scenarios : residence principale, pied-a-terre familial ou
+        investissement locatif annuel. L'adresse centre-ville renforce encore
+        cette polyvalence.\\n\\nLe positionnement est rassurant pour un
+        acquereur qui veut privilegier la praticite : commerces, services et
+        rythmes du quotidien restent accessibles rapidement, sans renoncer a un
+        interieur confortable et lumineux.\\n\\n## Descriptif\\n\\n- Surface
+        interieure annoncee : 92 m2\\n- Configuration : 2 chambres, 2 salles
+        d'eau, balcon\\n- Ambiance : appartement urbain lumineux, facile a
+        meubler\\n- Usage possible : residence principale, pied-a-terre,
+        location annuelle\\n- Niveau de confort : distribution fonctionnelle et
+        lecture immediate des
+        espaces\",\"preview\":{\"identifier\":\"BAVA002\",\"slug\":\"bava002-ap\
+        partement-centre-ville-balcon-medina\",\"title\":\"Appartement centre
+        ville, balcon\",\"description\":\"Une adresse centrale facile a
+        vivre\",\"price\":185000,\"priceCurrency\":\"EUR\",\"priceSpecification\
+        \":\"A la
+        vente\",\"placeSlug\":\"medina\",\"placeLabel\":\"Médina\",\"categorySl\
+        ug\":\"appartement\",\"categoryLabel\":\"Appartement\",\"listingSlug\":\
+        \"bien-a-vendre\",\"listingLabel\":\"Biens a
+        vendre\",\"isActive\":true,\"floorSize\":\"\",\"landArea\":\"\",\"numbe\
+        rOfRooms\":4,\"numberOfBedrooms\":2,\"numberOfBathroomsTotal\":2,\"prim\
+        aryImageUrl\":\"/images/appartement-centre-essaouira-01.jpg\",\"media\"\
+        :[{\"image\":\"019ee9f2-a82c-7250-883b-d0fb86600e34\",\"imageUrl\":\"/i\
+        mages/appartement-centre-essaouira-01.jpg\",\"caption\":\"Appartement
+        centre Essaouira - pièce de
+        vie\",\"keywords\":[\"gallery\"],\"representativeOfPage\":true},{\"image\
+        \":\"019ee9f2-a82e-7688-913b-485d39028a8a\",\"imageUrl\":\"/images/appa\
+        rtement-centre-essaouira-02.jpg\",\"caption\":\"Appartement centre
+        Essaouira - intérieur
+        lumineux\",\"keywords\":[\"gallery\"],\"representativeOfPage\":false},{\
+        \"image\":\"019ee9f2-a830-7e0b-ab7f-b57ec49e8dfd\",\"imageUrl\":\"/imag\
+        es/appartement-centre-essaouira-03.jpg\",\"caption\":\"Appartement
+        centre Essaouira - espace
+        aménagé\",\"keywords\":[\"gallery\"],\"representativeOfPage\":false}]},\
+        \"translations\":[{\"locale\":\"fr\",\"slug\":\"bava002-appartement-cen\
+        tre-ville-balcon-medina\",\"name\":\"Appartement centre ville,
+        balcon\",\"label\":\"Appartement centre ville,
+        balcon\",\"highlight\":\"Une adresse centrale facile a
+        vivre\",\"body\":\"## Visite guidee\\n\\nUn appartement central pense
+        pour une vie simple, pratique et immediate.\\n\\n### Une base
+        confortable au coeur de la ville\\n\\nLa force du bien tient dans son
+        equilibre. Les volumes sont lisibles, les circulations restent fluides
+        et le balcon prolonge agreablement la piece de vie sans compliquer
+        l'usage quotidien.\\n\\nAvec ses deux chambres et ses deux salles d'eau,
+        l'appartement couvre facilement plusieurs scenarios : residence
+        principale, pied-a-terre familial ou investissement locatif annuel.
+        L'adresse centre-ville renforce encore cette polyvalence.\\n\\nLe
+        positionnement est rassurant pour un acquereur qui veut privilegier la
+        praticite : commerces, services et rythmes du quotidien restent
+        accessibles rapidement, sans renoncer a un interieur confortable et
+        lumineux.\\n\\n## Descriptif\\n\\n- Surface interieure annoncee : 92
+        m2\\n- Configuration : 2 chambres, 2 salles d'eau, balcon\\n- Ambiance :
+        appartement urbain lumineux, facile a meubler\\n- Usage possible :
+        residence principale, pied-a-terre, location annuelle\\n- Niveau de
+        confort : distribution fonctionnelle et lecture immediate des
+        espaces\",\"review\":\"Un appartement bien distribue au coeur de la
+        ville, facile a vivre au quotidien et simple a projeter.\\nSon balcon,
+        ses volumes equilibrés et sa proximite immediate des commodites en font
+        une base solide pour une residence principale ou un
+        investissement.\",\"metaTitle\":\"Appartement 92 m2 centre ville -
+        Essaouira\",\"metaDescription\":\"Appartement lumineux de 92 m2 au
+        centre ville, 2 chambres, balcon et ascenseur.\"}]}"
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/category-codes"
+    name: Category Codes
+    meta:
+      id: req_769961e3d9394881af0734e6e9d6b869
+      created: 1779456265187
+      modified: 1780672696256
+      isPrivate: false
+      description: ""
+      sortKey: -1779458893459.2617
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'never', 60
+      %}/category-codes/019e7f80-c519-74cb-bfec-a71e9980e436"
+    name: Category Codes
+    meta:
+      id: req_38230c99f1b64d66ad3bf6b63f2fa8eb
+      created: 1779456284638
+      modified: 1780672626990
+      isPrivate: false
+      description: ""
+      sortKey: -1779414159472.625
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/category-codes"
+    name: Category Codes
+    meta:
+      id: req_2766e069a9474283bbd276941ffd4fad
+      created: 1779459265578
+      modified: 1780672675667
+      isPrivate: false
+      description: ""
+      sortKey: -1779456274912.5
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "label": "Atelier4 menuiserie",
+          "inCodeSet": "accommodation-type"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/by-owner-email/{{ _.email_user }}"
+    name: Project By Owner Email
+    meta:
+      id: req_0634156853814547adb6a95f737db982
+      created: 1779459400709
+      modified: 1780992505690
+      isPrivate: false
+      description: ""
+      sortKey: -1779293024289.625
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations/019e8f02-eb0b-7e6b-a11b-d62a778866e3?locale=fr"
+    name: Accommodation
+    meta:
+      id: req_99a3b95403104a05acabfc8357082a6e
+      created: 1779531653168
+      modified: 1780672462639
+      isPrivate: false
+      description: ""
+      sortKey: -1779369038432.6836
+    method: GET
+    body:
+      mimeType: application/json
+      text: ""
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/organizations/{% response 'body',
+      'req_8bc7b5d0ca1c420ca4826078c80fa97e', 'b64::JC5pZA==::46b', 'always', 60
+      %}/members"
+    name: Organizations Members
+    meta:
+      id: req_ef35b10a7c80480584c1f267f63a00a5
+      created: 1779703306009
+      modified: 1780926211272
+      isPrivate: false
+      description: ""
+      sortKey: -1779231026933.125
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "email": "{{ _.email_member_1 }}",
+          "password": "{{ _.default_password }}",
+          "role": "admin"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url
+      }}/api/organizations/by-owner-email/johan.remy@graines-digitales.online"
+    name: Organization
+    meta:
+      id: req_8bc7b5d0ca1c420ca4826078c80fa97e
+      created: 1779721401695
+      modified: 1780672314184
+      isPrivate: false
+      description: ""
+      sortKey: -1779262025611.375
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/organizations/{% response 'body',
+      'req_8bc7b5d0ca1c420ca4826078c80fa97e', 'b64::JC5pZA==::46b', 'always', 60
+      %}"
+    name: Organizations
+    meta:
+      id: req_f7c704d4478d4e95a0ae0c2c3b526d05
+      created: 1779721657600
+      modified: 1780672244031
+      isPrivate: false
+      description: ""
+      sortKey: -1779238776602.6875
+    method: PUT
+    body:
+      mimeType: application/json
+      text: >-
+        {
+          "name": "MLK - My Little Kasbah",
+          "acronym": "MLK",
+          "fullName": "MLK - My Little Kasbah",
+          "location": "Essaouira",
+          "email": ["contact@mlk-my-little-kasbah.immo"],
+          "phoneNumbers": ["+33 (0)7 67 235 008", "+212 (0)7 26 403 203"],
+          "description": "MLK – My Little Kasbah accompagne vos projets immobiliers à Essaouira : investissement, achat, vente et gestion locative avec une expertise locale et internationale."
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/organizations/{% response 'body',
+      'req_8bc7b5d0ca1c420ca4826078c80fa97e', 'b64::JC5pZA==::46b', 'always', 60
+      %}/members"
+    name: Organization Members
+    meta:
+      id: req_68ed055d745a43d588801799ebe453fe
+      created: 1779902154067
+      modified: 1780672327673
+      isPrivate: false
+      description: ""
+      sortKey: -1779273650115.7188
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/media-objects"
+    name: Media Objects
+    meta:
+      id: req_7eb3cf710d594a098ab404d6839388f9
+      created: 1779902504729
+      modified: 1780672619956
+      isPrivate: false
+      description: ""
+      sortKey: -1779372048895.5
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/by-owner-email/{{ _.email_user }}"
+    name: Project
+    meta:
+      id: req_9b39370cedc64ce1954d0decb8e6248c
+      created: 1779959797289
+      modified: 1782828882537
+      isPrivate: false
+      description: ""
+      sortKey: -1779290441066.4375
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations/BAVV002/translations"
+    name: Accommodation Translations
+    meta:
+      id: req_4c7922fcc6f8426498fff8cdf6f7f5fa
+      created: 1779963470333
+      modified: 1781249372356
+      isPrivate: false
+      description: ""
+      sortKey: -1779368860602.1196
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/category-codes/translations"
+    name: Category Codes Translations
+    meta:
+      id: req_174d1600dd714d96a9c1a8d69e848623
+      created: 1779981376930
+      modified: 1780672663264
+      isPrivate: false
+      description: ""
+      sortKey: -1779456270049.75
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "inCodeSet": "accommodation-type",
+          "translations": [
+            { "locale": "fr", "label": "Mamasita 2 super Maison d'hôtes" }
+          ]
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations?locale=fr"
+    name: Accommodations
+    meta:
+      id: req_53b284b1d1bd45a3935d0844567238f4
+      created: 1779988280491
+      modified: 1780672478235
+      isPrivate: false
+      description: ""
+      sortKey: -1779369892019.3906
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+          "category": "local-commercial",
+          "realEstateListing": "bien-a-vendre",
+          "place": "campagne",
+          "amenityFeature": [],
+          "tags": [],
+          "associatedMedia": [],
+          "qualities": [
+          ],
+          "status": "published",
+          "floorSize": "57",
+          "numberOfRooms": 1,
+          "numberOfBedrooms": 0,
+          "numberOfBathroomsTotal": 1,
+          "offer": {
+            "price": "1386000",
+            "priceCurrency": "MAD",
+            "priceSpecification": "A la vente"
+          },
+          "name": "Local commercial avec fonds de commerce médina",
+          "label": "Local commercial avec fonds de commerce médina",
+          "body": "Surface : 57 m²\nLocal et fonds de commerce\nEmplacement : médina d’Essaouira, proche Bab Marrakech\n1 espace principal exploitable\n1 petite cuisine au 1er étage\nServitudes : salle de bain et WC\nÉtat : bon état, rafraîchissement à prévoir\n\n## Informations financières\n\n| Désignation          | Montant                  |\n|---------------------|--------------------------|\n| Prix net vendeur    | 120 000 € ≈ 1 320 000 DH |\n| Frais d'agence (5%) | 6 000 € ≈ 66 000 DH      |\n| Prix affiché agence | 126 000 € ≈ 1 386 000 DH |",
+          "review": "Local et fonds de commerce de 57 m² situé au cœur de la médina, proche de Bab Marrakech. Le bien est en bon état avec un rafraîchissement à prévoir."
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations/BAVA002/translations"
+    name: Accommodations Translations
+    meta:
+      id: req_ee9c3df1324e4b849c4e77b3c9e324e6
+      created: 1779989205326
+      modified: 1782057933608
+      isPrivate: false
+      description: ""
+      sortKey: -1779368789469.894
+    method: PUT
+    body:
+      mimeType: application/json
+      text: "{\"locale\":\"fr\",\"fileName\":\"bava002-appartement-centre-ville-balco\
+        n-medina.md\",\"slug\":\"bava002-appartement-centre-ville-balcon-medina\
+        \",\"identifier\":\"BAVA002\",\"frontmatter\":{\"identifier\":\"BAVA002\
+        \",\"slug\":\"bava002-appartement-centre-ville-balcon-medina\",\"name\":\
+        \"Appartement centre ville,
+        balcon\",\"dateCreated\":\"2026-06-21T11:30:55+00:00\",\"dateModified\":\
+        \"2026-06-21T11:30:55+00:00\",\"category\":\"appartement\",\"realEstate\
+        Listing\":\"bien-a-vendre\",\"place\":\"medina\",\"offer\":{\"price\":1\
+        85000,\"priceCurrency\":\"EUR\",\"priceSpecification\":\"A la
+        vente\"},\"yearBuilt\":2004,\"floorSize\":92,\"landArea\":0,\"areaSize\
+        \":\"92\",\"numberOfRooms\":4,\"numberOfBedrooms\":2,\"numberOfBathroom\
+        sTotal\":2,\"numberOfGarages\":0,\"occupancy\":4,\"amenityFeature\":[\"\
+        barbecue-ou-plancha\",\"cave-a-vin\",\"congelateur\",\"douche-exterieure\
+        \",\"enceinte-portable\",\"fer-a-repasser\",\"four\",\"frigo-americain\
+        \",\"home-cinema\",\"lave-linge\",\"lave-vaisselle\",\"machine-a-cafe\",\
+        \"micro-onde\",\"mobilier-exterieur\",\"piscine\",\"refrigerateur\",\"r\
+        obot-menager\",\"seche-linge\",\"television\",\"climatisation\",\"wifi\
+        \"],\"associatedMedia\":[{\"image\":\"019ee9f2-a82c-7250-883b-d0fb86600\
+        e34\",\"caption\":\"Appartement centre Essaouira - pièce de
+        vie\",\"keywords\":[\"gallery\"],\"representativeOfPage\":true},{\"image\
+        \":\"019ee9f2-a82e-7688-913b-485d39028a8a\",\"caption\":\"Appartement
+        centre Essaouira - intérieur
+        lumineux\",\"keywords\":[\"gallery\"]},{\"image\":\"019ee9f2-a830-7e0b-\
+        ab7f-b57ec49e8dfd\",\"caption\":\"Appartement centre Essaouira - espace
+        aménagé\",\"keywords\":[\"gallery\"]}],\"isActive\":true,\"label\":\"Ap\
+        partement centre ville, balcon\",\"highlight\":\"Une adresse centrale
+        facile a vivre\",\"review\":\"Un appartement bien distribue au coeur de
+        la ville, facile a vivre au quotidien et simple a projeter.\\nSon
+        balcon, ses volumes equilibrés et sa proximite immediate des commodites
+        en font une base solide pour une residence principale ou un
+        investissement.\",\"metaTitle\":\"Appartement 92 m2 centre ville -
+        Essaouira\",\"metaDescription\":\"Appartement lumineux de 92 m2 au
+        centre ville, 2 chambres, balcon et ascenseur.\"},\"body\":\"## Visite
+        guidee\\n\\nUn appartement central pense pour une vie simple, pratique
+        et immediate.\\n\\n### Une base confortable au coeur de la ville\\n\\nLa
+        force du bien tient dans son equilibre. Les volumes sont lisibles, les
+        circulations restent fluides et le balcon prolonge agreablement la piece
+        de vie sans compliquer l'usage quotidien.\\n\\nAvec ses deux chambres et
+        ses deux salles d'eau, l'appartement couvre facilement plusieurs
+        scenarios : residence principale, pied-a-terre familial ou
+        investissement locatif annuel. L'adresse centre-ville renforce encore
+        cette polyvalence.\\n\\nLe positionnement est rassurant pour un
+        acquereur qui veut privilegier la praticite : commerces, services et
+        rythmes du quotidien restent accessibles rapidement, sans renoncer a un
+        interieur confortable et lumineux.\\n\\n## Descriptif\\n\\n- Surface
+        interieure annoncee : 92 m2\\n- Configuration : 2 chambres, 2 salles
+        d'eau, balcon\\n- Ambiance : appartement urbain lumineux, facile a
+        meubler\\n- Usage possible : residence principale, pied-a-terre,
+        location annuelle\\n- Niveau de confort : distribution fonctionnelle et
+        lecture immediate des
+        espaces\",\"preview\":{\"identifier\":\"BAVA002\",\"slug\":\"bava002-ap\
+        partement-centre-ville-balcon-medina\",\"title\":\"Appartement centre
+        ville, balcon\",\"description\":\"Une adresse centrale facile a
+        vivre\",\"price\":185000,\"priceCurrency\":\"EUR\",\"priceSpecification\
+        \":\"A la
+        vente\",\"placeSlug\":\"medina\",\"placeLabel\":\"Médina\",\"categorySl\
+        ug\":\"appartement\",\"categoryLabel\":\"Appartement\",\"listingSlug\":\
+        \"bien-a-vendre\",\"listingLabel\":\"Biens a
+        vendre\",\"isActive\":true,\"floorSize\":\"\",\"landArea\":\"\",\"numbe\
+        rOfRooms\":4,\"numberOfBedrooms\":2,\"numberOfBathroomsTotal\":2,\"prim\
+        aryImageUrl\":\"/images/appartement-centre-essaouira-01.jpg\",\"media\"\
+        :[{\"image\":\"019ee9f2-a82c-7250-883b-d0fb86600e34\",\"imageUrl\":\"/i\
+        mages/appartement-centre-essaouira-01.jpg\",\"caption\":\"Appartement
+        centre Essaouira - pièce de
+        vie\",\"keywords\":[\"gallery\"],\"representativeOfPage\":true},{\"image\
+        \":\"019ee9f2-a82e-7688-913b-485d39028a8a\",\"imageUrl\":\"/images/appa\
+        rtement-centre-essaouira-02.jpg\",\"caption\":\"Appartement centre
+        Essaouira - intérieur
+        lumineux\",\"keywords\":[\"gallery\"],\"representativeOfPage\":false},{\
+        \"image\":\"019ee9f2-a830-7e0b-ab7f-b57ec49e8dfd\",\"imageUrl\":\"/imag\
+        es/appartement-centre-essaouira-03.jpg\",\"caption\":\"Appartement
+        centre Essaouira - espace
+        aménagé\",\"keywords\":[\"gallery\"],\"representativeOfPage\":false}]},\
+        \"translations\":[{\"locale\":\"fr\",\"slug\":\"bava002-appartement-cen\
+        tre-ville-balcon-medina\",\"name\":\"Appartement centre ville,
+        balcon\",\"label\":\"Appartement centre ville,
+        balcon\",\"highlight\":\"Une adresse centrale facile a
+        vivre\",\"body\":\"## Visite guidee\\n\\nUn appartement central pense
+        pour une vie simple, pratique et immediate.\\n\\n### Une base
+        confortable au coeur de la ville\\n\\nLa force du bien tient dans son
+        equilibre. Les volumes sont lisibles, les circulations restent fluides
+        et le balcon prolonge agreablement la piece de vie sans compliquer
+        l'usage quotidien.\\n\\nAvec ses deux chambres et ses deux salles d'eau,
+        l'appartement couvre facilement plusieurs scenarios : residence
+        principale, pied-a-terre familial ou investissement locatif annuel.
+        L'adresse centre-ville renforce encore cette polyvalence.\\n\\nLe
+        positionnement est rassurant pour un acquereur qui veut privilegier la
+        praticite : commerces, services et rythmes du quotidien restent
+        accessibles rapidement, sans renoncer a un interieur confortable et
+        lumineux.\\n\\n## Descriptif\\n\\n- Surface interieure annoncee : 92
+        m2\\n- Configuration : 2 chambres, 2 salles d'eau, balcon\\n- Ambiance :
+        appartement urbain lumineux, facile a meubler\\n- Usage possible :
+        residence principale, pied-a-terre, location annuelle\\n- Niveau de
+        confort : distribution fonctionnelle et lecture immediate des
+        espaces\",\"review\":\"Un appartement bien distribue au coeur de la
+        ville, facile a vivre au quotidien et simple a projeter.\\nSon balcon,
+        ses volumes equilibrés et sa proximite immediate des commodites en font
+        une base solide pour une residence principale ou un
+        investissement.\",\"metaTitle\":\"Appartement 92 m2 centre ville -
+        Essaouira\",\"metaDescription\":\"Appartement lumineux de 92 m2 au
+        centre ville, 2 chambres, balcon et ascenseur.\"}]}"
+    headers:
+      - name: Content-Type
+        value: application/ld+json
+        id: pair_847b1b4d8e1e40319cb06a14e13e4609
+      - name: User-Agent
+        value: insomnia/11.2.0
+        id: pair_f87ebfc9ad724b22871a3a5ffebc01e2
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations/translations"
+    name: Accommodations Translations
+    meta:
+      id: req_16d1febc52744b7689785d7ab03801c5
+      created: 1779989220410
+      modified: 1780672470756
+      isPrivate: false
+      description: ""
+      sortKey: -1779369322961.586
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+
+          "category": "local-commercial",
+          "realEstateListing": "bien-a-vendre",
+          "place": "nouvelle-ville",
+          "amenityFeature": [],
+          "tags": [],
+          "associatedMedia": [],
+          "qualities": [
+            {
+              "name": "Confort",
+              "value": 0
+            },
+            {
+              "name": "Architecture",
+              "value": 0
+            },
+            {
+              "name": "Intérieur",
+              "value": 0
+            }
+          ],
+          "translations": [
+            {
+
+              "name": "Local commercial avec fonds de commerce médina",
+              "label": "Local commercial avec fonds de commerce médina",
+              "highlight": null,
+              "body": "Surface : 57 m²\nLocal et fonds de commerce\nEmplacement : médina d’Essaouira, proche Bab Marrakech\n1 espace principal exploitable\n1 petite cuisine au 1er étage\nServitudes : salle de bain et WC\nÉtat : bon état, rafraîchissement à prévoir\n\n## Informations financières\n\n| Désignation          | Montant                  |\n|---------------------|--------------------------|\n| Prix net vendeur    | 120 000 € ≈ 1 320 000 DH |\n| Frais d'agence (5%) | 6 000 € ≈ 66 000 DH      |\n| Prix affiché agence | 126 000 € ≈ 1 386 000 DH |",
+              "review": "Local et fonds de commerce de 57 m² situé au cœur de la médina, proche de Bab Marrakech. Le bien est en bon état avec un rafraîchissement à prévoir.",
+              "metaTitle": "Local commercial avec fonds de commerce médina",
+              "metaDescription": "Surface : 57 m² Local et fonds de commerce Emplacement : médina d’Essaouira, proche Bab Marrakech 1 espace principal exploitable 1 petite cuisine au 1er étage S",
+              "locale": "fr",
+              "id": "019e8f02-eb0d-7d30-85b7-e8f9e48471dd"
+            },
+            {
+              "slug": "bavlc002-local-commercial-avec-fonds-de-commerce-medina-medina",
+              "name": "Local commercial avec fonds de commerce médina",
+              "label": "Local commercial avec fonds de commerce médina",
+              "highlight": null,
+              "body": "Surface : 57 m²\nLocal et fonds de commerce\nEmplacement : médina d’Essaouira, proche Bab Marrakech\n1 espace principal exploitable\n1 petite cuisine au 1er étage\nServitudes : salle de bain et WC\nÉtat : bon état, rafraîchissement à prévoir\n\n## Informations financières\n\n| Désignation          | Montant                  |\n|---------------------|--------------------------|\n| Prix net vendeur    | 120 000 € ≈ 1 320 000 DH |\n| Frais d'agence (5%) | 6 000 € ≈ 66 000 DH      |\n| Prix affiché agence | 126 000 € ≈ 1 386 000 DH |",
+              "review": "Local et fonds de commerce de 57 m² situé au cœur de la médina, proche de Bab Marrakech. Le bien est en bon état avec un rafraîchissement à prévoir.",
+              "metaTitle": "Local commercial avec fonds de commerce médina",
+              "metaDescription": "Surface : 57 m² Local et fonds de commerce Emplacement : médina d’Essaouira, proche Bab Marrakech 1 espace principal exploitable 1 petite cuisine au 1er étage S",
+              "locale": "en",
+              "id": "019e8f02-eb74-7697-bf71-a1d8a01349e0"
+            },
+            {
+              "slug": "bavlc002-local-commercial-avec-fonds-de-commerce-medina-medina",
+              "name": "Local commercial avec fonds de commerce médina",
+              "label": "Local commercial avec fonds de commerce médina",
+              "highlight": null,
+              "body": "Surface : 57 m²\nLocal et fonds de commerce\nEmplacement : médina d’Essaouira, proche Bab Marrakech\n1 espace principal exploitable\n1 petite cuisine au 1er étage\nServitudes : salle de bain et WC\nÉtat : bon état, rafraîchissement à prévoir\n\n## Informations financières\n\n| Désignation          | Montant                  |\n|---------------------|--------------------------|\n| Prix net vendeur    | 120 000 € ≈ 1 320 000 DH |\n| Frais d'agence (5%) | 6 000 € ≈ 66 000 DH      |\n| Prix affiché agence | 126 000 € ≈ 1 386 000 DH |",
+              "review": "Local et fonds de commerce de 57 m² situé au cœur de la médina, proche de Bab Marrakech. Le bien est en bon état avec un rafraîchissement à prévoir.",
+              "metaTitle": "Local commercial avec fonds de commerce médina",
+              "metaDescription": "Surface : 57 m² Local et fonds de commerce Emplacement : médina d’Essaouira, proche Bab Marrakech 1 espace principal exploitable 1 petite cuisine au 1er étage S",
+              "locale": "es",
+              "id": "019e8f02-eb74-77ab-bf71-a1d8a0dedd35"
+            }
+          ],
+          "status": "published",
+          "yearBuilt": null,
+          "areaSize": null,
+          "areaTerrace": null,
+          "floorSize": "57",
+          "landArea": null,
+          "level": null,
+          "numberOfRooms": 1,
+          "numberOfBedrooms": 0,
+          "numberOfBathroomsTotal": 1,
+          "numberOfGarages": null,
+          "occupancy": null,
+          "offer": {
+            "price": "1386000",
+            "priceCurrency": "MAD",
+            "priceSpecification": "A la vente"
+          },
+          "name": "Local commercial avec fonds de commerce médina",
+          "label": "Local commercial avec fonds de commerce médina",
+          "highlight": null,
+          "body": "Surface : 57 m²\nLocal et fonds de commerce\nEmplacement : médina d’Essaouira, proche Bab Marrakech\n1 espace principal exploitable\n1 petite cuisine au 1er étage\nServitudes : salle de bain et WC\nÉtat : bon état, rafraîchissement à prévoir\n\n## Informations financières\n\n| Désignation          | Montant                  |\n|---------------------|--------------------------|\n| Prix net vendeur    | 120 000 € ≈ 1 320 000 DH |\n| Frais d'agence (5%) | 6 000 € ≈ 66 000 DH      |\n| Prix affiché agence | 126 000 € ≈ 1 386 000 DH |",
+          "review": "Local et fonds de commerce de 57 m² situé au cœur de la médina, proche de Bab Marrakech. Le bien est en bon état avec un rafraîchissement à prévoir."
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/accommodations/019e7f7b-ab1e-70f2-93a0-9ae7d410fb01"
+    name: Accommodations
+    meta:
+      id: req_ce369f34f5f445bfaa04ac6f52158be6
+      created: 1780065748314
+      modified: 1780672430586
+      isPrivate: false
+      description: ""
+      sortKey: -1779368753903.7812
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects"
+    name: Media Objects Project
+    meta:
+      id: req_4e49c48f95284bccac6f41a57148ae0e
+      created: 1780070309406
+      modified: 1780672612514
+      isPrivate: false
+      description: ""
+      sortKey: -1779371539515.25
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects/translations"
+    name: Upload Image Translations
+    meta:
+      id: req_3033e2cae47f4bc5b6cd5a0db31b599d
+      created: 1780070398769
+      modified: 1782074603374
+      isPrivate: false
+      description: ""
+      sortKey: -1779371221152.5938
+    method: POST
+    body:
+      mimeType: multipart/form-data
+      params:
+        - id: pair_cd8d63983c26424283feedceb7d7fe96
+          name: translations
+          value: ""
+          description: ""
+          disabled: false
+          type: text
+          multiline: false
+        - id: pair_67545efc368d4a3283fdd51b7a5ffbeb
+          name: file
+          value: ""
+          description: ""
+          disabled: false
+          type: file
+          fileName: \\wsl.localhost\Ubuntu\home\johan\www\graines-digitales\seed\webapp\showcase-immobilier\resources\images\appartement-atelier-medina-03.jpg
+    headers:
+      - name: Content-Type
+        value: multipart/form-data
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects/019e7dec-b83f-719a-a88a-0bc28fbe89ae"
+    name: Upload Image
+    meta:
+      id: req_3ad94bf789c64361aafc3e569181d338
+      created: 1780070593911
+      modified: 1782067011405
+      isPrivate: false
+      description: ""
+      sortKey: -1779371061971.2656
+    method: PUT
+    body:
+      mimeType: multipart/form-data
+      params:
+        - id: pair_cd8d63983c26424283feedceb7d7fe96
+          name: "caption "
+          value: Patio lumineux de riadddd
+          description: ""
+          disabled: false
+        - id: pair_67545efc368d4a3283fdd51b7a5ffbeb
+          name: file
+          value: ""
+          description: ""
+          disabled: false
+          type: file
+          fileName: \\wsl.localhost\Ubuntu\home\johan\www\graines-digitales\seed\webapp\showcase-immobilier\resources\images\affaire-commerciale-boutique-centre-03.jpg
+    headers:
+      - name: Content-Type
+        value: multipart/form-data
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects/019e7f84-ebf0-7286-a8a3-4e31a7f67aee/translations"
+    name: Upload Image Translations
+    meta:
+      id: req_9f2d312d0a264e6aa1f130484d1661fd
+      created: 1780070610265
+      modified: 1780672543763
+      isPrivate: false
+      description: ""
+      sortKey: -1779371046053.1328
+    method: PUT
+    body:
+      mimeType: multipart/form-data
+      params:
+        - id: pair_cd8d63983c26424283feedceb7d7fe96
+          name: translations
+          value: '[{"locale":"fr","caption":"Patio lumineux de riadddddddddddddd"}]'
+          description: ""
+          disabled: false
+        - id: pair_67545efc368d4a3283fdd51b7a5ffbeb
+          name: file
+          value: ""
+          description: ""
+          disabled: false
+          type: file
+          fileName: C:\Users\johan\Pictures\photo_2025-10-15_17-10-25.jpg
+    headers:
+      - name: Content-Type
+        value: multipart/form-data
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'never', 60
+      %}media-objects/019e79a5-9bee-7547-b4ec-07fb23ec497e"
+    name: Media Object
+    meta:
+      id: req_32be9ed2310e44a886626d01872b1e13
+      created: 1780070683088
+      modified: 1780672498480
+      isPrivate: false
+      description: ""
+      sortKey: -1779371038094.0664
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects/019e7f84-ebf0-7286-a8a3-4e31a7f67aee"
+    name: Media Object
+    meta:
+      id: req_2b0464a26f074c46a4cc5ba20e99e387
+      created: 1780071321793
+      modified: 1780672574618
+      isPrivate: false
+      description: ""
+      sortKey: -1779371077889.3984
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/media-objects/019e98e4-f6e1-7164-b92a-9ec034de7a09/translations"
+    name: Media Object Translations
+    meta:
+      id: req_73fb9791f1ec45a091e93b9dca840884
+      created: 1780071637107
+      modified: 1780742092154
+      isPrivate: false
+      description: ""
+      sortKey: -1779371069930.332
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages"
+    name: WebPages
+    meta:
+      id: req_7812319b3ca34c72bb6ad4c0e0aaff19
+      created: 1780124142881
+      modified: 1780672771350
+      isPrivate: false
+      description: ""
+      sortKey: -1780124142881
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages"
+    name: WebPages
+    meta:
+      id: req_11e0d289f975480ba422e7c30061cca5
+      created: 1780124276893
+      modified: 1780672762724
+      isPrivate: false
+      description: ""
+      sortKey: -1779790213759.5
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "inLanguage": "fr",
+          "status": "draft",
+          "headline": "Contact me",
+          "metaTitle": "Contact — Mon Site",
+          "metaDescription": "Contactez-nous.",
+          "body": "<p>Formulaire de contact.</p>"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages/translations"
+    name: WebPages Translations
+    meta:
+      id: req_e39d61728d4d4c4fbf15e300af291398
+      created: 1780124302426
+      modified: 1780672751858
+      isPrivate: false
+      description: ""
+      sortKey: -1779623249198.75
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "status": "draft",
+          "translations": [
+            {
+              "locale": "fr",
+              "headline": "À propos de nous",
+              "metaTitle": "À propos — Mon Site",
+              "metaDescription": "Découvrez notre histoire et notre équipe.",
+              "body": "<p>Bienvenue sur notre page à propos.</p>"
+            },
+            {
+              "locale": "en",
+              "headline": "About Us",
+              "metaTitle": "About — My Site",
+              "metaDescription": "Learn about our story and team.",
+              "body": "<p>Welcome to our about page.</p>"
+            }
+          ]
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages/019e7f81-eb11-77d8-835d-cd11b9ebd23d"
+    name: WebPage
+    meta:
+      id: req_33eeac77891844d5a08d6839a0da31dd
+      created: 1780124333292
+      modified: 1780672744704
+      isPrivate: false
+      description: ""
+      sortKey: -1779539766918.375
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages/019e7f81-eb11-77d8-835d-cd11b9ebd23d/translations"
+    name: WebPage Translations
+    meta:
+      id: req_b69ae3a742e64f5db3307f686937cd51
+      created: 1780124355520
+      modified: 1780672738281
+      isPrivate: false
+      description: ""
+      sortKey: -1779498025778.1875
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages/019e7f81-d5b6-7ed4-adb8-db32f65a8d8c"
+    name: WebPages
+    meta:
+      id: req_a7ef7da9240f4ed6b3e2e4ddd7fae85c
+      created: 1780124377598
+      modified: 1780672730239
+      isPrivate: false
+      description: ""
+      sortKey: -1779477155208.0938
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "inLanguage": "fr",
+          "status": "draft",
+          "headline": "Contact me",
+          "metaTitle": "Contact — Mon Site",
+          "metaDescription": "Contactez-nous.",
+          "body": "<p>Formulaire de contact.</p>"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages/019e7f99-68ea-78f5-bc1f-d4095a07d762/translations"
+    name: WebPages Translations
+    meta:
+      id: req_580f5e6c6d264be48d69977cf18ec0f2
+      created: 1780124397677
+      modified: 1780672720928
+      isPrivate: false
+      description: ""
+      sortKey: -1779466719923.0469
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "status": "draft",
+          "translations": [
+            {
+              "locale": "fr",
+              "headline": "À propos de nous",
+              "metaTitle": "À propos — Mon Site",
+              "metaDescription": "Découvrez notre histoire et notre équipe.",
+              "body": "<p>Bienvenue sur notre page à propos.</p>"
+            },
+            {
+              "locale": "en",
+              "headline": "About Us",
+              "metaTitle": "About — My Site",
+              "metaDescription": "Learn about our story and team.",
+              "body": "<p>Welcome to our about page.</p>"
+            }
+          ]
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/web-pages/019e7f81-eb11-77d8-835d-cd11b9ebd23d"
+    name: WebPage
+    meta:
+      id: req_031d0cf9bf4e4425ade663fb17acb65c
+      created: 1780124412584
+      modified: 1780672711056
+      isPrivate: false
+      description: ""
+      sortKey: -1779461502280.5234
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/category-codes/019e87a4-df20-76a7-a962-ef04bfa0bb58"
+    name: Category Code
+    meta:
+      id: req_ad9242503b82439d888c5412e7bc202c
+      created: 1780124572950
+      modified: 1780672657428
+      isPrivate: false
+      description: ""
+      sortKey: -1779456267618.375
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/category-codes/019e87a4-df20-76a7-a962-ef04bfa0bb58/translations"
+    name: Category Code Translations
+    meta:
+      id: req_fe564dd731f1437d9bd6f3a62f57b7c8
+      created: 1780124630863
+      modified: 1780672651340
+      isPrivate: false
+      description: ""
+      sortKey: -1779456266402.6875
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/category-codes/019e87a4-df20-76a7-a962-ef04bfa0bb58"
+    name: Category Codes
+    meta:
+      id: req_b1d5338dab86479396c442d9dfa0f5b1
+      created: 1780399726142
+      modified: 1780672643867
+      isPrivate: false
+      description: ""
+      sortKey: -1779445739670.1719
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "text": "Atelier4 menuiserie",
+          "inCodeSet": "accommodation-type"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_9b39370cedc64ce1954d0decb8e6248c', 'b64::JC5pZA==::46b', 'always', 60
+      %}/category-codes/019e87a4-df20-76a7-a962-ef04bfa0bb58/translations"
+    name: Category Codes Translations
+    meta:
+      id: req_23032f4230334b888b20abe25466bc30
+      created: 1780399751842
+      modified: 1780672634836
+      isPrivate: false
+      description: ""
+      sortKey: -1779435212937.6562
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "inCodeSet": "accommodation-type",
+          "translations": [
+            { "locale": "fr", "text": "Mamasita 3323 super Maison d'hôtes" }
+          ]
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.base_url }}/api/projects/{% response 'body',
+      'req_0634156853814547adb6a95f737db982', 'b64::JC5pZA==::46b', 'always', 60
+      %}/members/check?email=buzac@mlk-my-little-kasbah.immo"
+    name: is Symfony Project Members
+    meta:
+      id: req_9f99bd569142435b8cabdc43a6652326
+      created: 1782049284228
+      modified: 1782049681320
+      isPrivate: false
+      description: ""
+      sortKey: -1779325505510.625
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    authentication:
+      type: bearer
+      token: "{% response 'body', 'req_6fb867d6e6054e31b6ec160ab8a3c3d4',
+        'b64::JC50b2tlbg==::46b', 'always', 60 %}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_a70a7ccd6d3126db1d41ac26050a0598055dcfe9
+    created: 1779202548156
+    modified: 1779202548156
+environments:
+  name: Base Environment
+  meta:
+    id: env_a70a7ccd6d3126db1d41ac26050a0598055dcfe9
+    created: 1779202548155
+    modified: 1791119072484
+    isPrivate: false
+  data:
+    base_url: http://localhost:18080
+    site_url: http://localhost:3000
+    email_user: demo@graines-digitales.online
+    default_password: ""
+    email_member_1: "?"
+  subEnvironments:
+    - name: PROD
+      meta:
+        id: env_694c7d64519b4327b9ec322db14ad3af
+        created: 1780925428598
+        modified: 1782828923009
+        isPrivate: true
+        sortKey: 1780925428598
+      data:
+        base_url: https://api.graines-digitales.online
+        site_url: https://mlk-webapp.graines-digitales.online
+        email_user: johan.remy@graines-digitales.online
+        default_password: ""
+        email_member_1: buzac@mlk-my-little-kasbah.immo
+    - name: PREPROD
+      meta:
+        id: env_8450210983714a208a5dca9ccc2a79ff
+        created: 1780925447115
+        modified: 1782828938150
+        isPrivate: true
+        sortKey: 1780925447115
+      data:
+        base_url: https://api.graines-digitales.online
+        site_url: https://blueprint-webapp.graines-digitales.online
+        email_user: demo@graines-digitales.online
+        default_password: ""
+        email_member_1: buzac@mlk-my-little-kasbah.immo

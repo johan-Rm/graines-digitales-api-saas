@@ -188,7 +188,7 @@ SYMFONY_PROJECT_ID={projectUuid}
 ## 10 — Deuxieme organisation
 
 ```bash
-docker compose exec api php bin/console app:organization:create "Blue Bay Mogador" --owner-email=demo@graines-digitales.online --owner-password=password1234
+docker compose exec api php bin/console app:organization:create "Showcase Immobilier" --owner-email=demo@graines-digitales.online --owner-password=password1234
 ```
 
 ---
@@ -214,8 +214,8 @@ GET /api/organizations
 Authorization: Bearer {token}
 ```
 
-Noter l'UUID de l'organisation `Blue Bay Mogador`
-(`{blueBayOrganizationUuid}`).
+Noter l'UUID de l'organisation `Showcase Immobilier`
+(`{showcaseImmobilierOrganizationUuid}`).
 
 ---
 
@@ -227,7 +227,7 @@ Authorization: Bearer {token}
 Content-Type: application/ld+json
 
 {
-  "email": "manager@blue-bay-mogador.test",
+  "email": "manager@showcase-immobilier.test",
   "password": "password1234",
   "role": "admin"
 }
@@ -238,18 +238,18 @@ Content-Type: application/ld+json
 ## 14 — Champs metier de la deuxieme organisation
 
 ```http
-PUT /api/organizations/{blueBayOrganizationUuid}
+PUT /api/organizations/{showcaseImmobilierOrganizationUuid}
 Authorization: Bearer {token}
 Content-Type: application/ld+json
 
 {
-  "name": "Blue Bay Mogador",
-  "acronym": "BBM",
-  "fullName": "Blue Bay Mogador",
+  "name": "Showcase Immobilier",
+  "acronym": "SI",
+  "fullName": "Showcase Immobilier",
   "location": "Essaouira",
-  "email": ["contact@blue-bay-mogador.test"],
+  "email": ["contact@showcase-immobilier.test"],
   "phoneNumbers": ["+212 (0)6 12 345 678"],
-  "description": "Blue Bay Mogador est une organisation de demonstration dediee aux tests multi-projets et a la validation de l'isolation des donnees."
+  "description": "Showcase Immobilier est une organisation de demonstration dediee aux tests multi-projets et a la validation de l'isolation des donnees."
 }
 ```
 
@@ -266,26 +266,26 @@ Authorization: Bearer {token}
 Content-Type: application/ld+json
 
 {
-  "organization": "/api/organizations/{blueBayOrganizationUuid}",
-  "name": "blue-bay-mogador",
+  "organization": "/api/organizations/{showcaseImmobilierOrganizationUuid}",
+  "name": "showcase-immobilier",
   "sourceLocale": "fr",
   "enabledLocales": ["fr", "en"],
-  "mediaPath": "blue-bay-mogador/public/images",
+  "mediaPath": "showcase-immobilier/public/images",
   "mediaBaseUrl": "/images"
 }
 ```
 
-Noter l'`@id` retourne (`/api/projects/{blueBayProjectUuid}`).
+Noter l'`@id` retourne (`/api/projects/{showcaseImmobilierProjectUuid}`).
 
 ---
 
 ## 16 — Membres du deuxieme projet
 
-L'utilisateur doit etre membre de l'organisation Blue Bay avant d'etre ajoute au
+L'utilisateur doit etre membre de l'organisation Showcase Immobilier avant d'etre ajoute au
 projet.
 
 ```http
-POST /api/projects/{blueBayProjectUuid}/members
+POST /api/projects/{showcaseImmobilierProjectUuid}/members
 Authorization: Bearer {token}
 Content-Type: application/ld+json
 
@@ -296,12 +296,12 @@ Content-Type: application/ld+json
 ```
 
 ```http
-POST /api/organizations/{blueBayOrganizationUuid}/members
+POST /api/organizations/{showcaseImmobilierOrganizationUuid}/members
 Authorization: Bearer {token}
 Content-Type: application/ld+json
 
 {
-  "email": "manager@blue-bay-mogador.test",
+  "email": "manager@showcase-immobilier.test",
   "role": "admin"
 }
 ```
@@ -313,7 +313,7 @@ Content-Type: application/ld+json
 Si le frontend doit cibler le projet secondaire :
 
 ```env
-SYMFONY_PROJECT_ID={blueBayProjectUuid}
+SYMFONY_PROJECT_ID={showcaseImmobilierProjectUuid}
 ```
 
 ---
@@ -329,7 +329,7 @@ source, affiche les volumes detectes et bloque l'import si une reference critiqu
 absente.
 
 ```bash
-docker compose exec api php bin/console app:seed:load-project blue-bay-mogador
+docker compose exec api php bin/console app:seed:load-project showcase-immobilier
 ```
 
 En mode interactif, la commande demande les familles d'entites a importer puis une
@@ -338,13 +338,13 @@ confirmation avant toute ecriture.
 En mode non interactif, l'import doit etre explicitement confirme :
 
 ```bash
-docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogador --no-interaction --force
+docker compose exec -T api php bin/console app:seed:load-project showcase-immobilier --no-interaction --force
 ```
 
 Il est possible de limiter les familles importees :
 
 ```bash
-docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogador --no-interaction --force --only=metadata,media
+docker compose exec -T api php bin/console app:seed:load-project showcase-immobilier --no-interaction --force --only=metadata,media
 ```
 
 Familles disponibles : `metadata`, `media`, `web-pages`, `accommodations`.
@@ -354,9 +354,9 @@ lancent d'abord le bootstrap manuel avec un scope de mot de passe limite au proj
 demande, puis chargent le seed :
 
 ```bash
-make dev-seed-load PROJECT=blue-bay-mogador PASSWORD='blue-bay-password'
+make dev-seed-load PROJECT=showcase-immobilier PASSWORD='showcase-immobilier-password'
 make dev-seed-load PROJECT=mlk-modern-site-web PASSWORD='mlk-password'
-make prod-seed-load PROJECT=blue-bay-mogador PASSWORD='blue-bay-password'
+make prod-seed-load PROJECT=showcase-immobilier PASSWORD='showcase-immobilier-password'
 make prod-seed-load PROJECT=mlk-modern-site-web PASSWORD='mlk-password'
 ```
 
@@ -371,5 +371,32 @@ la sequence ci-dessus conserve les mots de passe suivants :
 - `developer@graines-digitales.online` : `super-admin-password`
 - `johan.remy@graines-digitales.online` : `mlk-password`
 - `buzac@mlk-my-little-kasbah.immo` : `mlk-password`
-- `demo@graines-digitales.online` : `blue-bay-password`
-- `manager@blue-bay-mogador.test` : `blue-bay-password`
+- `demo@graines-digitales.online` : `showcase-immobilier-password`
+- `manager@showcase-immobilier.test` : `showcase-immobilier-password`
+
+## Setup local Showcase uniquement
+
+```bash
+make dev-setup-showcase PASSWORD=demo1234
+```
+
+Cette cible initialise les services, dependances, JWT et migrations, puis cree
+uniquement les comptes Showcase, son organisation, son projet et memberships,
+et propose l'import interactif du seed `showcase-immobilier`. Elle ne cree ni
+MLK ni le super admin et ne supprime pas les donnees existantes.
+
+Si le setup technique est deja fait :
+
+```bash
+make dev-seed-load PROJECT=showcase-immobilier PASSWORD=demo1234
+```
+
+Pour creer les comptes et le projet sans importer les donnees :
+
+```bash
+make dev-bootstrap-manual PROJECT=showcase-immobilier PASSWORD=demo1234
+```
+
+`--project` limite les creations ; `--password-project` limite seulement les
+mises a jour de mots de passe. Sans `PROJECT`, le bootstrap conserve son
+comportement complet historique.

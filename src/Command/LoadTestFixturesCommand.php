@@ -56,20 +56,20 @@ final class LoadTestFixturesCommand extends Command
         $this->entityManager->flush();
 
         $riads = $this->createProject('Riads Médina Essaouira', 'riads-medina-essaouira', $epi, $admin);
-        $bbm = $this->createProject('Blue Bay Mogador', 'blue-bay-mogador', $epi, $admin);
+        $showcaseImmobilier = $this->createProject('Showcase Immobilier', 'showcase-immobilier', $epi, $admin);
         $villas = $this->createProject('Villas Arganier Ghazoua', 'villas-arganier-ghazoua', $acl, $admin);
 
         $this->entityManager->flush();
 
         $this->createProjectMember($riads, $editor, ProjectRole::Editor, $admin);
         $this->createProjectMember($villas, $editor, ProjectRole::Editor, $admin);
-        $this->createProjectMember($bbm, $viewer, ProjectRole::Viewer, $admin);
+        $this->createProjectMember($showcaseImmobilier, $viewer, ProjectRole::Viewer, $admin);
 
         $this->entityManager->flush();
 
         $this->seedRiadsProject($riads, $admin);
         $this->seedVillasProject($villas, $admin);
-        $this->seedBbmProject($bbm, $admin);
+        $this->seedShowcaseImmobilierProject($showcaseImmobilier, $admin);
 
         $this->entityManager->flush();
 
@@ -197,7 +197,7 @@ final class LoadTestFixturesCommand extends Command
         );
     }
 
-    private function seedBbmProject(Project $project, User $admin): void
+    private function seedShowcaseImmobilierProject(Project $project, User $admin): void
     {
         $type = $this->createCategoryCode($project, 'accommodation-type', 'villa', 'Villa', $admin, [
             'en' => 'Villa',
@@ -236,14 +236,14 @@ final class LoadTestFixturesCommand extends Command
             'es' => 'Lujo',
         ]);
 
-        $media = $this->createMediaObject($project, 'villa-blue-bay.jpg', $admin);
-        $this->createWebPage($project, 'accueil-bbm', 'Accueil Blue Bay', 'Bienvenue à Blue Bay Mogador.', $admin, [
-            'en' => ['headline' => 'Welcome to Blue Bay', 'body' => 'Welcome to Blue Bay Mogador.'],
+        $media = $this->createMediaObject($project, 'villa-showcase-immobilier.jpg', $admin);
+        $this->createWebPage($project, 'accueil-showcase-immobilier', 'Accueil Showcase Immobilier', 'Bienvenue à Showcase Immobilier.', $admin, [
+            'en' => ['headline' => 'Welcome to Showcase Immobilier', 'body' => 'Welcome to Showcase Immobilier.'],
         ]);
 
-        $villaBlueBay = 'Villa Blue Bay';
+        $villaShowcaseImmobilier = 'Villa Showcase Immobilier';
         $this->createAccommodation(
-            $project, 'LV001', $villaBlueBay, 'villa-blue-bay',
+            $project, 'LV001', $villaShowcaseImmobilier, 'villa-showcase-immobilier',
             [
                 'type' => $type, 'listing' => $listing, 'place' => $place,
                 'amenities' => [$amenity1, $amenity2, $amenity3], 'tags' => [$tag1, $tag2, $tag3], 'media' => $media,
@@ -263,7 +263,7 @@ final class LoadTestFixturesCommand extends Command
                     ],
                 ],
             ],
-            $admin, ['en' => $villaBlueBay, 'es' => $villaBlueBay],
+            $admin, ['en' => $villaShowcaseImmobilier, 'es' => $villaShowcaseImmobilier],
         );
     }
 

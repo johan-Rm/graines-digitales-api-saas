@@ -3,8 +3,6 @@ deptrac:
     App\Controller\AccommodationTranslationsByIdentifierController:
       - App\Translation\ResourceAutoFiller
       - App\Translation\ResourceAutoTranslator
-    App\Controller\BulkMediaUploadController:
-      - App\Message\AnalyzeMediaObject
     App\Controller\DashboardAccommodationByIdentifierController:
       - App\Translation\ResourceAutoFiller
       - App\Translation\ResourceAutoTranslator
@@ -83,5 +81,3 @@ deptrac:
     App\Seed\WebPageSeedImporter:
       - App\Translation\ResourceAutoFiller
       - App\Translation\ResourceAutoTranslator
-    App\State\ProjectScopedPersistProcessor:
-      - App\Message\WatermarkMediaObject

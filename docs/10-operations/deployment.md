@@ -120,14 +120,39 @@ Le frontend sert les fichiers publics sous le chemin relatif `/images`. Le champ
 `MediaObject.contentUrl` ne contient jamais de protocole ni de host. Verifier avant mise
 en prod :
 
-- racine persistante `/srv/webapps` montee dans le container API
+- racine hote persistante `/var/www/graines-digitales/webapps` montee dans les containers sous `/srv/webapps`
 - droits d'ecriture pour PHP-FPM
 - sauvegarde ou retention du volume media
 - `Project.mediaBaseUrl` configure avec `/images`
 - coherence entre `Project.mediaPath` et le repertoire public `images` du frontend
 
 Dans la topologie Compose de reference, `/srv/webapps` est une racine technique fixe.
-Le sous-chemin par projet vient de `Project.mediaPath` en base.
+Le sous-chemin par projet vient de `Project.mediaPath` en base. Le chemin hote est
+configurable via `WEBAPPS_HOST_DIR` (defaut : `/var/www/graines-digitales/webapps`).
+Les sources seed restent separees dans `/var/www/graines-digitales/seed/webapp`,
+configure via `SEED_PROJECT_HOST_DIR` dans `.env.prod` ou `.env.preprod`.
+Ces dossiers sont hors du depot Git. Les dossiers `/webapps/`, `/seed/` et
+`/public/media/` du depot sont egalement ignores par Git et exclus du build Docker.
+
+Pour migrer le stockage existant sur le VPS, arreter les services avant la copie
+et conserver la source jusqu'a validation :
+
+```bash
+make prod-stop
+sudo mkdir -p /var/www/graines-digitales/webapps
+sudo cp -a /srv/webapps/. /var/www/graines-digitales/webapps/
+```
+
+Dans `.env.prod`, definir :
+
+```dotenv
+WEBAPPS_HOST_DIR=/var/www/graines-digitales/webapps
+SEED_PROJECT_HOST_DIR=/var/www/graines-digitales/seed/webapp
+```
+
+Puis recreer les containers avec `make prod-up`. Verifier les uploads et
+l'affichage des medias ; adapter aussi le chemin du serveur frontend s'il sert
+directement les fichiers depuis l'ancien dossier hote.
 
 ## Import seed projet
 

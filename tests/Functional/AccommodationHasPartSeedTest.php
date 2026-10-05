@@ -14,7 +14,7 @@ final class AccommodationHasPartSeedTest extends FunctionalTestCase
     {
         $client = static::createClient();
         $token = $this->login($client, self::ADMIN);
-        $project = $this->findProjectBySlug('blue-bay-mogador');
+        $project = $this->findProjectBySlug('showcase-immobilier');
         $accommodation = $this->findAccommodationByIdentifier('LV001', $project);
 
         $response = $client->request('GET', sprintf(

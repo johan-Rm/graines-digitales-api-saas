@@ -170,7 +170,8 @@ final class MediaUploadTest extends FunctionalTestCase
         self::assertStringStartsWith('dashboard-watermark-', $finalFilePath);
         self::assertSame('/images/'.$finalFilePath, $payload['contentUrl'] ?? null);
         self::assertFileExists($webappsDir.'/'.$mediaPath.'/'.$finalFilePath);
-        self::assertNotSame([], glob($webappsDir.'/'.$mediaPath.'/originals/*') ?: []);
+        $originalFiles = glob($webappsDir.'/'.$mediaPath.'/originals/*');
+        self::assertNotSame([], false === $originalFiles ? [] : $originalFiles);
 
         $this->assertNoLocalizedRootFields($payload);
         $byLocale = array_column($payload['translations'], null, 'locale');

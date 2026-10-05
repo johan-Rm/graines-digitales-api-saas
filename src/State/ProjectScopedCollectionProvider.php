@@ -2,13 +2,16 @@
 
 namespace App\State;
 
+use ApiPlatform\Doctrine\Orm\Paginator;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\ProjectScopedResource;
 use App\Entity\TranslatableResource;
 use App\Security\ProjectAccessGuard;
 use App\Translation\LocaleResolver;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator as DoctrinePaginator;
 
 final readonly class ProjectScopedCollectionProvider implements ProviderInterface
 {
@@ -17,6 +20,7 @@ final readonly class ProjectScopedCollectionProvider implements ProviderInterfac
         private EntityManagerInterface $entityManager,
         private ProjectAccessGuard $projectAccessGuard,
         private LocaleResolver $localeResolver,
+        private Pagination $pagination,
     ) {
     }
 
@@ -26,21 +30,43 @@ final readonly class ProjectScopedCollectionProvider implements ProviderInterfac
         $project = $this->projectAccessGuard->getReadableProject($projectId);
         $class = $operation->getClass();
 
-        if (is_a($class, ProjectScopedResource::class, true)) {
-            $resources = $this->entityManager->getRepository($class)->findBy([
-                'project' => $project,
-            ]);
+        if (!is_a($class, ProjectScopedResource::class, true)) {
+            return $this->decorated->provide($operation, $uriVariables, $context);
+        }
 
-            foreach ($resources as $resource) {
-                if ($resource instanceof TranslatableResource) {
-                    $this->resolveTranslationLocale($resource);
-                }
-            }
+        // Stable ordering is required for consistent pagination (no skipped/duplicated rows across pages).
+        $queryBuilder = $this->entityManager->getRepository($class)->createQueryBuilder('resource')
+            ->andWhere('resource.project = :project')
+            ->setParameter('project', $project)
+            ->orderBy('resource.createdAt', 'DESC')
+            ->addOrderBy('resource.id', 'ASC');
+
+        if (!$this->pagination->isEnabled($operation, $context)) {
+            $resources = $queryBuilder->getQuery()->getResult();
+            $this->resolveLocales($resources);
 
             return $resources;
         }
 
-        return $this->decorated->provide($operation, $uriVariables, $context);
+        [, $offset, $limit] = $this->pagination->getPagination($operation, $context);
+        $queryBuilder->setFirstResult($offset)->setMaxResults($limit);
+
+        $paginator = new Paginator(new DoctrinePaginator($queryBuilder->getQuery()));
+        $this->resolveLocales($paginator);
+
+        return $paginator;
+    }
+
+    /**
+     * @param iterable<object> $resources
+     */
+    private function resolveLocales(iterable $resources): void
+    {
+        foreach ($resources as $resource) {
+            if ($resource instanceof TranslatableResource) {
+                $this->resolveTranslationLocale($resource);
+            }
+        }
     }
 
     private function resolveTranslationLocale(TranslatableResource $resource): void

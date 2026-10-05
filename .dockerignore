@@ -27,3 +27,7 @@ schemas
 
 phpunit.xml
 phpunit_debug.xml
+
+# Données externes si placées à la racine du dépôt
+webapps
+seed
