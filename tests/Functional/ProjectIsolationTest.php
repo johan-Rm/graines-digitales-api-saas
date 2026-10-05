@@ -17,7 +17,7 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
         $riadProject = $this->findProjectBySlug('riads-medina-essaouira');
-        $coastalProject = $this->findProjectBySlug('blue-bay-mogador');
+        $coastalProject = $this->findProjectBySlug('showcase-immobilier');
         $riadPage = $this->findWebPageByProject($riadProject);
 
         $client->request('GET', sprintf(
@@ -196,7 +196,7 @@ final class ProjectIsolationTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'editor.essaouira@grainesdigitales.local');
         $riadProject = $this->findProjectBySlug('riads-medina-essaouira');
-        $coastalProject = $this->findProjectBySlug('blue-bay-mogador');
+        $coastalProject = $this->findProjectBySlug('showcase-immobilier');
         $coastalAccommodation = $this->findAccommodationByIdentifier('LV001', $coastalProject);
 
         $client->request('GET', sprintf(

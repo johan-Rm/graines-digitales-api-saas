@@ -29,7 +29,8 @@ docker compose -f docker-compose.dev.yml exec api php bin/console lexik:jwt:gene
 docker compose -f docker-compose.dev.yml exec api php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-API locale : `http://localhost:18080`
+API locale : `http://api.localhost:18080` (vhost Docker Nginx).
+`http://localhost:18080` reste accessible.
 
 ## Auth
 
@@ -114,3 +115,26 @@ docker compose -f docker-compose.dev.yml exec api php bin/phpunit
 
 Les tests critiques couvrent auth, refresh token, isolation projet, acces inter-projets,
 traductions, upload image et soft delete.
+
+## Collection Insomnia
+
+`Insomnia_2026-10-04.yaml` fournit une collection de requetes. Les mots de passe
+des environnements exportes sont volontairement vides : renseigner les valeurs
+localement apres import. Pour Showcase local, utiliser le compte
+`demo@graines-digitales.online` et le mot de passe passe a Make. Les requetes
+de creation historiques sont des exemples a adapter au projet cible.
+
+## Depots Git
+
+Le depot d'organisation est le remote `origin`. Le depot de partage public
+est le remote `public` :
+
+```bash
+git remote add public https://github.com/johan-Rm/graines-digitales-api-saas.git
+git push origin develop master
+git push public develop master
+```
+
+Les branches d'integration et de production sont publiees sur les deux depots
+apres validation. Ne pas pousser les fichiers d'environnement, cles JWT,
+medias ni exports contenant des credentials.

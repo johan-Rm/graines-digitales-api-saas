@@ -25,10 +25,10 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
 
     public function testSyncClearsProjectMediaDirectoryAndCopiesAllSeedImages(): void
     {
-        $seedRoot = $this->tempDirectory.'/seed/blue-bay-mogador';
+        $seedRoot = $this->tempDirectory.'/seed/showcase-immobilier';
         $imagesDirectory = $seedRoot.'/resources/images/gallery';
         $webappsDirectory = $this->tempDirectory.'/webapps';
-        $targetDirectory = $webappsDirectory.'/blue-bay';
+        $targetDirectory = $webappsDirectory.'/showcase-immobilier';
 
         mkdir($imagesDirectory, 0775, true);
         mkdir($targetDirectory.'/old', 0775, true);
@@ -37,8 +37,8 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
         file_put_contents($targetDirectory.'/old/stale.jpg', 'stale');
 
         $project = (new Project())
-            ->setSlug('blue-bay-mogador')
-            ->setMediaPath('blue-bay');
+            ->setSlug('showcase-immobilier')
+            ->setMediaPath('showcase-immobilier');
         $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
 
         $count = (new ProjectSeedImageSynchronizer(new ImageWatermarker(), $webappsDirectory))->sync($project, $data);
@@ -53,11 +53,11 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
 
     public function testSyncRejectsBlankProjectMediaPath(): void
     {
-        $seedRoot = $this->tempDirectory.'/seed/blue-bay-mogador';
+        $seedRoot = $this->tempDirectory.'/seed/showcase-immobilier';
         mkdir($seedRoot.'/resources/images', 0775, true);
 
         $project = (new Project())
-            ->setSlug('blue-bay-mogador')
+            ->setSlug('showcase-immobilier')
             ->setMediaPath('   ');
         $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
 
@@ -69,11 +69,11 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
 
     public function testSyncRejectsUnsafeProjectMediaPath(): void
     {
-        $seedRoot = $this->tempDirectory.'/seed/blue-bay-mogador';
+        $seedRoot = $this->tempDirectory.'/seed/showcase-immobilier';
         mkdir($seedRoot.'/resources/images', 0775, true);
 
         $project = (new Project())
-            ->setSlug('blue-bay-mogador')
+            ->setSlug('showcase-immobilier')
             ->setMediaPath('../shared');
         $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
 
@@ -85,21 +85,21 @@ final class ProjectSeedImageSynchronizerTest extends TestCase
 
     public function testSyncAcceptsSlashWrappedProjectMediaPath(): void
     {
-        $seedRoot = $this->tempDirectory.'/seed/blue-bay-mogador';
+        $seedRoot = $this->tempDirectory.'/seed/showcase-immobilier';
         mkdir($seedRoot.'/resources/images', 0775, true);
         file_put_contents($seedRoot.'/resources/images/hero.jpg', 'hero');
 
         $webappsDirectory = $this->tempDirectory.'/webapps';
         $project = (new Project())
-            ->setSlug('blue-bay-mogador')
-            ->setMediaPath('/blue-bay/');
+            ->setSlug('showcase-immobilier')
+            ->setMediaPath('/showcase-immobilier/');
         $data = new ProjectSeedData($seedRoot, 'fr', [], [], [], []);
 
         $count = (new ProjectSeedImageSynchronizer(new ImageWatermarker(), $webappsDirectory))->sync($project, $data);
 
         self::assertSame(1, $count);
-        self::assertFileExists($webappsDirectory.'/blue-bay/hero.jpg');
-        self::assertFileExists($webappsDirectory.'/blue-bay/originals/hero.jpg');
+        self::assertFileExists($webappsDirectory.'/showcase-immobilier/hero.jpg');
+        self::assertFileExists($webappsDirectory.'/showcase-immobilier/originals/hero.jpg');
     }
 
     private function removeDirectory(string $directory): void

@@ -41,7 +41,7 @@ final class TranslationTest extends FunctionalTestCase
     {
         $client = static::createClient();
         $token = $this->login($client, 'viewer.mogador@grainesdigitales.local');
-        $project = $this->findProjectBySlug('blue-bay-mogador');
+        $project = $this->findProjectBySlug('showcase-immobilier');
         $page = $this->findWebPageByProject($project);
 
         $response = $client->request('GET', sprintf(
@@ -66,7 +66,7 @@ final class TranslationTest extends FunctionalTestCase
         $client = static::createClient();
         $token = $this->login($client, 'viewer.mogador@grainesdigitales.local');
         $riadProject = $this->findProjectBySlug('riads-medina-essaouira');
-        $coastalProject = $this->findProjectBySlug('blue-bay-mogador');
+        $coastalProject = $this->findProjectBySlug('showcase-immobilier');
         $riadPage = $this->findWebPageByProject($riadProject);
 
         $client->request('GET', sprintf(

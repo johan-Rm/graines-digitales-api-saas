@@ -56,15 +56,15 @@ dev-reset-cache: ## Remove Symfony var/cache from inside the API container.
 
 dev-bootstrap-manual: ## Run the manual bootstrap command. Usage: make dev-bootstrap-manual PASSWORD=password1234
 	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make dev-bootstrap-manual PASSWORD=password1234' && exit 1)
-	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD)
+	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD) $(if $(PROJECT),--project=$(PROJECT))
 
 dev-fixtures-test: ## Load test fixtures through the project command.
 	$(EXEC) php bin/console app:fixtures:load-test
 
-dev-seed-load: ## Load project seed data. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234
-	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234' && exit 1)
-	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make dev-seed-load PROJECT=blue-bay-mogador PASSWORD=password1234' && exit 1)
-	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD) --password-project=$(PROJECT)
+dev-seed-load: ## Load project seed data. Usage: make dev-seed-load PROJECT=showcase-immobilier PASSWORD=password1234
+	@test -n "$(PROJECT)" || (echo 'Missing PROJECT. Usage: make dev-seed-load PROJECT=showcase-immobilier PASSWORD=password1234' && exit 1)
+	@test -n "$(PASSWORD)" || (echo 'Missing PASSWORD. Usage: make dev-seed-load PROJECT=showcase-immobilier PASSWORD=password1234' && exit 1)
+	$(EXEC) php bin/console app:bootstrap:manual --password=$(PASSWORD) --project=$(PROJECT) --password-project=$(PROJECT)
 	$(EXEC) php bin/console app:seed:load-project $(PROJECT)
 
 dev-create-super-admin: ## Create or update a super admin. Usage: make dev-create-super-admin EMAIL=user@example.test PASSWORD=password1234
@@ -108,3 +108,9 @@ dev-jwt: ## Générer le keypair JWT s'il manque (dev).
 
 dev-migrate: ## Jouer les migrations Doctrine en dev.
 	$(EXEC) php bin/console doctrine:migrations:migrate --no-interaction
+
+.PHONY: dev-setup-showcase
+dev-setup-showcase: ## Setup Showcase only. Usage: make dev-setup-showcase PASSWORD=demo1234
+	@test -n "$(PASSWORD)" || (echo "Missing PASSWORD" && exit 1)
+	$(MAKE) dev-setup
+	$(MAKE) dev-seed-load PROJECT=showcase-immobilier PASSWORD=$(PASSWORD)

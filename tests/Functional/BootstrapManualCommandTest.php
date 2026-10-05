@@ -2,6 +2,8 @@
 
 namespace App\Tests\Functional;
 
+use App\Entity\Organization;
+use App\Entity\Project;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -24,8 +26,8 @@ final class BootstrapManualCommandTest extends FunctionalTestCase
         self::assertSame(0, $tester->getStatusCode());
 
         $tester->execute([
-            '--password' => 'blue-bay-password',
-            '--password-project' => 'blue-bay-mogador',
+            '--password' => 'showcase-immobilier-password',
+            '--password-project' => 'showcase-immobilier',
         ], ['decorated' => false]);
         self::assertSame(0, $tester->getStatusCode());
 
@@ -40,8 +42,8 @@ final class BootstrapManualCommandTest extends FunctionalTestCase
         $this->assertUserPassword('developer@graines-digitales.online', 'super-admin-password');
         $this->assertUserPassword('johan.remy@graines-digitales.online', 'mlk-password');
         $this->assertUserPassword('buzac@mlk-my-little-kasbah.immo', 'mlk-password');
-        $this->assertUserPassword('demo@graines-digitales.online', 'blue-bay-password');
-        $this->assertUserPassword('manager@blue-bay-mogador.test', 'blue-bay-password');
+        $this->assertUserPassword('demo@graines-digitales.online', 'showcase-immobilier-password');
+        $this->assertUserPassword('manager@showcase-immobilier.test', 'showcase-immobilier-password');
     }
 
     public function testCommandRejectsUnknownPasswordProject(): void
@@ -55,6 +57,23 @@ final class BootstrapManualCommandTest extends FunctionalTestCase
 
         self::assertSame(1, $tester->getStatusCode());
         self::assertStringContainsString('Unsupported password project', $tester->getDisplay());
+    }
+
+    public function testShowcaseScopeDoesNotCreateMlkOrSuperAdmin(): void
+    {
+        $tester = $this->makeCommandTester();
+        $tester->execute([
+            '--password' => 'demo1234',
+            '--project' => 'showcase-immobilier',
+        ], ['decorated' => false]);
+        self::assertSame(0, $tester->getStatusCode());
+        $this->entityManager()->clear();
+        self::assertNull($this->entityManager()->getRepository(Project::class)->findOneBy(['slug' => 'mlk-modern-site-web']));
+        self::assertNull($this->entityManager()->getRepository(Organization::class)->findOneBy(['name' => 'MLK - My Little Kasbah']));
+        self::assertNull($this->entityManager()->getRepository(User::class)->findOneBy(['email' => 'developer@graines-digitales.online']));
+        $this->assertUserPassword('demo@graines-digitales.online', 'demo1234');
+        $this->assertUserPassword('manager@showcase-immobilier.test', 'demo1234');
+        self::assertStringNotContainsString('not found', $tester->getDisplay());
     }
 
     private function makeCommandTester(): CommandTester

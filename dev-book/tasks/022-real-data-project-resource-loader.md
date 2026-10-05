@@ -58,7 +58,7 @@ SEED_PROJECT_PATH=/absolute/path/to/seed/webapp
 
 ```bash
 docker compose exec api php bin/console app:seed:load-project mlk-modern-site-web
-docker compose exec api php bin/console app:seed:load-project blue-bay-mogador
+docker compose exec api php bin/console app:seed:load-project showcase-immobilier
 ```
 
 Le nom final de la variable devra etre valide pendant l'implementation.
@@ -123,7 +123,7 @@ ou de configuration frontend qui ne correspondent pas aux ressources backend pro
 
 Analyse initiale du seed source :
 
-- 2 dossiers projet : `mlk-modern-site-web`, `blue-bay-mogador`.
+- 2 dossiers projet : `mlk-modern-site-web`, `showcase-immobilier`.
 - 54 fichiers `accommodations/*.md` au total.
 - 20 fichiers `web-pages/*.md` au total au moment de la derniere analyse.
 - 4 fichiers `metadata/*.yaml` au total : `category-code.yaml` et `media-object.yaml` pour
@@ -131,7 +131,7 @@ Analyse initiale du seed source :
 - 281 images dans `resources/images/`.
 - Les fichiers Markdown utilisent du front matter YAML et un body Markdown.
 
-Analyse cible du dossier `blue-bay-mogador/data/fr/metadata` :
+Analyse cible du dossier `showcase-immobilier/data/fr/metadata` :
 
 - `category-code.yaml` : 101 entrees, champs `codeValue`, `name`, `inCodeSet`, `text`
   optionnel.
@@ -148,15 +148,15 @@ Analyse cible du dossier `blue-bay-mogador/data/fr/metadata` :
 - 8 medias n'ont pas de `caption` ; l'import doit appliquer un fallback lisible depuis le
   nom de fichier ou accepter une description vide selon la regle retenue.
 - Les `WebPage.associatedMedia` top-level utilisent des noms de fichiers. Dans l'etat
-  analyse, 7 references de page Blue Bay ne sont pas declarees dans `media-object.yaml`.
+  analyse, 7 references de page Showcase Immobilier ne sont pas declarees dans `media-object.yaml`.
   Ce point doit etre corrige dans le seed ou faire echouer l'import avec un message
   explicite.
-- Les references `category`, `place` et `realEstateListing` des accommodations Blue Bay
+- Les references `category`, `place` et `realEstateListing` des accommodations Showcase Immobilier
   sont couvertes par les metadata.
-- Les references `amenityFeature` des accommodations Blue Bay ne sont pas toutes couvertes
+- Les references `amenityFeature` des accommodations Showcase Immobilier ne sont pas toutes couvertes
   par `inCodeSet = amenity-feature` : certaines valeurs existent comme `tag`, d'autres sont
   des libelles libres. La V1 doit etre stricte et signaler ces valeurs avant import.
-- Les accommodations Blue Bay referencent encore certains medias via des alias de type
+- Les accommodations Showcase Immobilier referencent encore certains medias via des alias de type
   `media-{basename}` et quelques UUID historiques. La V1 doit choisir explicitement entre :
   corriger le seed, accepter temporairement un alias `media-{basename}` documente, ou
   echouer strictement pendant le preflight.
@@ -323,7 +323,7 @@ l'orchestration centrale.
 - [x] `docker compose exec -T api php bin/console lint:container`
 - [x] `docker compose exec -T api php bin/console doctrine:schema:validate`
 - [ ] `docker compose exec -T api php bin/console app:seed:load-project mlk-modern-site-web`
-- [ ] `docker compose exec -T api php bin/console app:seed:load-project blue-bay-mogador`
+- [ ] `docker compose exec -T api php bin/console app:seed:load-project showcase-immobilier`
 - [x] `docker compose exec -T api php bin/console app:fixtures:load-demo` n'existe plus.
 - [x] Relancer la commande deux fois ne duplique pas les donnees pour le perimetre valide
       `metadata,media`.
@@ -343,11 +343,11 @@ l'orchestration centrale.
       depuis une sequence rigide codee directement dans la commande.
 - [ ] Les tests fonctionnels critiques d'isolation inter-projets restent verts.
 
-## Etat de validation du seed Blue Bay
+## Etat de validation du seed Showcase Immobilier
 
 Validation locale du 2026-05-27 :
 
-- `metadata,media` s'importe correctement pour `blue-bay-mogador`.
+- `metadata,media` s'importe correctement pour `showcase-immobilier`.
 - Les images seed sont copiees dans `WEBAPPS_DIR/{project.mediaPath}` et dans
   `WEBAPPS_DIR/{project.mediaPath}/originals`.
 - L'option `--sync-images` purge `WEBAPPS_DIR/{project.mediaPath}` puis copie tous les

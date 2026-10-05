@@ -23,7 +23,7 @@ services:
       WEBAPPS_DIR: /srv/webapps
     volumes:
       - jwt_keys:/srv/api/config/jwt
-      - /srv/webapps:/srv/webapps
+      - ${WEBAPPS_HOST_DIR:-/var/www/graines-digitales/webapps}:/srv/webapps
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,7 +54,7 @@ services:
       WEBAPPS_DIR: /srv/webapps
     volumes:
       - jwt_keys:/srv/api/config/jwt
-      - /srv/webapps:/srv/webapps
+      - ${WEBAPPS_HOST_DIR:-/var/www/graines-digitales/webapps}:/srv/webapps
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,7 +80,7 @@ services:
       WEBAPPS_DIR: /srv/webapps
     volumes:
       - jwt_keys:/srv/api/config/jwt
-      - /srv/webapps:/srv/webapps
+      - ${WEBAPPS_HOST_DIR:-/var/www/graines-digitales/webapps}:/srv/webapps
     depends_on:
       postgres:
         condition: service_healthy
@@ -108,7 +108,7 @@ services:
       SEED_PROJECT_PATH: /srv/seed/webapp
     volumes:
       - jwt_keys:/srv/api/config/jwt
-      - /srv/webapps:/srv/webapps
+      - ${WEBAPPS_HOST_DIR:-/var/www/graines-digitales/webapps}:/srv/webapps
       - ${SEED_PROJECT_HOST_DIR:?SEED_PROJECT_HOST_DIR is required}:/srv/seed/webapp:ro
     depends_on:
       postgres:

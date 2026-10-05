@@ -78,6 +78,7 @@ help:
 
 	@printf "⚙️ Bootstrap & Données\n\n"
 	@printf "  dev-setup                   Setup local : up + install + JWT + migrations\n"
+	@printf "  dev-setup-showcase          Setup + bootstrap + seed Showcase uniquement\n"
 	@printf "  dev-deploy                  Setup complet + bootstrap + healthcheck\n"
 	@printf "  dev-reset-cache             Supprimer var/cache Symfony\n"
 	@printf "  dev-bootstrap-manual        Lancer le bootstrap applicatif manuel\n"
