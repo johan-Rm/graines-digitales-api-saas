@@ -87,6 +87,41 @@ docker build -f Dockerfile.prod -t graines-digitales-api:prod .
 
 Le fichier `.env.example` liste les variables attendues sans secret reel.
 
+## Correctif PHP2Shell — 22 octobre 2026
+
+Les Dockerfiles de developpement et de production utilisent explicitement
+`php:8.4.27-fpm-alpine`, version corrigee pour CVE-2026-109618 et
+CVE-2026-109619. Il ne faut pas reutiliser une ancienne image PHP 8.4.26.
+Voir [l'avis PHP](https://www.php.net/) et
+[le CERT-EU](https://cert.europa.eu/publications/security-advisories/2026-018).
+Les prochaines mises a jour de PHP doivent faire evoluer cette version explicite.
+
+Pour cette correction du moteur, aucune mise a jour Composer ni migration de base
+n'est requise. Conserver l'image precedente pour un retour arriere avant le build,
+et verifier l'espace disque. Construire avec `--pull` pour recuperer l'image de base
+corrigee. L'API et le worker utilisent la meme image : il faut recreer les deux,
+avec le nom de projet et le fichier d'environnement du deploiement existant.
+Ne pas lancer `make prod-deploy` uniquement pour cette correction : cette cible
+execute egalement des migrations.
+
+Apres construction, verifier `php-fpm -v`, `php -v`, les extensions `intl`, `pdo_pgsql`
+et `imagick`, puis le demarrage Symfony. Apres deploiement, controler l'ID d'image
+et le renouvellement des processus API et worker, ainsi qu'une requete reelle
+passant par le proxy. Une version CLI seule ne valide pas les processus FPM.
+Recetter connexion/refresh JWT, isolation inter-projets, upload et traitement
+Messenger. Examiner les journaux sans effacer les traces avant analyse.
+
+Validation locale du 22 octobre 2026 : les deux images ont ete construites avec
+succes sous PHP 8.4.27. Des requetes FastCGI reelles ont valide FPM, les extensions,
+les sessions et un upload multipart sur chaque image ; `pcov` est charge dans
+l'image de developpement. `make lint-container` a reussi sur l'image de production
+avec les variables exemples et Dotenv desactive, comme dans Compose.
+Les tests unitaires existants ont reussi sous PHP 8.4.27 via `make test-file` :
+**27 tests, 86 assertions**, avec le bootstrap autoload seul pour eviter toute
+connexion a la base. Avant merge, la suite complete a ensuite reussi via Make :
+**146 tests, 1243 assertions**, sur PostgreSQL jetable avec cles JWT temporaires
+et chemins de stockage isoles. Aucun deploiement n'a ete effectue.
+
 ## Cles JWT
 
 Les cles JWT de production doivent etre generees sur l'environnement cible :

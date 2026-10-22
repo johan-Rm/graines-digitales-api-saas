@@ -1,4 +1,5 @@
-FROM php:8.4-fpm-alpine
+# PHP2Shell : version minimale corrigee pour la branche PHP 8.4.
+FROM php:8.4.27-fpm-alpine
 
 RUN apk add --no-cache \
         acl \
